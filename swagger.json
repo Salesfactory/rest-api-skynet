@@ -1,0 +1,13 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Skynet API Documentation",
+        "version": "1.0.0",
+        "title": "Salesfactory Skynet"
+    },
+    "schemes": ["http"],
+    "host": "localhost:5000",
+    "basePath": "/api",
+    "paths" : {}, 
+    "definitions": {}
+}
