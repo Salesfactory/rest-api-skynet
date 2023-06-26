@@ -4,16 +4,22 @@ const port = 5000;
 const bodyParser = require("body-parser");
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
+// routes
+const userRouter = require('./src/routes/users.route');
 
 // BigQuery
 const { BigQuery } = require('@google-cloud/bigquery');
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get('/', (req, res) => {
   res.send('Hello!');
 });
+
+// user routes
+app.use('/api/users', userRouter);
 
 // Create a new dataset for testing, this might be removed later
 // move routes to a new file
