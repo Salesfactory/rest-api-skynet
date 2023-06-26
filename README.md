@@ -91,6 +91,22 @@ To build and run the project using Docker, follow these steps:
 
 Congratulations! You now have the Rest API Skynet project installed, running, and containerized with Docker. Feel free to explore and modify the code to suit your needs. If you encounter any issues or have questions, please submit them on the GitHub repository's issue tracker: [https://github.com/Salesfactory/rest-api-skynet/issues](https://github.com/Salesfactory/rest-api-skynet/issues).
 
+## BigQuery
+
+Some endpoints might need BigQuery to be configured, please follow the steps below: 
+
+The basic steps are:
+
+1.  [Select or create a Cloud Platform project](https://console.cloud.google.com/project).
+2.  [Enable the Google BigQuery API](https://console.cloud.google.com/flows/enableapi?apiid=bigquery.googleapis.com).
+3.  [Set up authentication with a service account](https://cloud.google.com/docs/authentication/getting-started) so you can access the
+    API from your local workstation.
+
+**Production and Development Default Credentials are different, please read carefully.**
+
+If you need more information, please read:
+[BigQuery Quickstart](https://github.com/googleapis/nodejs-bigquery#before-you-begin)
+
 ## Contributing
 
 If you would like to contribute to the Rest API Skynet project, you can follow these guidelines:
