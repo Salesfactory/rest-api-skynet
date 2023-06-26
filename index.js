@@ -2,6 +2,9 @@ const express = require('express');
 const app = express();
 const port = 5000;
 const bodyParser = require("body-parser");
+const cors = require("cors");
+const helmet = require('helmet');
+const morgan = require("morgan");
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
 // routes
@@ -10,6 +13,20 @@ const userRouter = require('./src/routes/users.route');
 // BigQuery
 const { BigQuery } = require('@google-cloud/bigquery');
 
+// set security HTTP headers
+app.use(helmet.xssFilter());
+app.use(helmet.noSniff());
+app.use(helmet.frameguard());
+app.use(helmet.hidePoweredBy());
+app.use(helmet());
+
+// enable all CORS requests
+app.use(cors());
+
+// log all requests to the console
+app.use(morgan("common"));
+
+// parse requests
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -43,6 +60,17 @@ app.get("/create-test-dataset", (req, res) => {
   } catch (error) {
     res.send(error.message);
   }
+});
+
+// custom 404
+app.use((req, res, next) => {
+  res.status(404).send("Sorry can't find that!");
+});
+
+// custom error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
 });
 
 app.listen(port, (err) => {
