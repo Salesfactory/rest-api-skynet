@@ -1,0 +1,21 @@
+version: 0.3
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - npm install
+  pre_build:
+    commands:
+      - npm test
+  build:
+    commands:
+      - npm run build
+  post_build:
+    commands:
+      - zip -r my-app.zip dist/*
+
+artifacts:
+  files:
+    - my-app.zip
