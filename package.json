@@ -4,7 +4,7 @@
   "description": "Skynet REST API",
   "main": "index.js",
   "scripts": {
-    "test": "npx jest --passWithNoTests",
+    "test": "jest --passWithNoTests --watch",
     "start": "node index.js",
     "dev": "nodemon index.js",
     "build": "webpack",
@@ -37,6 +37,7 @@
     "copy-webpack-plugin": "^11.0.0",
     "jest": "^29.5.0",
     "nodemon": "^2.0.22",
+    "sequelize-cli": "^6.6.1",
     "supertest": "^6.3.3",
     "webpack": "^5.87.0",
     "webpack-cli": "^5.1.4"
