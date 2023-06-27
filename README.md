@@ -107,6 +107,8 @@ The basic steps are:
 If you need more information, please read:
 [BigQuery Quickstart](https://github.com/googleapis/nodejs-bigquery#before-you-begin)
 
+## Deploying CI/CD
+
 ## Contributing
 
 If you would like to contribute to the Rest API Skynet project, you can follow these guidelines:
@@ -119,3 +121,5 @@ If you would like to contribute to the Rest API Skynet project, you can follow t
 6. Submit a pull request to the main repository.
 
 Please make sure to follow the project's code style and include appropriate tests for your changes. Your contributions are greatly appreciated!
+
+Deploy
