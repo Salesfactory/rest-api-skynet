@@ -4,7 +4,8 @@
   "description": "Skynet REST API",
   "main": "index.js",
   "scripts": {
-    "test": "jest --passWithNoTests --watch",
+    "test": "npx jest --passWithNoTests --watch",
+    "test:ci": "npx jest --passWithNoTests",
     "start": "node index.js",
     "dev": "nodemon index.js",
     "build": "webpack",
