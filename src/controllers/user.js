@@ -12,7 +12,7 @@ const getUsers = async (req, res) => {
                 [Op.or]: [
                     { name: { [Op.like]: `%${search}%` } },
                     { email: { [Op.like]: `%${search}%` } },
-                    { username: { [Op.like]: `%${search}%` } },
+                    { uid: { [Op.like]: `%${search}%` } },
                     { contact: { [Op.like]: `%${search}%`} }
                 ]
             };
@@ -52,14 +52,14 @@ const createUser = async (req, res) => {
     const { 
         name, 
         email, 
-        username, 
+        uid, 
         avatar, 
         description, 
         contact, 
         active 
     } = req.body;
-    const requiredParams = ["name", "email", "username"];
-    const uniqueFields = ["email", "username"];
+    const requiredParams = ["uid", "email"];
+    const uniqueFields = ["email", "uid"];
 
     try {
         const missingParams = requiredParams.filter(param => !req.body[param]);
@@ -73,7 +73,7 @@ const createUser = async (req, res) => {
         const user = await User.create({ 
             name, 
             email, 
-            username, 
+            uid, 
             avatar, 
             description, 
             contact, 
@@ -105,13 +105,12 @@ const updateUser = async (req, res) => {
     const { 
         name, 
         email, 
-        username, 
         avatar,
         description,
         contact,
         active 
     } = req.body;
-    const uniqueFields = ["email", "username"];
+    const uniqueFields = ["email", "uid"];
 
     try {
         const user = await User.findOne({ where: { id } });
@@ -124,7 +123,6 @@ const updateUser = async (req, res) => {
         const userData = await User.update({
             name,
             email,
-            username,
             avatar,
             description,
             contact,
