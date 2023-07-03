@@ -314,9 +314,9 @@
                     "type": "string",
                     "example": "johndoe@example.com"
                 },
-                "username": {
+                "uid": {
                     "type": "string",
-                    "example": "johndoe123"
+                    "example": "6cb69c71-3b9a-4a0f-8f1a-4d7d2f2e0b0e"
                 },
                 "avatar": {
                     "type": "string",

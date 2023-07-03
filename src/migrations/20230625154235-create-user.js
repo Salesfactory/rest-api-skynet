@@ -11,17 +11,17 @@ module.exports = {
       },
       name: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       email: {
         type: Sequelize.STRING,
         unique: true,
         allowNull: false,
       },
-      username: {
-        type: Sequelize.STRING,
+      uid: {
+        type: Sequelize.UUID,
         unique: true,
-        allowNull: false,
+        allowNull: true,
       },
       avatar: {
         type: Sequelize.STRING,

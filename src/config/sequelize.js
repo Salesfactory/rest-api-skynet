@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 
 module.exports = {
   development: {
@@ -8,10 +8,18 @@ module.exports = {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: process.env.DB_DIALECT,
-    dialectOptions: {
-      bigNumberStrings: true
-    }
+    dialectOptions:
+      process.env.DB_SSL === "true"
+        ? {
+            bigNumberStrings: true,
+            ssl: {
+              require: true,
+              rejectUnauthorized: false,
+            },
+          }
+        : {},
+    logging: true,
   },
   test: {},
-  production: {}
+  production: {},
 };
