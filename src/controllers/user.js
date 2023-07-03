@@ -1,5 +1,5 @@
 const { User } = require('../models');
-const response = require('../utils/response');
+const { response, validateUUID } = require('../utils');
 const { Op } = require('sequelize');
 
 const getUsers = async (req, res) => {
@@ -29,9 +29,14 @@ const getUsers = async (req, res) => {
 
 const getUserById = async (req, res) => {
     const { active } = req.query;
-    const id = parseInt(req.params.id);
-    const searchParams = { id, active: active ? active : true };
-
+    const id = req.params.id;
+    const isUUID = validateUUID(id);
+    
+    const searchParams = {
+        ...(isUUID ? { uid: id } : { id: parseInt(id) }),
+        active: active ? active : true,
+    };
+    
     try {
         const user = await User.findOne({ where: searchParams });
         if (!user)
@@ -101,7 +106,11 @@ const createUser = async (req, res) => {
 }
 
 const updateUser = async (req, res) => {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
+    const isUUID = validateUUID(id);
+    const searchParams = {
+        ...(isUUID ? { uid: id } : { id: parseInt(id) }),
+    };
     const { 
         name, 
         email, 
@@ -113,26 +122,25 @@ const updateUser = async (req, res) => {
     const uniqueFields = ["email", "uid"];
 
     try {
-        const user = await User.findOne({ where: { id } });
+        const user = await User.findOne({ where: searchParams });
         if (!user)
             return response(res, { 
                 status: 404, 
                 message: `User not found` 
             });
 
-        const userData = await User.update({
+        await User.update({
             name,
             email,
             avatar,
             description,
             contact,
             active
-        }, { where: { id } });
+        }, { where: searchParams });
 
         return response(res, {
             status: 201,
-            data: userData, 
-            message: `User with id ${id} updated successfully` 
+            message: `User updated successfully` 
         });
     } catch (error) {
         if (error.name === "SequelizeUniqueConstraintError") {
@@ -151,16 +159,20 @@ const updateUser = async (req, res) => {
 }
 
 const deleteUser = async (req, res) => {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
+    const isUUID = validateUUID(id);
+    const searchParams = {
+        ...(isUUID ? { uid: id } : { id: parseInt(id) }),
+    };
 
     try {
-        const user = await User.findOne({ where: { id } });
+        const user = await User.findOne({ where: searchParams });
         if (!user)
             return response(res, { 
                 status: 404, 
                 message: `User not found` 
             });
-        await User.destroy({ where: { id } });
+        await User.destroy({ where: searchParams });
         return response(res, { 
             message: `User deleted successfully`,
             data: user
