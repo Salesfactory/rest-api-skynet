@@ -12,12 +12,15 @@ const sequelize = new Sequelize(
     port: process.env.DB_PORT,
     logging: process.env.DB_LOGGING === "true" ? console.log : false,
     dialect: process.env.DB_DIALECT,
-    dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false,
-      },
-    },
+    dialectOptions:
+      process.env.DB_SSL === "true"
+        ? {
+            ssl: {
+              require: true,
+              rejectUnauthorized: false,
+            },
+          }
+        : {},
   }
 );
 

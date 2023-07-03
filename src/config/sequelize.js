@@ -8,13 +8,16 @@ module.exports = {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: process.env.DB_DIALECT,
-    dialectOptions: {
-      bigNumberStrings: true,
-      ssl: {
-        require: true,
-        rejectUnauthorized: false,
-      },
-    },
+    dialectOptions:
+      process.env.DB_SSL === "true"
+        ? {
+            bigNumberStrings: true,
+            ssl: {
+              require: true,
+              rejectUnauthorized: false,
+            },
+          }
+        : {},
     logging: true,
   },
   test: {},
