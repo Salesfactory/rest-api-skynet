@@ -129,7 +129,7 @@ const updateUser = async (req, res) => {
                 message: `User not found` 
             });
 
-        await User.update({
+        const userData = await User.update({
             name,
             email,
             avatar,
@@ -140,6 +140,7 @@ const updateUser = async (req, res) => {
 
         return response(res, {
             status: 201,
+            data: userData,
             message: `User updated successfully` 
         });
     } catch (error) {

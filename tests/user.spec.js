@@ -21,7 +21,7 @@ describe("User Endpoints Test", () => {
             const data = [{
                 name: "John Doe",
                 email: "johndoe@test.com", 
-                username: "johndoe"
+                uid: "6cb69c71-3b9a-4a0f-8f1a-4d7d2f2e0b0e"
             }];
     
             User.findAll.mockResolvedValue(data);
@@ -45,7 +45,7 @@ describe("User Endpoints Test", () => {
             const data = [{
                 name: "John Doe",
                 email: "johndoe@test.com",
-                username: "johndoe"
+                uid: "6cb69c71-3b9a-4a0f-8f1a-4d7d2f2e0b0e"
             }];
 
             User.findOne.mockResolvedValue(data);
@@ -76,7 +76,7 @@ describe("User Endpoints Test", () => {
             const data = {
                 name: "John Doe",
                 email: "jonhdoe@test.com",
-                username: "johndoe"
+                uid: "6cb69c71-3b9a-4a0f-8f1a-4d7d2f2e0b0e"
             };
 
             User.create.mockResolvedValue(data);
@@ -93,30 +93,30 @@ describe("User Endpoints Test", () => {
             };
             const response = await request.post("/api/users").send(data);
             expect(response.status).toBe(400);
-            expect(response.body.message).toBe("Missing required params: username");
+            expect(response.body.message).toBe("Missing required params: uid");
         });
 
         it("400", async () => {
             const data = {
                 name: "John Doe",
                 email: "jonhdoe@test.com",
-                username: "johndoe"
+                uid: "6cb69c71-3b9a-4a0f-8f1a-4d7d2f2e0b0e"
             };
-            const error = new Error("Username already exists");
+            const error = new Error("Uid already exists");
             error.name = "SequelizeUniqueConstraintError";
-            error.fields = { username: "johndoe" };
+            error.fields = { uid: "6cb69c71-3b9a-4a0f-8f1a-4d7d2f2e0b0e" };
 
             User.create.mockRejectedValue(error);
             const response = await request.post("/api/users").send(data);
             expect(response.status).toBe(400);
-            expect(response.body.message).toBe("username already exists");
+            expect(response.body.message).toBe("uid already exists");
         });
 
         it("500", async () => {
             const data = {
                 name: "John Doe",
                 email: "jonhdoe@test.com",
-                username: "johndoe"
+                uid: "6cb69c71-3b9a-4a0f-8f1a-4d7d2f2e0b0e"
             };
             User.create.mockRejectedValue(new Error("Error"));
             const response = await request.post("/api/users").send(data);
@@ -130,16 +130,17 @@ describe("User Endpoints Test", () => {
             const data = {
                 name: "John Doe",
                 email: "jonhdoe@test.com",
-                username: "johndoe"
+                uid: "6cb69c71-3b9a-4a0f-8f1a-4d7d2f2e0b0e"
             };
             const modifiedData = {
                 name: "John Doe",
                 email: "johndoe@test.com",
-                username: "johndoe"
+                uid: "6cb69c71-3b9a-4a0f-8f1a-4d7d2f2e0b0e"
             };
             User.findOne.mockResolvedValue(data);
             User.update.mockResolvedValue(modifiedData);
             const response = await request.put("/api/users/1").send(modifiedData);
+            console.log(response.body)
             expect(response.status).toBe(201);
             expect(response.body.data).toEqual(modifiedData);
         });
@@ -148,24 +149,24 @@ describe("User Endpoints Test", () => {
             const data = {
                 name: "John Doe",
                 email: "jonhdoe@test.com",
-                username: "johndoe"
+                uid: "6cb69c71-3b9a-4a0f-8f1a-4d7d2f2e0b0e"
             };
-            const error = new Error("Username already exists");
+            const error = new Error("uid already exists");
             error.name = "SequelizeUniqueConstraintError";
-            error.fields = { username: "johndoe" };
+            error.fields = { uid: "6cb69c71-3b9a-4a0f-8f1a-4d7d2f2e0b0e" };
 
             User.findOne.mockResolvedValue(data);
             User.update.mockRejectedValue(error);
             const response = await request.put("/api/users/1").send(data);
             expect(response.status).toBe(400);
-            expect(response.body.message).toBe("username already exists");
+            expect(response.body.message).toBe("uid already exists");
         });
 
         it("404", async () => {
             const data = {
                 name: "John Doe",
                 email: "jonhdoe@test.com",
-                username: "johndoe"
+                uid: "6cb69c71-3b9a-4a0f-8f1a-4d7d2f2e0b0e"
             };
             User.findOne.mockResolvedValue(null);
             const response = await request.put("/api/users/1").send(data);
@@ -177,7 +178,7 @@ describe("User Endpoints Test", () => {
             const data = {
                 name: "John Doe",
                 email: "jonhdoe@test.com",
-                username: "johndoe"
+                uid: "6cb69c71-3b9a-4a0f-8f1a-4d7d2f2e0b0e"
             };
             User.findOne.mockResolvedValue(data);
             User.update.mockRejectedValue(new Error("Error"));
@@ -192,7 +193,7 @@ describe("User Endpoints Test", () => {
             const data = {
                 name: "John Doe",
                 email: "jonhdoe@test.com",
-                username: "johndoe"
+                uid: "6cb69c71-3b9a-4a0f-8f1a-4d7d2f2e0b0e"
             };  
             User.findOne.mockResolvedValue(data);
             User.destroy.mockResolvedValue(1);
@@ -212,7 +213,7 @@ describe("User Endpoints Test", () => {
             const data = {
                 name: "John Doe",
                 email: "jonhdoe@test.com",
-                username: "johndoe"
+                uid: "6cb69c71-3b9a-4a0f-8f1a-4d7d2f2e0b0e"
             };  
             User.findOne.mockResolvedValue(data);
             User.destroy.mockRejectedValue(new Error("Error"));
