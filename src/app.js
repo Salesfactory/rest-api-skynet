@@ -1,8 +1,8 @@
 const express = require('express');
-const bodyParser = require("body-parser");
-const cors = require("cors");
+const bodyParser = require('body-parser');
+const cors = require('cors');
 const helmet = require('helmet');
-const morgan = require("morgan");
+const morgan = require('morgan');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('../swagger.json');
 // api router
@@ -12,6 +12,18 @@ const { BigQuery } = require('@google-cloud/bigquery');
 
 module.exports = function () {
     const app = express();
+
+    // override the default json response
+    app.response.json = function (body) {
+        this.contentType('json').end(
+            JSON.stringify({
+                code: this.statusCode,
+                message: body.message ?? '',
+                data: body.data ?? {},
+            })
+        );
+        return this;
+    };
 
     // set security HTTP headers
     app.use(helmet.xssFilter());
@@ -24,7 +36,7 @@ module.exports = function () {
     app.use(cors());
 
     // log all requests to the console
-    app.use(morgan("common"));
+    app.use(morgan('common'));
 
     // parse requests
     app.use(bodyParser.json());
@@ -40,7 +52,7 @@ module.exports = function () {
 
     // Create a new dataset for testing, this might be removed later
     // move routes to a new file
-    app.get("/create-test-dataset", (req, res) => {
+    app.get('/create-test-dataset', (req, res) => {
         try {
             const datasetName = req.query.datasetName;
             async function createDataset() {
@@ -48,14 +60,16 @@ module.exports = function () {
                 const bigqueryClient = new BigQuery();
 
                 // Create the dataset
-                const [dataset] = await bigqueryClient.createDataset(datasetName);
+                const [dataset] = await bigqueryClient.createDataset(
+                    datasetName
+                );
                 console.log(`Dataset ${dataset.id} created.`);
                 res.send(`Dataset ${dataset.id} created.`);
             }
             if (datasetName) {
                 createDataset();
             } else {
-                res.send("Please provide dataset name");
+                res.send('Please provide dataset name');
             }
         } catch (error) {
             res.send(error.message);
@@ -74,4 +88,4 @@ module.exports = function () {
     });
 
     return app;
-}
+};
