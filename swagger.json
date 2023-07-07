@@ -296,7 +296,33 @@
                     }
                 }
             }
-        }
+        },
+        "/bq/channels": {
+          "get": {
+              "summary": "Get channel names",
+              "description": "Returns a list of channel names.",
+              "produces": [
+                  "application/json"
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful operation",
+                      "schema": {
+                          "type": "array",
+                          "items": {
+                              "type": "object",
+                              "properties": {
+                                  "channel": {
+                                      "type": "string",
+                                      "example": "channel 1"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      }
     },
     "definitions": {
         "User": {

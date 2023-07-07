@@ -1,7 +1,8 @@
 const express = require('express');
+const CognitoExpress = require('cognito-express');
 const router = express.Router();
 const userRouter = require('./users');
-const CognitoExpress = require('cognito-express');
+const channelRouter = require('./channels');
 
 let cognitoExpress;
 if (process.env.NODE_ENV !== 'test') {
@@ -35,5 +36,6 @@ const validateToken = (req, res, next) => {
 };
 
 router.use('/users', validateToken, userRouter);
+router.use('/channels', validateToken, channelRouter);
 
 module.exports = router;
