@@ -140,7 +140,6 @@ describe("User Endpoints Test", () => {
             User.findOne.mockResolvedValue(data);
             User.update.mockResolvedValue(modifiedData);
             const response = await request.put("/api/users/1").send(modifiedData);
-            console.log(response.body)
             expect(response.status).toBe(201);
             expect(response.body.data).toEqual(modifiedData);
         });

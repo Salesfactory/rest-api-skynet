@@ -25,4 +25,4 @@ const options = {
 
 const bigqueryClient = new BigQuery(options);
 
-module.exports = bigqueryClient;
+module.exports = { bigqueryClient };
