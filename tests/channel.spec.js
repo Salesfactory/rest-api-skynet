@@ -2,6 +2,18 @@ const supertest = require('supertest');
 const makeApp = require('../src/app');
 const { bigqueryClient } = require('../src/config/bigquery');
 
+const { User } = require('../src/models');
+
+jest.mock('../src/models', () => ({
+    User: {
+        create: jest.fn(),
+        update: jest.fn(),
+        findOne: jest.fn(),
+        findAll: jest.fn(),
+        destroy: jest.fn()
+    },
+}));
+
 jest.mock('../src/config/bigquery', () => ({
     bigqueryClient: {
         query: jest.fn(),
