@@ -297,7 +297,7 @@
                 }
             }
         },
-        "/bq/channels": {
+        "/channels": {
           "get": {
               "summary": "Get channel names",
               "description": "Returns a list of channel names.",
