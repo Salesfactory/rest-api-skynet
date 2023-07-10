@@ -322,7 +322,33 @@
                   }
               }
           }
-      }
+        },
+        "/clients": {
+            "get": {
+                "summary": "Get client names",
+                "description": "Returns a list of client names.",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "client": {
+                                        "type": "string",
+                                        "example": "client 1"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     },
     "definitions": {
         "User": {
