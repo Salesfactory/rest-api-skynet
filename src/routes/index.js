@@ -3,6 +3,7 @@ const CognitoExpress = require('cognito-express');
 const router = express.Router();
 const userRouter = require('./users');
 const channelRouter = require('./channels');
+const clientRouter = require('./clients');
 
 let cognitoExpress;
 if (process.env.NODE_ENV !== 'test') {
@@ -37,5 +38,6 @@ const validateToken = (req, res, next) => {
 
 router.use('/users', validateToken, userRouter);
 router.use('/channels', validateToken, channelRouter);
+router.use('/clients', validateToken, clientRouter);
 
 module.exports = router;
