@@ -2,23 +2,7 @@ const { BigQuery } = require('@google-cloud/bigquery');
 
 const projectId = process.env.project_id;
 
-const private_key = JSON.stringify(
-    process.env.BQ_PRIVATE_KEY?.replace(/\\n/g, '\n') ?? ''
-);
-console.log(private_key);
-const keyFileContent = `{
-    "type": "${process.env.BQ_TYPE}",
-    "project_id": "${process.env.BQ_PROJECT_ID}",
-    "private_key_id": "${process.env.BQ_PRIVATE_KEY_ID}",
-    "private_key": ${private_key},
-    "client_email": "${process.env.BQ_CLIENT_EMAIL}",
-    "client_id": "${process.env.BQ_CLIENT_ID}",
-    "auth_uri": "${process.env.BQ_AUTH_URI}",
-    "token_uri": "${process.env.BQ_TOKEN_URI}",
-    "auth_provider_x509_cert_url": "${process.env.BQ_AUTH_PROVIDER_X509_CERT_URL}",
-    "client_x509_cert_url": "${process.env.BQ_CLIENT_X509_CERT_URL}",
-    "universe_domain": "${process.env.BQ_UNIVERSE_DOMAIN}"
-}`;
+const keyFileContent = atob(process.env.BQ_CONFIG);
 
 const credentials = JSON.parse(keyFileContent);
 
