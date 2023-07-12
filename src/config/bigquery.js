@@ -2,9 +2,16 @@ const { BigQuery } = require('@google-cloud/bigquery');
 
 const projectId = process.env.project_id;
 
-const keyFileContent = atob(process.env.BQ_CONFIG);
+let keyFileContent;
+let credentials;
 
-const credentials = JSON.parse(keyFileContent);
+try {
+    keyFileContent = atob(process.env.BQ_CONFIG);
+    credentials = JSON.parse(keyFileContent);
+} catch (error) {
+    // while running tests 'aton' won't find a value so credentials will raise an error
+    credentials = {};
+}
 
 const options = {
     projectId,
