@@ -5,6 +5,7 @@ const projectId = process.env.project_id;
 const private_key = JSON.stringify(
     process.env.BQ_PRIVATE_KEY?.replace(/\\n/g, '\n') ?? ''
 );
+console.log(private_key);
 const keyFileContent = `{
     "type": "${process.env.BQ_TYPE}",
     "project_id": "${process.env.BQ_PROJECT_ID}",
