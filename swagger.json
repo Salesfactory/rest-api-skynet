@@ -14,6 +14,7 @@
         "/users": {
             "get": {
                 "summary": "Get all users",
+                "tags": ["users"],
                 "description": "Returns a list of users. Can be filtered by the search query parameter.",
                 "produces": [
                     "application/json"
@@ -54,6 +55,7 @@
             },
             "post": {
                 "summary": "Create a new user",
+                "tags": ["users"],
                 "description": "Creates a new user.",
                 "consumes": [
                     "application/json"
@@ -114,6 +116,7 @@
         "/users/{id}": {
             "get": {
                 "summary": "Get user by ID",
+                "tags": ["users"],
                 "description": "Returns a specific user by ID.",
                 "produces": [
                     "application/json"
@@ -167,6 +170,7 @@
             },
             "put": {
                 "summary": "Update user by ID",
+                "tags": ["users"],
                 "description": "Updates an existing user by ID.",
                 "consumes": [
                     "application/json"
@@ -248,6 +252,7 @@
             },
             "delete": {
                 "summary": "Delete user by ID",
+                "tags": ["users"],
                 "description": "Deletes an existing user by ID.",
                 "parameters": [
                     {
@@ -300,6 +305,7 @@
         "/channels": {
           "get": {
               "summary": "Get channel names",
+              "tags": ["channels"],
               "description": "Returns a list of channel names.",
               "produces": [
                   "application/json"
@@ -326,6 +332,7 @@
         "/clients": {
             "get": {
                 "summary": "Get client names",
+                "tags": ["clients"],
                 "description": "Returns a list of client names.",
                 "produces": [
                     "application/json"
@@ -348,6 +355,193 @@
                     }
                 }
             }
+        },
+        "/clients/{id}/marketingcampaign": {
+          "get": {
+            "summary": "Get marketing campaigns by client ID",
+            "tags": ["clients"],
+            "parameters": [
+              {
+                "in": "path",
+                "name": "id",
+                "required": true,
+                "type": "string"
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "OK",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "status": {
+                            "type": "integer",
+                            "example": 200
+                        },
+                        "data": {
+                            "$ref": "#/definitions/MarketingCampaign"
+                        },
+                        "message": {
+                            "type": "string",
+                            "example": "Marketing campaigns retrieved successfully"
+                        }
+                    }
+                }
+              }
+            }
+          },
+          "post": {
+            "summary": "Create a new marketing campaign",
+            "tags": ["clients"],
+            "parameters": [
+              {
+                "in": "path",
+                "name": "id",
+                "required": true,
+                "type": "string"
+              }
+            ],
+            "responses": {
+              "201": {
+                "description": "Created",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "status": {
+                            "type": "integer",
+                            "example": 201
+                        },
+                        "data": {
+                            "$ref": "#/definitions/MarketingCampaign"
+                        },
+                        "message": {
+                            "type": "string",
+                            "example": "Marketing campaign created successfully"
+                        }
+                    }
+                }
+              }
+            }
+          }
+        },
+        "/clients/{id}/marketingcampaign/{cid}": {
+          "get": {
+            "summary": "Get marketing campaign by ID",
+            "tags": ["clients"],
+            "parameters": [
+              {
+                "in": "path",
+                "name": "id",
+                "required": true,
+                "type": "string"
+              },
+              {
+                "in": "path",
+                "name": "cid",
+                "required": true,
+                "type": "string"
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "OK",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "status": {
+                            "type": "integer",
+                            "example": 200
+                        },
+                        "data": {
+                            "$ref": "#/definitions/MarketingCampaign"
+                        },
+                        "message": {
+                            "type": "string",
+                            "example": "Marketing campaign retrieved successfully"
+                        }
+                    }
+                }
+              }
+            }
+          },
+          "put": {
+            "summary": "Update marketing campaign by ID",
+            "tags": ["clients"],
+            "parameters": [
+              {
+                "in": "path",
+                "name": "id",
+                "required": true,
+                "type": "string"
+              },
+              {
+                "in": "path",
+                "name": "cid",
+                "required": true,
+                "type": "string"
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "OK",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "status": {
+                            "type": "integer",
+                            "example": 200
+                        },
+                        "data": {
+                            "$ref": "#/definitions/MarketingCampaign"
+                        },
+                        "message": {
+                            "type": "string",
+                            "example": "Marketing campaign updated successfully"
+                        }
+                    }
+                }
+              }
+            }
+          },
+          "delete": {
+            "summary": "Delete marketing campaign by ID",
+            "tags": ["clients"],
+            "parameters": [
+              {
+                "in": "path",
+                "name": "id",
+                "required": true,
+                "type": "string"
+              },
+              {
+                "in": "path",
+                "name": "cid",
+                "required": true,
+                "type": "string"
+              }
+            ],
+            "responses": {
+              "204": {
+                "description": "No Content",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "status": {
+                            "type": "integer",
+                            "example": 200
+                        },
+                        "data": {
+                            "$ref": "#/definitions/MarketingCampaign"
+                        },
+                        "message": {
+                            "type": "string",
+                            "example": "Marketing campaign deleted successfully"
+                        }
+                    }
+                }
+              }
+            }
+          }
         }
     },
     "definitions": {
@@ -385,6 +579,71 @@
                 "active": {
                     "type": "boolean",
                     "example": true
+                }
+            }
+        },
+        "MarketingCampaign": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Campaña 1"
+                },
+                "client_id": {
+                    "type": "string",
+                    "example": "Test Client 1"
+                },
+                "company_name": {
+                    "type": "string",
+                    "example": "Company"
+                },
+                "goals": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "total_gross_budget": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "margin": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "flight_time_start": {
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2022-11-11T04:00:00.000Z"
+                },
+                "flight_time_end": {
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2023-11-11T04:00:00.000Z"
+                },
+                "net_budget": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "channels": {
+                    "type": "string",
+                    "example": "a,b,c"
+                },
+                "comments": {
+                    "type": "string",
+                    "example": "comment"
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2023-07-10T22:13:23.552Z"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2023-07-10T22:13:23.552Z"
                 }
             }
         }
