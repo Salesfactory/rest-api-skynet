@@ -6,7 +6,7 @@ const keyFileContent = `{
     "type": "${process.env.BQ_TYPE}",
     "project_id": "${process.env.BQ_PROJECT_ID}",
     "private_key_id": "${process.env.BQ_PRIVATE_KEY_ID}",
-    "private_key": ${JSON.stringify(process.env.BQ_PRIVATE_KEY.split(String.raw`\n`).join('\n'))},
+    "private_key": ${JSON.stringify(process.env.BQ_PRIVATE_KEY?.split(String.raw`\n`)?.join('\n') ?? '')},
     "client_email": "${process.env.BQ_CLIENT_EMAIL}",
     "client_id": "${process.env.BQ_CLIENT_ID}",
     "auth_uri": "${process.env.BQ_AUTH_URI}",
