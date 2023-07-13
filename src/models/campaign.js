@@ -58,6 +58,10 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.TEXT,
                 allowNull: true,
             },
+            budget: {
+                type: DataTypes.JSON,
+                allowNull: false,
+            },
         },
         {
             sequelize,

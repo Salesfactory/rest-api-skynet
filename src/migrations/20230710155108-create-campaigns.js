@@ -54,6 +54,10 @@ module.exports = {
                 type: Sequelize.TEXT,
                 allowNull: true,
             },
+            budget: {
+                type: Sequelize.JSON,
+                allowNull: false,
+            },
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE,

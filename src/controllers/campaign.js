@@ -110,6 +110,7 @@ const createMarketingCampaign = async (req, res) => {
         net_budget,
         channels,
         comments,
+        budget,
     } = req.body;
     try {
         const client = await Client.findOne({
@@ -134,6 +135,7 @@ const createMarketingCampaign = async (req, res) => {
             'flight_time_end',
             'net_budget',
             'channels',
+            'budget',
         ];
 
         const missingFields = requiredFields.filter(field => !req.body[field]);
@@ -142,6 +144,55 @@ const createMarketingCampaign = async (req, res) => {
             return res.status(400).json({
                 message: `Missing required fields: ${missingFields.join(', ')}`,
             });
+        }
+
+        if (!budget.months || !Array.isArray(budget.months)) {
+            return res.status(400).json({
+                message: `Missing required fields: budget.months`,
+            });
+        }
+
+        if (
+            !budget.percentages ||
+            !Array.isArray(budget.percentages) ||
+            budget.percentages.length !== budget.months.length
+        ) {
+            return res.status(400).json({
+                message: `Missing required fields: budget.percentages or budget.percentages.length !== budget.months.length`,
+            });
+        }
+
+        if (
+            !budget.net_budgets ||
+            !Array.isArray(budget.net_budgets) ||
+            budget.net_budgets.length !== budget.months.length
+        ) {
+            return res.status(400).json({
+                message: `Missing required fields: budget.net_budgets or budget.net_budgets.length !== budget.months.length`,
+            });
+        }
+
+        if (!budget.channels || !Array.isArray(budget.channels)) {
+            return res.status(400).json({
+                message: `Missing required fields: budget.channels`,
+            });
+        }
+
+        for (const channel of budget.channels) {
+            if (!channel.name || typeof channel.name !== 'string') {
+                return res.status(400).json({
+                    message: `Missing required fields: budget.channels.name`,
+                });
+            }
+            if (
+                !channel.values ||
+                !Array.isArray(channel.values) ||
+                channel.values.length !== budget.months.length
+            ) {
+                return res.status(400).json({
+                    message: `Missing required fields: budget.channels.values or budget.channels.values.length !== budget.months.length`,
+                });
+            }
         }
 
         const campaign = await Campaign.create({
@@ -156,6 +207,7 @@ const createMarketingCampaign = async (req, res) => {
             net_budget,
             channels,
             comments,
+            budget,
         });
 
         res.status(201).json({
@@ -181,6 +233,7 @@ const updateMarketingCampaign = async (req, res) => {
         net_budget,
         channels,
         comments,
+        budget,
     } = req.body;
     try {
         const client = await Client.findOne({
@@ -203,6 +256,57 @@ const updateMarketingCampaign = async (req, res) => {
             });
         }
 
+        if (budget) {
+            if (!budget.months || !Array.isArray(budget.months)) {
+                return res.status(400).json({
+                    message: `Missing required fields: budget.months`,
+                });
+            }
+    
+            if (
+                !budget.percentages ||
+                !Array.isArray(budget.percentages) ||
+                budget.percentages.length !== budget.months.length
+            ) {
+                return res.status(400).json({
+                    message: `Missing required fields: budget.percentages or budget.percentages.length !== budget.months.length`,
+                });
+            }
+    
+            if (
+                !budget.net_budgets ||
+                !Array.isArray(budget.net_budgets) ||
+                budget.net_budgets.length !== budget.months.length
+            ) {
+                return res.status(400).json({
+                    message: `Missing required fields: budget.net_budgets or budget.net_budgets.length !== budget.months.length`,
+                });
+            }
+    
+            if (!budget.channels || !Array.isArray(budget.channels)) {
+                return res.status(400).json({
+                    message: `Missing required fields: budget.channels`,
+                });
+            }
+    
+            for (const channel of budget.channels) {
+                if (!channel.name || typeof channel.name !== 'string') {
+                    return res.status(400).json({
+                        message: `Missing required fields: budget.channels.name`,
+                    });
+                }
+                if (
+                    !channel.values ||
+                    !Array.isArray(channel.values) ||
+                    channel.values.length !== budget.months.length
+                ) {
+                    return res.status(400).json({
+                        message: `Missing required fields: budget.channels.values or budget.channels.values.length !== budget.months.length`,
+                    });
+                }
+            }
+        }
+
         const updatedCampaign = await Campaign.update(
             {
                 client_id: clientId,
@@ -216,6 +320,7 @@ const updateMarketingCampaign = async (req, res) => {
                 net_budget,
                 channels,
                 comments,
+                budget,
             },
             {
                 where: { id: campaignId },
