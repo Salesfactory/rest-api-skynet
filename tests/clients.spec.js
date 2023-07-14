@@ -1,6 +1,7 @@
 const supertest = require('supertest');
 const makeApp = require('../src/app');
 const { Client } = require('../src/models');
+const { bigqueryClient } = require('../src/config/bigquery');
 
 jest.mock('../src/models', () => ({
     User: {
@@ -11,6 +12,7 @@ jest.mock('../src/models', () => ({
         destroy: jest.fn(),
     },
     Client: {
+        findOne: jest.fn(),
         findAll: jest.fn(),
     },
 }));
@@ -50,6 +52,84 @@ describe('Client Endpoints Test', () => {
             Client.findAll.mockRejectedValue(new Error('Error'));
             const response = await request.get('/api/clients');
 
+            expect(response.status).toBe(500);
+            expect(response.body.message).toBe('Error');
+        });
+    });
+
+    describe('Get advertisements by: channel, adName, campaignName', () => {
+        const clientId = 1;
+        it('404 client not found', async () => {
+            Client.findOne.mockResolvedValue(null);
+
+            const response = await request.get(
+                `/api/clients/${clientId}/advertisements?channel=Test&adName=Test%20Ad&campaignName=Test%20Campaign`
+            );
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe('Client not found');
+        });
+
+        it('400 missing required fields', async () => {
+            const client = {
+                id: 1,
+                name: 'Test Client 1',
+            };
+            Client.findOne.mockResolvedValue(client);
+
+            const response = await request.get(
+                `/api/clients/${clientId}/advertisements?channel=Test&adName=Test%20Ad`
+            );
+            expect(response.status).toBe(400);
+            expect(response.body.message).toBe(
+                'Missing required fields: campaignName'
+            );
+        });
+
+        it('200', async () => {
+            const client = {
+                id: 1,
+                name: 'Test Client 1',
+            };
+            Client.findOne.mockResolvedValue(client);
+            const data = [
+                [
+                    {
+                        campaign_id: '23855226587440359',
+                        campaign_name: 'Test Campaign',
+                        adset_id: '23855226587570359',
+                        adset_name: 'Test Ad',
+                    },
+                    {
+                        campaign_id: '23855226587440359',
+                        campaign_name: 'Test Campaign',
+                        adset_id: '23855229119530359',
+                        adset_name: 'Test Ad',
+                    },
+                ],
+            ];
+
+            bigqueryClient.query.mockResolvedValue(data);
+            const response = await request.get(
+                `/api/clients/${clientId}/advertisements?channel=Test&adName=Test%20Ad&campaignName=Test%20Campaign`
+            );
+            expect(response.status).toBe(200);
+            expect(response.body.data).toEqual(data[0]);
+            expect(response.body.message).toBe(
+                'Advertisements retrieved successfully'
+            );
+        });
+
+        it('500', async () => {
+            const client = {
+                id: 1,
+                name: 'Test Client 1',
+            };
+            Client.findOne.mockResolvedValue(client);
+            bigqueryClient.query.mockRejectedValue(new Error('Error'));
+
+            const response = await request.get(
+                `/api/clients/${clientId}/advertisements?channel=Test&adName=Test%20Ad&campaignName=Test%20Campaign`
+            );
             expect(response.status).toBe(500);
             expect(response.body.message).toBe('Error');
         });

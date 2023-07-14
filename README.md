@@ -114,6 +114,9 @@ Please use the following commands to set up the database and tables:
 npx sequelize-cli db:create (to create the DB)
 npx sequelize-cli db:drop (to delete the DB)
 npx sequelize-cli db:migrate (to migrate the data into the DB)
+npx sequelize-cli db:migrate:undo:all (removes all entries and tables)
+npx sequelize-cli db:seed:all (applies all seeds)
+
 
 **don't forget to set up the environment variables in the .env file (there's an .env.example already created)**
 

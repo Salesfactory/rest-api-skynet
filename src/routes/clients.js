@@ -4,6 +4,8 @@ const { clientController, campaignController } = require('../controllers');
 
 // client routes
 router.get('/', clientController.getClients);
+// non orchestrated campaign advertisements
+router.get('/:id/advertisements', campaignController.getClientCampaignAdvertisements);
 // marketing campaigns routes
 router.get('/:id/marketingcampaign', campaignController.getMarketingCampaignsByClient);
 router.get('/:id/marketingcampaign/:cid', campaignController.getMarketingCampaignsById);
