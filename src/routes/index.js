@@ -40,6 +40,6 @@ const validateToken = (req, res, next) => {
 router.use('/users', validateToken, userRouter);
 router.use('/channels', validateToken, channelRouter);
 router.use('/clients', validateToken, clientRouter);
-router.use('/campaigns', campaigntRouter);
+router.use('/campaigns', validateToken, campaigntRouter);
 
 module.exports = router;
