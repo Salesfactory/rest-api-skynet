@@ -524,6 +524,23 @@
                     }
                 }
             }
+        },
+        "/campaigns": {
+            "get": {
+                "summary": "Get recently created marketing campaigns",
+                "tags": ["campaigns"],
+                "responses": {
+                    "200": {
+                        "description": "Recent marketing campaigns retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/RecentCampaign"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -658,6 +675,28 @@
                     "type": "string",
                     "format": "date-time",
                     "example": "2023-07-10T22:13:23.552Z"
+                }
+            }
+        },
+        "RecentCampaign": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Test campaign"
+                },
+                "company_name": {
+                    "type": "string",
+                    "example": "Test company name"
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2023-08-11T16:47:01.294Z"
                 }
             }
         }

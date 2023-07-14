@@ -1,6 +1,7 @@
 const { bigqueryClient } = require('../config/bigquery');
 const { Campaign, Client } = require('../models');
 const { Op } = require('sequelize');
+const sequelize = require('sequelize');
 
 // Marketing campaign list for client
 const getMarketingCampaignsByClient = async (req, res) => {
@@ -263,7 +264,7 @@ const updateMarketingCampaign = async (req, res) => {
                     message: `Missing required fields: budget.months`,
                 });
             }
-    
+
             if (
                 !budget.percentages ||
                 !Array.isArray(budget.percentages) ||
@@ -273,7 +274,7 @@ const updateMarketingCampaign = async (req, res) => {
                     message: `Missing required fields: budget.percentages or budget.percentages.length !== budget.months.length`,
                 });
             }
-    
+
             if (
                 !budget.net_budgets ||
                 !Array.isArray(budget.net_budgets) ||
@@ -283,13 +284,13 @@ const updateMarketingCampaign = async (req, res) => {
                     message: `Missing required fields: budget.net_budgets or budget.net_budgets.length !== budget.months.length`,
                 });
             }
-    
+
             if (!budget.channels || !Array.isArray(budget.channels)) {
                 return res.status(400).json({
                     message: `Missing required fields: budget.channels`,
                 });
             }
-    
+
             for (const channel of budget.channels) {
                 if (!channel.name || typeof channel.name !== 'string') {
                     return res.status(400).json({
@@ -431,6 +432,62 @@ const getClientCampaignAdvertisements = async (req, res) => {
     }
 };
 
+// Returns only the recent marketing campaigns
+const getRecentCampaigns = async (req, res) => {
+    const { search } = req.query;
+    try {
+        const campaigns = await Campaign.findAll({
+            limit: 10,
+            order: [['createdAt', 'DESC']],
+            attributes: ['id', 'name', 'company_name', 'createdAt'],
+            where: {
+                ...(search
+                    ? {
+                          [Op.or]: [
+                              {
+                                  name: sequelize.where(
+                                      sequelize.fn(
+                                          'LOWER',
+                                          sequelize.col('name')
+                                      ),
+                                      'LIKE',
+                                      `%${search}%`
+                                  ),
+                              },
+                              {
+                                  company_name: sequelize.where(
+                                      sequelize.fn(
+                                          'LOWER',
+                                          sequelize.col('company_name')
+                                      ),
+                                      'LIKE',
+                                      `%${search}%`
+                                  ),
+                              },
+                              {
+                                  createdAt: sequelize.where(
+                                      sequelize.literal(
+                                          `TO_CHAR("createdAt", 'month')`
+                                      ),
+                                      'LIKE',
+                                      sequelize.literal(`LOWER('%${search}%')`)
+                                  ),
+                              },
+                          ],
+                      }
+                    : {}),
+            },
+        });
+
+        res.status(200).json({
+            message: 'Recent marketing campaigns retrieved successfully',
+            data: campaigns,
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getMarketingCampaignsByClient,
     getMarketingCampaignsById,
@@ -438,4 +495,5 @@ module.exports = {
     updateMarketingCampaign,
     deleteMarketingCampaign,
     getClientCampaignAdvertisements,
+    getRecentCampaigns,
 };
