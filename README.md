@@ -7,11 +7,13 @@ Welcome to the Rest API Skynet project! This repository contains a Node.js-based
 To install and run the Rest API Skynet project, please follow these steps:
 
 1. Clone the repository to your local machine using the following command:
+
    ```
    git clone https://github.com/Salesfactory/rest-api-skynet.git
    ```
 
 2. Navigate to the project directory:
+
    ```
    cd rest-api-skynet
    ```
@@ -26,27 +28,35 @@ To install and run the Rest API Skynet project, please follow these steps:
 The project provides multiple scripts in the `package.json` file to facilitate running and testing the application. Choose the appropriate script based on your requirements.
 
 - **Starting the API in Development Mode:**
+
   ```
   npm run dev
   ```
+
   This command uses `nodemon` to run the application in development mode. It automatically restarts the server whenever a file is modified, making it convenient for development purposes.
 
 - **Starting the API in Production Mode:**
+
   ```
   npm run prod
   ```
+
   This command starts the application in production mode using the compiled version of the code located in the `dist/` directory.
 
 - **Building the Project:**
+
   ```
   npm run build
   ```
+
   The build script uses Webpack to bundle and optimize the application code. It generates the compiled version of the code in the `dist/` directory, which can be used for production deployment.
 
 - **Starting the API using Node.js:**
+
   ```
   npm start
   ```
+
   This command starts the application using Node.js without any additional development features.
 
 - **Running Tests:**
@@ -78,9 +88,11 @@ To build and run the project using Docker, follow these steps:
    ```
 
 3. Build the Docker image by running the following command:
+
    ```
    docker build -t rest-api-skynet .
    ```
+
    This command builds the Docker image based on the `Dockerfile` in the current directory. The `-t` flag assigns a name to the image (`rest-api-skynet` in this case).
 
 4. Once the image is built, you can run the containerized application using the following command:
@@ -91,9 +103,26 @@ To build and run the project using Docker, follow these steps:
 
 Congratulations! You now have the Rest API Skynet project installed, running, and containerized with Docker. Feel free to explore and modify the code to suit your needs. If you encounter any issues or have questions, please submit them on the GitHub repository's issue tracker: [https://github.com/Salesfactory/rest-api-skynet/issues](https://github.com/Salesfactory/rest-api-skynet/issues).
 
+## Database
+
+You need to install PostgreSQL, refer to: [https://www.postgresql.org/download/](https://www.postgresql.org/download/)
+
+### Database Configuration
+
+Please use the following commands to set up the database and tables:
+
+npx sequelize-cli db:create (to create the DB)
+npx sequelize-cli db:drop (to delete the DB)
+npx sequelize-cli db:migrate (to migrate the data into the DB)
+npx sequelize-cli db:migrate:undo:all (removes all entries and tables)
+npx sequelize-cli db:seed:all (applies all seeds)
+
+
+**don't forget to set up the environment variables in the .env file (there's an .env.example already created)**
+
 ## BigQuery
 
-Some endpoints might need BigQuery to be configured, please follow the steps below: 
+Some endpoints might need BigQuery to be configured, please follow the steps below:
 
 The basic steps are:
 
