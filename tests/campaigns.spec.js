@@ -1,7 +1,6 @@
 const supertest = require('supertest');
 const makeApp = require('../src/app');
 const { Campaign, Client } = require('../src/models');
-const { bigqueryClient } = require('../src/config/bigquery');
 
 jest.mock('../src/models', () => ({
     User: {
@@ -36,6 +35,44 @@ const request = supertest(app);
 describe('Campaign Endpoints Test', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    describe('Get recent campaigns', () => {
+        it('200', async () => {
+            const data = [
+                {
+                    id: 1,
+                    name: 'Test campaign',
+                    company_name: 'Test company name',
+                    createdAt: '2023-08-11T16:47:01.294Z',
+                },
+                {
+                    id: 2,
+                    name: 'Test campaign',
+                    company_name: 'Test company name',
+                    createdAt: '2023-07-11T16:38:59.516Z',
+                },
+            ];
+
+            const search = "august";
+
+            Campaign.findAll.mockResolvedValue(data);
+
+            const response = await request.get(`/api/campaigns?search=${search}`);
+            expect(response.status).toBe(200);
+            expect(response.body.data).toEqual(data);
+            expect(response.body.message).toBe(
+                'Recent marketing campaigns retrieved successfully'
+            );
+        });
+
+        it('500', async () => {
+            Campaign.findAll.mockRejectedValue(new Error('Error'));
+            const response = await request.get(`/api/campaigns`);
+
+            expect(response.status).toBe(500);
+            expect(response.body.message).toBe('Error');
+        });
     });
 
     describe('Get all campaigns', () => {
