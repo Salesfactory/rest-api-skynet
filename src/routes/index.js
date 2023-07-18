@@ -4,6 +4,7 @@ const router = express.Router();
 const userRouter = require('./users');
 const channelRouter = require('./channels');
 const clientRouter = require('./clients');
+const campaigntRouter = require('./campaigns');
 
 let cognitoExpress;
 if (process.env.NODE_ENV !== 'test') {
@@ -39,5 +40,6 @@ const validateToken = (req, res, next) => {
 router.use('/users', validateToken, userRouter);
 router.use('/channels', validateToken, channelRouter);
 router.use('/clients', validateToken, clientRouter);
+router.use('/campaigns', validateToken, campaigntRouter);
 
 module.exports = router;

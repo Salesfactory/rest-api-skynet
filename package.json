@@ -1,6 +1,6 @@
 {
     "name": "rest-api-skynet",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Skynet REST API",
     "main": "index.js",
     "scripts": {
