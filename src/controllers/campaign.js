@@ -436,12 +436,13 @@ const getClientCampaignAdvertisements = async (req, res) => {
 const getRecentCampaigns = async (req, res) => {
     const { search } = req.query;
     try {
+        const searchLower = search ? search.toLowerCase() : null;
         const campaigns = await Campaign.findAll({
             limit: 10,
             order: [['createdAt', 'DESC']],
             attributes: ['id', 'name', 'company_name', 'createdAt'],
             where: {
-                ...(search
+                ...(searchLower
                     ? {
                           [Op.or]: [
                               {
@@ -451,7 +452,7 @@ const getRecentCampaigns = async (req, res) => {
                                           sequelize.col('name')
                                       ),
                                       'LIKE',
-                                      `%${search}%`
+                                      `%${searchLower}%`
                                   ),
                               },
                               {
@@ -461,7 +462,7 @@ const getRecentCampaigns = async (req, res) => {
                                           sequelize.col('company_name')
                                       ),
                                       'LIKE',
-                                      `%${search}%`
+                                      `%${searchLower}%`
                                   ),
                               },
                               {
@@ -470,7 +471,9 @@ const getRecentCampaigns = async (req, res) => {
                                           `TO_CHAR("createdAt", 'month')`
                                       ),
                                       'LIKE',
-                                      sequelize.literal(`LOWER('%${search}%')`)
+                                      sequelize.literal(
+                                          `LOWER('%${searchLower}%')`
+                                      )
                                   ),
                               },
                           ],
