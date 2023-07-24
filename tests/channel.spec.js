@@ -10,7 +10,7 @@ jest.mock('../src/models', () => ({
         update: jest.fn(),
         findOne: jest.fn(),
         findAll: jest.fn(),
-        destroy: jest.fn()
+        destroy: jest.fn(),
     },
 }));
 
@@ -45,6 +45,40 @@ describe('Channel Endpoints Test', () => {
         it('500', async () => {
             bigqueryClient.query.mockRejectedValue(new Error('Error'));
             const response = await request.get('/api/channels');
+
+            expect(response.status).toBe(500);
+            expect(response.body.message).toBe('Error');
+        });
+    });
+
+    describe('Get campaign types for a specific channel', () => {
+        it('200', async () => {
+            const channelName = 'Facebook';
+            const data = [
+                [{ campaign_type: 'SEARCH' }, { campaign_type: 'VIDEO' }],
+            ];
+
+            bigqueryClient.query.mockResolvedValue(data);
+
+            const response = await request.get(
+                `/api/channels/${channelName}/campaignTypes`
+            );
+
+            expect(response.status).toBe(200);
+            expect(response.body.data).toEqual(data[0]);
+            expect(response.body.message).toBe(
+                'Campaign types retrieved successfully'
+            );
+        });
+
+        it('500', async () => {
+            const channelName = 'Facebook';
+
+            bigqueryClient.query.mockRejectedValue(new Error('Error'));
+
+            const response = await request.get(
+                `/api/channels/${channelName}/campaignTypes`
+            );
 
             expect(response.status).toBe(500);
             expect(response.body.message).toBe('Error');
