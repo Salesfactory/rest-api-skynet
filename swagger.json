@@ -525,6 +525,63 @@
                 }
             }
         },
+        "/clients/{id}/advertisements": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "channel",
+                    "in": "query",
+                    "description": "The channel of the advertisement (e.g., Facebook, Twitter, etc.)",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "adsetName",
+                    "in": "query",
+                    "description": "The name of the advertisement set",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "campaignName",
+                    "in": "query",
+                    "description": "The name of the campaign",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "campaignType",
+                    "in": "query",
+                    "description": "The type of the campaign (e.g., OUTCOME_TRAFFIC, OUTCOME_SALES, etc.)",
+                    "required": true,
+                    "type": "string"
+                }
+            ],
+            "get": {
+                "summary": "Get advertisements for a specific client",
+                "description": "Retrieve a list of advertisements based on the specified parameters for a given client.",
+                "tags": ["clients"],
+                "responses": {
+                    "200": {
+                        "description": "Advertisements retrieved successfully"
+                    },
+                    "400": {
+                        "description": "Missing required fields: channel, adsetName, campaignName, campaignType"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "500": {
+                        "description": "Internal server error. Something went wrong on the server side."
+                    }
+                }
+            }
+        },
         "/campaigns": {
             "get": {
                 "summary": "Get recently created marketing campaigns",
