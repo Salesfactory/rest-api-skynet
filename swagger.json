@@ -725,22 +725,6 @@
                             "channel": {
                                 "type": "string",
                                 "example": "Facebook"
-                            },
-                            "values": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "percentage": {
-                                            "type": "string",
-                                            "example": "15%"
-                                        },
-                                        "value": {
-                                            "type": "string",
-                                            "example": "$127.49"
-                                        }
-                                    }
-                                }
                             }
                         }
                     }
@@ -765,22 +749,6 @@
                             "campaign_type": {
                                 "type": "string",
                                 "example": "Campaign Type 1"
-                            },
-                            "values": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "percentage": {
-                                            "type": "string",
-                                            "example": "15%"
-                                        },
-                                        "value": {
-                                            "type": "string",
-                                            "example": "$127.49"
-                                        }
-                                    }
-                                }
                             }
                         }
                     }
@@ -791,6 +759,10 @@
                         "type": "object",
                         "properties": {
                             "id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "campaign_id": {
                                 "type": "integer",
                                 "example": 1
                             },
@@ -809,22 +781,6 @@
                             "campaign": {
                                 "type": "string",
                                 "example": "Campaign 1"
-                            },
-                            "values": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "percentage": {
-                                            "type": "string",
-                                            "example": "15%"
-                                        },
-                                        "value": {
-                                            "type": "string",
-                                            "example": "$127.49"
-                                        }
-                                    }
-                                }
                             }
                         }
                     }

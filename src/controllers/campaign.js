@@ -467,15 +467,6 @@ const updateMarketingCampaign = async (req, res) => {
                         message: `Missing required fields: campaign_types.channel`,
                     });
                 }
-                if (
-                    !type.values ||
-                    !Array.isArray(type.values) ||
-                    type.values.length !== budget.months.length
-                ) {
-                    return res.status(400).json({
-                        message: `Missing required fields: campaign_types.values or campaign_types.values.length !== budget.months.length`,
-                    });
-                }
             }
         }
 
@@ -519,15 +510,6 @@ const updateMarketingCampaign = async (req, res) => {
                         });
                     }
                 }
-                if (
-                    !campaign.values ||
-                    !Array.isArray(campaign.values) ||
-                    campaign.values.length !== budget.months.length
-                ) {
-                    return res.status(400).json({
-                        message: `Missing required fields: campaigns.values or campaigns.values.length !== budget.months.length`,
-                    });
-                }
             }
         }
 
@@ -541,6 +523,11 @@ const updateMarketingCampaign = async (req, res) => {
                 if (!adset.id) {
                     return res.status(400).json({
                         message: `Missing required fields: adsets.id`,
+                    });
+                }
+                if (!adset.campaign_id) {
+                    return res.status(400).json({
+                        message: `Missing required fields: adsets.campaign_id`,
                     });
                 }
                 if (!adset.name || typeof adset.name !== 'string') {
@@ -564,15 +551,6 @@ const updateMarketingCampaign = async (req, res) => {
                 if (!adset.campaign || typeof adset.campaign !== 'string') {
                     return res.status(400).json({
                         message: `Missing required fields: adsets.campaign`,
-                    });
-                }
-                if (
-                    !adset.values ||
-                    !Array.isArray(adset.values) ||
-                    adset.values.length !== budget.months.length
-                ) {
-                    return res.status(400).json({
-                        message: `Missing required fields: adsets.values or adsets.values.length !== budget.months.length`,
                     });
                 }
             }
