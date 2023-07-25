@@ -768,6 +768,125 @@
                                     ]
                                 }
                             ]
+                        },
+                        "campaign_types": {
+                            "example": [
+                                {
+                                    "name": "Campaign Type 1",
+                                    "channel": "Facebook",
+                                    "values": [
+                                        {
+                                            "percentage": "15%",
+                                            "value": "$127.49"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "campaigns": {
+                            "example": [
+                                {
+                                    "id": 1,
+                                    "name": "Campaign 1",
+                                    "channel": "Facebook",
+                                    "campaign_type": "Campaign Type 1",
+                                    "values": [
+                                        {
+                                            "percentage": "15%",
+                                            "value": "$127.49"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "adsets": {
+                            "example": [
+                                {
+                                    "id": 1,
+                                    "name": "Adset 1",
+                                    "channel": "Facebook",
+                                    "campaign_type": "Campaign Type 1",
+                                    "campaign": "Campaign 1",
+                                    "values": [
+                                        {
+                                            "percentage": "15%",
+                                            "value": "$127.49"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "campaign_types": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "example": "Facebook Ads"
+                            },
+                            "channel": {
+                                "type": "string",
+                                "example": "Facebook"
+                            }
+                        }
+                    }
+                },
+                "campaigns": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "name": {
+                                "type": "string",
+                                "example": "Campaign 1"
+                            },
+                            "channel": {
+                                "type": "string",
+                                "example": "Facebook"
+                            },
+                            "campaign_type": {
+                                "type": "string",
+                                "example": "Campaign Type 1"
+                            }
+                        }
+                    }
+                },
+                "adsets": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "campaign_id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "name": {
+                                "type": "string",
+                                "example": "Adset 1"
+                            },
+                            "channel": {
+                                "type": "string",
+                                "example": "Facebook"
+                            },
+                            "campaign_type": {
+                                "type": "string",
+                                "example": "Campaign Type 1"
+                            },
+                            "campaign": {
+                                "type": "string",
+                                "example": "Campaign 1"
+                            }
                         }
                     }
                 },
