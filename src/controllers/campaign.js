@@ -378,7 +378,7 @@ const deleteMarketingCampaign = async (req, res) => {
 
 const getClientCampaignAdvertisements = async (req, res) => {
     const { id: clientId } = req.params;
-    const { channel, adName, campaignName } = req.query;
+    const { channel, adsetName, campaignName, campaignType } = req.query;
     try {
         const client = await Client.findOne({
             where: { id: clientId },
@@ -395,8 +395,9 @@ const getClientCampaignAdvertisements = async (req, res) => {
         const requiredFields = [
             'clientId',
             'channel',
-            'adName',
+            'adsetName',
             'campaignName',
+            'campaignType',
         ];
         const missingFields = requiredFields.filter(field => !req.query[field]);
         if (missingFields.length > 0) {
@@ -406,19 +407,20 @@ const getClientCampaignAdvertisements = async (req, res) => {
         }
 
         let sqlQuery = `
-        SELECT campaign_id, campaign_name, adset_id, adset_name 
+        SELECT campaign_id, campaign_name, adset_id, adset_name, campaign_type 
         FROM \`agency_6133.cs_paid_ads__basic_performance\` 
         WHERE datasource = ?
         AND advertiser_name = ? 
-        AND ad_name LIKE ?
+        AND adset_name LIKE ?
         AND campaign_name LIKE ?
+        AND campaign_type LIKE ?
         AND DATE(date) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH) AND CURRENT_DATE()
-        GROUP BY 1,2,3,4
+        GROUP BY 1,2,3,4,5
         `;
 
         const options = {
             query: sqlQuery,
-            params: [channel, client.name, `%${adName}%`, `%${campaignName}%`],
+            params: [channel, client.name, `%${adsetName}%`, `%${campaignName}%`, `%${campaignType}%`],
         };
 
         const response = await bigqueryClient.query(options);
