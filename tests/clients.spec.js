@@ -57,13 +57,13 @@ describe('Client Endpoints Test', () => {
         });
     });
 
-    describe('Get advertisements by: channel, adName, campaignName', () => {
+    describe('Get advertisements by: channel, adsetName, campaignName, campaignType', () => {
         const clientId = 1;
         it('404 client not found', async () => {
             Client.findOne.mockResolvedValue(null);
 
             const response = await request.get(
-                `/api/clients/${clientId}/advertisements?channel=Test&adName=Test%20Ad&campaignName=Test%20Campaign`
+                `/api/clients/${clientId}/advertisements?channel=Test&adsetName=Test%20Ad&campaignName=Test%20Campaign&campaignType=Test`
             );
             expect(response.status).toBe(404);
             expect(response.body.message).toBe('Client not found');
@@ -77,11 +77,11 @@ describe('Client Endpoints Test', () => {
             Client.findOne.mockResolvedValue(client);
 
             const response = await request.get(
-                `/api/clients/${clientId}/advertisements?channel=Test&adName=Test%20Ad`
+                `/api/clients/${clientId}/advertisements?channel=Test&adsetName=Test%20Ad`
             );
             expect(response.status).toBe(400);
             expect(response.body.message).toBe(
-                'Missing required fields: campaignName'
+                'Missing required fields: campaignName, campaignType'
             );
         });
 
@@ -98,19 +98,21 @@ describe('Client Endpoints Test', () => {
                         campaign_name: 'Test Campaign',
                         adset_id: '23855226587570359',
                         adset_name: 'Test Ad',
+                        campaign_type: 'Test',
                     },
                     {
                         campaign_id: '23855226587440359',
                         campaign_name: 'Test Campaign',
                         adset_id: '23855229119530359',
                         adset_name: 'Test Ad',
+                        campaign_type: 'Test',
                     },
                 ],
             ];
 
             bigqueryClient.query.mockResolvedValue(data);
             const response = await request.get(
-                `/api/clients/${clientId}/advertisements?channel=Test&adName=Test%20Ad&campaignName=Test%20Campaign`
+                `/api/clients/${clientId}/advertisements?channel=Test&adsetName=Test%20Ad&campaignName=Test%20Campaign&campaignType=Test`
             );
             expect(response.status).toBe(200);
             expect(response.body.data).toEqual(data[0]);
@@ -128,7 +130,7 @@ describe('Client Endpoints Test', () => {
             bigqueryClient.query.mockRejectedValue(new Error('Error'));
 
             const response = await request.get(
-                `/api/clients/${clientId}/advertisements?channel=Test&adName=Test%20Ad&campaignName=Test%20Campaign`
+                `/api/clients/${clientId}/advertisements?channel=Test&adsetName=Test%20Ad&campaignName=Test%20Campaign&campaignType=Test`
             );
             expect(response.status).toBe(500);
             expect(response.body.message).toBe('Error');
