@@ -313,6 +313,54 @@
                 }
             }
         },
+        "/channels/{channelName}/campaignTypes": {
+            "parameters": [
+                {
+                    "name": "channelName",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ],
+            "get": {
+                "summary": "Get campaign types for a specific channel",
+                "description": "Retrieve a list of campaign types for the specified channel.",
+                "tags": ["channels"],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation. Returns the list of campaign types.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer",
+                                    "example": 200
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Campaign types retrieved successfully"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "campaign_type": {
+                                                "type": "string",
+                                                "example": "DISPLAY"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error. Something went wrong on the server side."
+                    }
+                }
+            }
+        },
         "/clients": {
             "get": {
                 "summary": "Get client names",
