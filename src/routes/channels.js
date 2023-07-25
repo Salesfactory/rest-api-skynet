@@ -4,5 +4,7 @@ const { channelController } = require('../controllers');
 
 // channels routes
 router.get('/', channelController.getChannels);
+// channel campaign types
+router.get('/:channelName/campaignTypes', channelController.getChannelTypes);
 
 module.exports = router;
