@@ -54,9 +54,23 @@ module.exports = {
                 type: Sequelize.TEXT,
                 allowNull: true,
             },
+            // this will contain the entire table of budgets
             budget: {
                 type: Sequelize.JSON,
                 allowNull: false,
+            },
+            campaign_types: {
+                type: Sequelize.JSON,
+                allowNull: true,
+            },
+            // for each channel and its channel types, there are campaigns and adsets
+            campaigns: {
+                type: Sequelize.JSON,
+                allowNull: true,
+            },
+            adsets: {
+                type: Sequelize.JSON,
+                allowNull: true,
             },
             createdAt: {
                 allowNull: false,

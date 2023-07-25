@@ -62,6 +62,18 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.JSON,
                 allowNull: false,
             },
+            campaign_types: {
+                type: DataTypes.JSON,
+                allowNull: true,
+            },
+            campaigns: {
+                type: DataTypes.JSON,
+                allowNull: true,
+            },
+            adsets: {
+                type: DataTypes.JSON,
+                allowNull: true,
+            },
         },
         {
             sequelize,

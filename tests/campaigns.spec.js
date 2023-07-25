@@ -54,11 +54,13 @@ describe('Campaign Endpoints Test', () => {
                 },
             ];
 
-            const search = "august";
+            const search = 'august';
 
             Campaign.findAll.mockResolvedValue(data);
 
-            const response = await request.get(`/api/campaigns?search=${search}`);
+            const response = await request.get(
+                `/api/campaigns?search=${search}`
+            );
             expect(response.status).toBe(200);
             expect(response.body.data).toEqual(data);
             expect(response.body.message).toBe(
@@ -254,6 +256,30 @@ describe('Campaign Endpoints Test', () => {
                         },
                     ],
                 },
+                campaign_types: [
+                    {
+                        name: 'Test Campaign Type 1',
+                        channel: 'Facebook',
+                        values: [1, 1, 1, 1],
+                    },
+                ],
+                campaigns: [
+                    {
+                        name: 'Test Campaign 1',
+                        channel: 'Facebook',
+                        campaign_type: 'Test Campaign Type 1',
+                        values: [1, 1, 1, 1],
+                    },
+                ],
+                adsets: [
+                    {
+                        name: 'Test Adset 1',
+                        campaign: 'Test Campaign 1',
+                        channel: 'Facebook',
+                        campaign_type: 'Test Campaign Type 1',
+                        values: [1, 1, 1, 1],
+                    },
+                ],
             };
 
             const data = {
