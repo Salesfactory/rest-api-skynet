@@ -12,5 +12,9 @@ router.get('/:id/marketingcampaign/:cid', campaignController.getMarketingCampaig
 router.post('/:id/marketingcampaign', campaignController.createMarketingCampaign);
 router.put('/:id/marketingcampaign/:cid', campaignController.updateMarketingCampaign);
 router.delete('/:id/marketingcampaign/:cid', campaignController.deleteMarketingCampaign);
+// marketing campaigns advertisements routes
+router.get('/:id/marketingcampaign/:cid/campaigns', campaignController.getCampaignsByGroup);
+router.get('/:id/marketingcampaign/:cid/campaigns/:caid', campaignController.getCampaignsById);
+router.put('/:id/marketingcampaign/:cid/campaigns/:caid/goals', campaignController.updateCampaignGoals);
 
 module.exports = router;
