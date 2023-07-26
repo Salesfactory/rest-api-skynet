@@ -646,6 +646,135 @@
                     }
                 }
             }
+        },
+        "/clients/{id}/marketingcampaign/{cid}/campaigns": {
+            "get": {
+                "summary": "Get campaigns for a marketing campaign",
+                "tags": ["clients"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "cid",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Campaign retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer",
+                                    "example": 200
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Campaign retrieved successfully"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/CampaignObject"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/{id}/marketingcampaign/{cid}/campaigns/{caid}": {
+            "get": {
+                "summary": "Get a specific campaign for a marketing campaign",
+                "tags": ["clients"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "cid",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "caid",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Campaign retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/CampaignObject"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/{id}/marketingcampaign/{cid}/campaigns/{caid}/goals": {
+            "put": {
+                "summary": "Update goals for a specific campaign in a marketing campaign",
+                "tags": ["clients"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "cid",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "caid",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "goals": {
+                                        "type": "string",
+                                        "example": "1. Do something\n2. Do something else\n3. Nothing else"
+                                    }
+                                },
+                                "required": ["goals"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Goals updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/MarketingCampaign"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -921,6 +1050,66 @@
                     "type": "string",
                     "format": "date-time",
                     "example": "2023-08-11T16:47:01.294Z"
+                }
+            }
+        },
+        "CampaignObject": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Facebook Ads - Campaign 1"
+                },
+                "channel": {
+                    "type": "string",
+                    "example": "Facebook"
+                },
+                "campaign_type": {
+                    "type": "string",
+                    "example": "Facebook Ads"
+                },
+                "goals": {
+                    "type": "string",
+                    "example": "1. Do something\n2. Do something else\n3. Nothing else"
+                },
+                "adsets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/AdsetObject"
+                    }
+                }
+            }
+        },
+        "AdsetObject": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "campaign_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Facebook Ads - Campaign 1 - Adset 1"
+                },
+                "channel": {
+                    "type": "string",
+                    "example": "Facebook"
+                },
+                "campaign_type": {
+                    "type": "string",
+                    "example": "Facebook Ads"
+                },
+                "campaign": {
+                    "type": "string",
+                    "example": "Facebook Ads - Campaign 1"
                 }
             }
         }
