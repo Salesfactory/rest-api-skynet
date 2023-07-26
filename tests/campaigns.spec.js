@@ -447,4 +447,457 @@ describe('Campaign Endpoints Test', () => {
             expect(response.body.message).toBe('Error');
         });
     });
+
+    describe('Get campaigns by group', () => {
+        const clientId = 1;
+        const campaignId = 1;
+
+        it('200', async () => {
+            const marketingCampaign = {
+                id: 1,
+                client_id: 1,
+                name: 'Test campaign',
+                campaigns: [
+                    {
+                        id: 1,
+                        name: 'Facebook Ads - Campaign 1',
+                        channel: 'Facebook',
+                        campaign_type: 'Facebook Ads',
+                        goals: '1. Do something\n2. Do something else\n3. Nothing else',
+                    },
+                ],
+                adsets: [
+                    {
+                        id: 1,
+                        campaign_id: 1,
+                        name: 'Facebook Ads - Campaign 1 - Adset 1',
+                        channel: 'Facebook',
+                        campaign_type: 'Facebook Ads',
+                        campaign: 'Facebook Ads - Campaign 1',
+                    },
+                    {
+                        id: 2,
+                        campaign_id: 1,
+                        name: 'Facebook Ads - Campaign 1 - Adset 2',
+                        channel: 'Facebook',
+                        campaign_type: 'Facebook Ads',
+                        campaign: 'Facebook Ads - Campaign 1',
+                    },
+                ],
+            };
+            const data = [
+                {
+                    id: 1,
+                    name: 'Facebook Ads - Campaign 1',
+                    channel: 'Facebook',
+                    campaign_type: 'Facebook Ads',
+                    goals: '1. Do something\n2. Do something else\n3. Nothing else',
+                    adsets: [
+                        {
+                            id: 1,
+                            campaign_id: 1,
+                            name: 'Facebook Ads - Campaign 1 - Adset 1',
+                            channel: 'Facebook',
+                            campaign_type: 'Facebook Ads',
+                            campaign: 'Facebook Ads - Campaign 1',
+                        },
+                        {
+                            id: 2,
+                            campaign_id: 1,
+                            name: 'Facebook Ads - Campaign 1 - Adset 2',
+                            channel: 'Facebook',
+                            campaign_type: 'Facebook Ads',
+                            campaign: 'Facebook Ads - Campaign 1',
+                        },
+                    ],
+                    marketingCampaignId: '1',
+                    clientId: '1',
+                },
+            ];
+
+            const channel = 'face';
+            const campaignType = 'ads';
+
+            Client.findOne.mockResolvedValue({
+                id: 1,
+                name: 'Test Client 1',
+            });
+            Campaign.findOne.mockResolvedValue(marketingCampaign);
+
+            const response = await request.get(
+                `/api/clients/${clientId}/marketingcampaign/${campaignId}/campaigns?channel=${channel}&campaignType=${campaignType}`
+            );
+
+            expect(response.status).toBe(200);
+            expect(response.body.data).toEqual(data);
+            expect(response.body.message).toBe(
+                'Campaigns retrieved successfully'
+            );
+        });
+
+        it('404 client', async () => {
+            Client.findOne.mockResolvedValue(null);
+            const response = await request.get(
+                `/api/clients/${clientId}/marketingcampaign/${campaignId}/campaigns`
+            );
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe(`Client not found`);
+        });
+
+        it('404 marketing campaign', async () => {
+            Client.findOne.mockResolvedValue({
+                id: 1,
+                name: 'Test Client 1',
+            });
+            Campaign.findOne.mockResolvedValue(null);
+            const response = await request.get(
+                `/api/clients/${clientId}/marketingcampaign/${campaignId}/campaigns`
+            );
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe(`Marketing campaign not found`);
+        });
+
+        it('404 campaign', async () => {
+            const marketingCampaign = {
+                id: 1,
+                client_id: 1,
+                name: 'Test campaign',
+                campaigns: [
+                    {
+                        id: 1,
+                        name: 'Facebook Ads - Campaign 1',
+                        channel: 'Facebook',
+                        campaign_type: 'Facebook Ads',
+                        goals: '1. Do something\n2. Do something else\n3. Nothing else',
+                    },
+                ],
+                adsets: [
+                    {
+                        id: 1,
+                        campaign_id: 1,
+                        name: 'Facebook Ads - Campaign 1 - Adset 1',
+                        channel: 'Facebook',
+                        campaign_type: 'Facebook Ads',
+                        campaign: 'Facebook Ads - Campaign 1',
+                    },
+                    {
+                        id: 2,
+                        campaign_id: 1,
+                        name: 'Facebook Ads - Campaign 1 - Adset 2',
+                        channel: 'Facebook',
+                        campaign_type: 'Facebook Ads',
+                        campaign: 'Facebook Ads - Campaign 1',
+                    },
+                ],
+            };
+
+            Client.findOne.mockResolvedValue({
+                id: 1,
+                name: 'Test Client 1',
+            });
+            Campaign.findOne.mockResolvedValue(marketingCampaign);
+
+            const channel = 'facex';
+            const campaignType = 'ads';
+
+            const response = await request.get(
+                `/api/clients/${clientId}/marketingcampaign/${campaignId}/campaigns?channel=${channel}&campaignType=${campaignType}`
+            );
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe(`Campaigns not found`);
+        });
+
+        it('500', async () => {
+            Client.findOne.mockRejectedValue(new Error('Error'));
+            const response = await request.get(
+                `/api/clients/${clientId}/marketingcampaign/${campaignId}/campaigns`
+            );
+            expect(response.status).toBe(500);
+            expect(response.body.message).toBe('Error');
+        });
+    });
+
+    describe('Get campaign by id', () => {
+        const clientId = 1;
+        const marketingCampaignId = 1;
+        const campaignId = 1;
+
+        it('200', async () => {
+            const marketingCampaign = {
+                id: 1,
+                client_id: 1,
+                name: 'Test campaign',
+                campaigns: [
+                    {
+                        id: 1,
+                        name: 'Facebook Ads - Campaign 1',
+                        channel: 'Facebook',
+                        campaign_type: 'Facebook Ads',
+                        goals: '1. Do something\n2. Do something else\n3. Nothing else',
+                    },
+                ],
+                adsets: [
+                    {
+                        id: 1,
+                        campaign_id: 1,
+                        name: 'Facebook Ads - Campaign 1 - Adset 1',
+                        channel: 'Facebook',
+                        campaign_type: 'Facebook Ads',
+                        campaign: 'Facebook Ads - Campaign 1',
+                    },
+                    {
+                        id: 2,
+                        campaign_id: 1,
+                        name: 'Facebook Ads - Campaign 1 - Adset 2',
+                        channel: 'Facebook',
+                        campaign_type: 'Facebook Ads',
+                        campaign: 'Facebook Ads - Campaign 1',
+                    },
+                ],
+            };
+
+            const data = [
+                {
+                    id: 1,
+                    name: 'Facebook Ads - Campaign 1',
+                    channel: 'Facebook',
+                    campaign_type: 'Facebook Ads',
+                    goals: '1. Do something\n2. Do something else\n3. Nothing else',
+                    adsets: [
+                        {
+                            id: 1,
+                            campaign_id: 1,
+                            name: 'Facebook Ads - Campaign 1 - Adset 1',
+                            channel: 'Facebook',
+                            campaign_type: 'Facebook Ads',
+                            campaign: 'Facebook Ads - Campaign 1',
+                        },
+                        {
+                            id: 2,
+                            campaign_id: 1,
+                            name: 'Facebook Ads - Campaign 1 - Adset 2',
+                            channel: 'Facebook',
+                            campaign_type: 'Facebook Ads',
+                            campaign: 'Facebook Ads - Campaign 1',
+                        },
+                    ],
+                },
+            ];
+
+            Client.findOne.mockResolvedValue({
+                id: 1,
+                name: 'Test Client 1',
+            });
+            Campaign.findOne.mockResolvedValue(marketingCampaign);
+
+            const response = await request.get(
+                `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}`
+            );
+            expect(response.status).toBe(200);
+            expect(response.body.data).toEqual(data);
+            expect(response.body.message).toBe(
+                'Campaign retrieved successfully'
+            );
+        });
+
+        it('404 client', async () => {
+            Client.findOne.mockResolvedValue(null);
+            const response = await request.get(
+                `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}`
+            );
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe(`Client not found`);
+        });
+
+        it('404 marketing campaign', async () => {
+            Client.findOne.mockResolvedValue({
+                id: 1,
+                name: 'Test Client 1',
+            });
+            Campaign.findOne.mockResolvedValue(null);
+            const response = await request.get(
+                `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}`
+            );
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe(`Marketing campaign not found`);
+        });
+
+        it('404 campaign', async () => {
+            const marketingCampaign = {
+                id: 2,
+                client_id: 1,
+                name: 'Test campaign',
+                campaigns: [
+                    {
+                        id: 2,
+                        name: 'Facebook Ads - Campaign 1',
+                        channel: 'Facebook',
+                        campaign_type: 'Facebook Ads',
+                        goals: '1. Do something\n2. Do something else\n3. Nothing else',
+                    },
+                ],
+                adsets: [
+                    {
+                        id: 1,
+                        campaign_id: 2,
+                        name: 'Facebook Ads - Campaign 1 - Adset 1',
+                        channel: 'Facebook',
+                        campaign_type: 'Facebook Ads',
+                        campaign: 'Facebook Ads - Campaign 1',
+                    },
+                    {
+                        id: 2,
+                        campaign_id: 2,
+                        name: 'Facebook Ads - Campaign 1 - Adset 2',
+                        channel: 'Facebook',
+                        campaign_type: 'Facebook Ads',
+                        campaign: 'Facebook Ads - Campaign 1',
+                    },
+                ],
+            };
+
+            Client.findOne.mockResolvedValue({
+                id: 1,
+                name: 'Test Client 1',
+            });
+            Campaign.findOne.mockResolvedValue(marketingCampaign);
+
+            const response = await request.get(
+                `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}`
+            );
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe(`Campaign not found`);
+        });
+
+        it('500', async () => {
+            Client.findOne.mockRejectedValue(new Error('Error'));
+            const response = await request.get(
+                `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}`
+            );
+            expect(response.status).toBe(500);
+            expect(response.body.message).toBe('Error');
+        });
+    });
+
+    describe('Update campaign goals', () => {
+        const clientId = 1;
+        const marketingCampaignId = 1;
+        const campaignId = 1;
+
+        it('200', async () => {
+            const data = {
+                id: 1,
+                name: 'Campaña 1',
+                client: 'Test Client 1',
+                company_name: 'Company',
+                goals: '1. test\n2. test\n3. test',
+                total_gross_budget: 1,
+                margin: 1,
+                flight_time_start: '2022-11-11 00:00:00-04',
+                flight_time_end: '2023-11-11 00:00:00-04',
+                net_budget: 1,
+                channels: 'a,b,c',
+                createdAt: '2023-07-07 18:13:23.552748-04',
+                updatedAt: '2023-07-07 18:13:23.552748-04',
+                campaigns: [
+                    {
+                        id: 1,
+                        name: 'Test Campaign 1',
+                    },
+                ],
+                budget: {
+                    campaigns: [
+                        {
+                            id: 1,
+                            name: 'Test Campaign 1',
+                        },
+                    ],
+                },
+            };
+
+            const sendData = {
+                goals: '1. test\n2. test\n3. test',
+            };
+
+            Client.findOne.mockResolvedValue({
+                id: 1,
+                name: 'Test Client 1',
+            });
+            Campaign.findOne.mockResolvedValue(data);
+            Campaign.update.mockResolvedValue([null, data]);
+
+            const response = await request
+                .put(
+                    `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}/goals`
+                )
+                .send(sendData);
+            expect(response.status).toBe(200);
+            expect(response.body.data).toEqual(data);
+            expect(response.body.message).toBe(
+                'Campaign goals updated successfully'
+            );
+        });
+
+        it('400', async () => {
+            const sendData = {};
+
+            Client.findOne.mockResolvedValue({
+                id: 1,
+                name: 'Test Client 1',
+            });
+
+            const response = await request
+                .put(
+                    `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}/goals`
+                )
+                .send(sendData);
+            expect(response.status).toBe(400);
+            expect(response.body.message).toBe(
+                `Missing required fields: goals`
+            );
+        });
+
+        it('404 client', async () => {
+            const sendData = {
+                goals: "test"
+            };
+
+            Client.findOne.mockResolvedValue(null);
+            const response = await request
+                .put(
+                    `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}/goals`
+                )
+                .send(sendData);
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe(`Client not found`);
+        });
+
+        it('404 marketing campaign', async () => {
+            const sendData = {
+                goals: "test"
+            };
+            Client.findOne.mockResolvedValue({
+                id: 1,
+                name: 'Test Client 1',
+            });
+            Campaign.findOne.mockResolvedValue(null);
+            const response = await request.put(
+                `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}/goals`
+            ).send(sendData);
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe(`Marketing campaign not found`);
+        });
+
+        it('500', async () => {
+            const sendData = {
+                goals: "test"
+            };
+            Client.findOne.mockRejectedValue(new Error('Error'));
+            const response = await request.put(
+                `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}/goals`
+            ).send(sendData);;
+            expect(response.status).toBe(500);
+            expect(response.body.message).toBe('Error');
+        });
+    });
 });

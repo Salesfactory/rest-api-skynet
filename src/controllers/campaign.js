@@ -670,7 +670,13 @@ const getClientCampaignAdvertisements = async (req, res) => {
 
         const options = {
             query: sqlQuery,
-            params: [channel, client.name, `%${adsetName}%`, `%${campaignName}%`, `%${campaignType}%`],
+            params: [
+                channel,
+                client.name,
+                `%${adsetName}%`,
+                `%${campaignName}%`,
+                `%${campaignType}%`,
+            ],
         };
 
         const response = await bigqueryClient.query(options);
@@ -743,6 +749,206 @@ const getRecentCampaigns = async (req, res) => {
     }
 };
 
+const getCampaignsByGroup = async (req, res) => {
+    const { id: clientId, cid: marketingCampaignId } = req.params;
+    const { channel, campaignType } = req.query;
+    try {
+        const client = await Client.findOne({
+            where: { id: clientId },
+        });
+
+        if (!client) {
+            return res.status(404).json({
+                message: `Client not found`,
+            });
+        }
+
+        const marketingCampaign = await Campaign.findOne({
+            where: {
+                id: marketingCampaignId,
+            },
+        });
+
+        if (!marketingCampaign) {
+            return res.status(404).json({
+                message: `Marketing campaign not found`,
+            });
+        }
+
+        let filteredCampaigns = marketingCampaign.campaigns;
+
+        filteredCampaigns.forEach(campaign => {
+            campaign.adsets = marketingCampaign.adsets.filter(
+                adset => adset.campaign_id == campaign.id
+            );
+        });
+
+        filteredCampaigns = channel
+            ? filteredCampaigns.filter(campaign =>
+                  campaign.channel.toLowerCase().includes(channel.toLowerCase())
+              )
+            : filteredCampaigns;
+
+        filteredCampaigns = campaignType
+            ? filteredCampaigns.filter(campaign =>
+                  campaign.campaign_type
+                      .toLowerCase()
+                      .includes(campaignType.toLowerCase())
+              )
+            : filteredCampaigns;
+
+        if (filteredCampaigns.length === 0) {
+            return res.status(404).json({
+                message: `Campaigns not found`,
+            });
+        }
+
+        filteredCampaigns.forEach(campaign => {
+            campaign.marketingCampaignId = marketingCampaignId;
+            campaign.clientId = clientId;
+        });
+
+        res.status(200).json({
+            message: 'Campaigns retrieved successfully',
+            data: filteredCampaigns,
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getCampaignsById = async (req, res) => {
+    const {
+        id: clientId,
+        cid: marketingCampaignId,
+        caid: campaignId,
+    } = req.params;
+
+    try {
+        const client = await Client.findOne({
+            where: { id: clientId },
+        });
+
+        if (!client) {
+            return res.status(404).json({
+                message: `Client not found`,
+            });
+        }
+
+        const marketingCampaign = await Campaign.findOne({
+            where: {
+                id: marketingCampaignId,
+            },
+        });
+
+        if (!marketingCampaign) {
+            return res.status(404).json({
+                message: `Marketing campaign not found`,
+            });
+        }
+
+        let filteredCampaigns = marketingCampaign.campaigns.filter(
+            campaign => campaign.id == campaignId
+        );
+
+        filteredCampaigns.forEach(campaign => {
+            campaign.adsets = marketingCampaign.adsets.filter(
+                adset => adset.campaign_id == campaign.id
+            );
+        });
+
+        if (filteredCampaigns.length === 0) {
+            return res.status(404).json({
+                message: `Campaign not found`,
+            });
+        }
+
+        res.status(200).json({
+            message: 'Campaign retrieved successfully',
+            data: filteredCampaigns,
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const updateCampaignGoals = async (req, res) => {
+    const {
+        id: clientId,
+        cid: marketingCampaignId,
+        caid: campaignId,
+    } = req.params;
+    const { goals } = req.body;
+
+    try {
+        if (!goals) {
+            return res.status(400).json({
+                message: `Missing required fields: goals`,
+            });
+        }
+
+        const client = await Client.findOne({
+            where: { id: clientId },
+        });
+
+        if (!client) {
+            return res.status(404).json({
+                message: `Client not found`,
+            });
+        }
+
+        const marketingCampaign = await Campaign.findOne({
+            where: { id: marketingCampaignId },
+        });
+
+        if (!marketingCampaign) {
+            return res.status(404).json({
+                message: `Marketing campaign not found`,
+            });
+        }
+
+        const campaign = marketingCampaign.campaigns.find(
+            campaign => campaign.id == campaignId
+        );
+
+        if (!campaign) {
+            return res.status(404).json({
+                message: `Campaign not found`,
+            });
+        }
+
+        marketingCampaign.campaigns.forEach(campaign => {
+            if (campaign.id == campaignId) {
+                campaign.goals = goals;
+            }
+        });
+        marketingCampaign.budget.campaigns.forEach(campaign => {
+            if (campaign.id == campaignId) {
+                campaign.goals = goals;
+            }
+        });
+
+        const updatedCampaign = await Campaign.update(
+            {
+                campaigns: marketingCampaign.campaigns,
+                budget: marketingCampaign.budget,
+            },
+            {
+                where: { id: marketingCampaignId },
+                returning: true,
+                plain: true,
+            }
+        );
+
+        res.status(200).json({
+            message: 'Campaign goals updated successfully',
+            data: updatedCampaign[1],
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getMarketingCampaignsByClient,
     getMarketingCampaignsById,
@@ -751,4 +957,7 @@ module.exports = {
     deleteMarketingCampaign,
     getClientCampaignAdvertisements,
     getRecentCampaigns,
+    getCampaignsByGroup,
+    getCampaignsById,
+    updateCampaignGoals,
 };
