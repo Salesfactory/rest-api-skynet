@@ -949,6 +949,141 @@ const updateCampaignGoals = async (req, res) => {
     }
 };
 
+const pauseCampaign = async (req, res) => {
+    const {
+        id: clientId,
+        cid: campaignGroupId,
+        caid: campaignId,
+    } = req.params;
+    const { pause, reason } = req.body;
+
+    try {
+        if (typeof pause !== 'boolean') {
+            return res.status(400).json({
+                message: `Missing required fields: pause or pause is not a boolean`,
+            });
+        }
+
+        const campaignGroup = await Campaign.findOne({
+            where: { id: campaignGroupId, client_id: clientId },
+        });
+
+        if (!campaignGroup) {
+            return res.status(404).json({
+                message: `Campaign group not found`,
+            });
+        }
+
+        const campaign = campaignGroup.campaigns.find(
+            campaign => campaign.id == campaignId
+        );
+
+        if (!campaign) {
+            return res.status(404).json({
+                message: `Campaign not found`,
+            });
+        }
+
+        campaignGroup.campaigns.forEach(campaign => {
+            if (campaign.id == campaignId) {
+                campaign.paused = pause;
+                campaign.pause_reason = reason;
+            }
+        });
+        campaignGroup.budget.campaigns.forEach(campaign => {
+            if (campaign.id == campaignId) {
+                campaign.paused = pause;
+                campaign.pause_reason = reason;
+            }
+        });
+
+        const updatedCampaign = await Campaign.update(
+            {
+                campaigns: campaignGroup.campaigns,
+                budget: campaignGroup.budget,
+            },
+            {
+                where: { id: campaignGroupId },
+                returning: true,
+                plain: true,
+            }
+        );
+
+        res.status(200).json({
+            message: 'Campaign paused status updated successfully',
+            data: updatedCampaign[1],
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const deleteCampaign = async (req, res) => {
+    const {
+        id: clientId,
+        cid: campaignGroupId,
+        caid: campaignId,
+    } = req.params;
+
+    const { reason } = req.body;
+
+    try {
+        const campaignGroup = await Campaign.findOne({
+            where: { id: campaignGroupId, client_id: clientId },
+        });
+
+        if (!campaignGroup) {
+            return res.status(404).json({
+                message: `Campaign group not found`,
+            });
+        }
+
+        const campaign = campaignGroup.campaigns.find(
+            campaign => campaign.id == campaignId && !campaign.deleted
+        );
+
+        if (!campaign) {
+            return res.status(404).json({
+                message: `Campaign not found`,
+            });
+        }
+
+        campaignGroup.campaigns.forEach(campaign => {
+            if (campaign.id == campaignId) {
+                campaign.deleted = true;
+                campaign.deleted_at = (new Date()).toISOString().slice(0, 19).replace('T', ' ');
+                campaign.delete_reason = reason;
+            }
+        });
+        campaignGroup.budget.campaigns.forEach(campaign => {
+            if (campaign.id == campaignId) {
+                campaign.deleted = true;
+                campaign.deleted_at = (new Date()).toISOString().slice(0, 19).replace('T', ' ');
+                campaign.delete_reason = reason;
+            }
+        });
+
+        const updatedCampaign = await Campaign.update(
+            {
+                campaigns: campaignGroup.campaigns,
+                budget: campaignGroup.budget,
+            },
+            {
+                where: { id: campaignGroupId },
+                returning: true,
+                plain: true,
+            }
+        );
+
+        res.status(200).json({
+            message: 'Campaign deleted successfully',
+            data: updatedCampaign[1],
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getMarketingCampaignsByClient,
     getMarketingCampaignsById,
@@ -960,4 +1095,6 @@ module.exports = {
     getCampaignsByGroup,
     getCampaignsById,
     updateCampaignGoals,
+    pauseCampaign,
+    deleteCampaign,
 };
