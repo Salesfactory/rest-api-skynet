@@ -747,30 +747,123 @@
                         "name": "caid",
                         "required": true,
                         "type": "integer"
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "goals": {
-                                        "type": "string",
-                                        "example": "1. Do something\n2. Do something else\n3. Nothing else"
-                                    }
-                                },
-                                "required": ["goals"]
-                            }
+                    },
+                    {
+                        "in": "body",
+                        "name": "goals",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "goals": {
+                                    "type": "string",
+                                    "example": "1. Do something\n2. Do something else\n3. Nothing else"
+                                }
+                            },
+                            "required": ["goals"]
                         }
                     }
-                },
+                ],
                 "responses": {
                     "200": {
                         "description": "Goals updated successfully",
                         "schema": {
                             "$ref": "#/definitions/MarketingCampaign"
+                        }
+                    }
+                }
+            }
+        },
+        "/{id}/marketingcampaign/{cid}/campaigns/{caid}/pause": {
+            "put": {
+                "summary": "Pause a specific campaign in a marketing campaign",
+                "tags": ["clients"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "cid",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "caid",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "body",
+                        "name": "pause",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "pause": {
+                                    "type": "boolean"
+                                },
+                                "reason": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["pause"]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Campaign paused successfully",
+                        "schema": {
+                            "$ref": "#/definitions/MarketingCampaignWithPauseReason"
+                        }
+                    }
+                }
+            }
+        },
+        "/{id}/marketingcampaign/{cid}/campaigns/{caid}": {
+            "delete": {
+                "summary": "Delete a specific campaign in a marketing campaign",
+                "tags": ["clients"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "cid",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "caid",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "body",
+                        "name": "delete",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "reason": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Campaign deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/MarketingCampaignWithDeleteInfo"
                         }
                     }
                 }
@@ -1112,6 +1205,52 @@
                     "example": "Facebook Ads - Campaign 1"
                 }
             }
+        },
+        "MarketingCampaignWithPauseReason": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/MarketingCampaign"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "pause": {
+                            "type": "boolean",
+                            "example": true
+                        },
+                        "reason": {
+                            "type": "string",
+                            "example": "Campaign performance"
+                        }
+                    },
+                    "required": ["pause"]
+                }
+            ]
+        },
+        "MarketingCampaignWithDeleteInfo": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/MarketingCampaign"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "deleted": {
+                            "type": "boolean",
+                            "example": true
+                        },
+                        "deleted_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2023-08-25T10:15:00Z"
+                        },
+                        "delete_reason": {
+                            "type": "string",
+                            "example": "Campaign completion"
+                        }
+                    }
+                }
+            ]
         }
     }
 }

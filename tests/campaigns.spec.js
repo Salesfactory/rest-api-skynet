@@ -859,7 +859,7 @@ describe('Campaign Endpoints Test', () => {
 
         it('404 client', async () => {
             const sendData = {
-                goals: "test"
+                goals: 'test',
             };
 
             Client.findOne.mockResolvedValue(null);
@@ -874,30 +874,172 @@ describe('Campaign Endpoints Test', () => {
 
         it('404 marketing campaign', async () => {
             const sendData = {
-                goals: "test"
+                goals: 'test',
             };
             Client.findOne.mockResolvedValue({
                 id: 1,
                 name: 'Test Client 1',
             });
             Campaign.findOne.mockResolvedValue(null);
-            const response = await request.put(
-                `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}/goals`
-            ).send(sendData);
+            const response = await request
+                .put(
+                    `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}/goals`
+                )
+                .send(sendData);
             expect(response.status).toBe(404);
             expect(response.body.message).toBe(`Marketing campaign not found`);
         });
 
         it('500', async () => {
             const sendData = {
-                goals: "test"
+                goals: 'test',
             };
             Client.findOne.mockRejectedValue(new Error('Error'));
-            const response = await request.put(
-                `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}/goals`
-            ).send(sendData);;
+            const response = await request
+                .put(
+                    `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}/goals`
+                )
+                .send(sendData);
             expect(response.status).toBe(500);
             expect(response.body.message).toBe('Error');
+        });
+    });
+
+    describe('Pause campaign from campaign group', () => {
+        const clientId = 1;
+        const marketingCampaignId = 1;
+        const campaignId = 1;
+
+        it('200', async () => {
+            const data = {
+                id: 1,
+                name: 'Campaña 1',
+                client: 'Test Client 1',
+                campaigns: [
+                    {
+                        id: 1,
+                        name: 'Test Campaign 1',
+                        paused: true,
+                    },
+                ],
+                budget: {
+                    campaigns: [
+                        {
+                            id: 1,
+                            name: 'Test Campaign 1',
+                            paused: true,
+                        },
+                    ],
+                },
+            };
+
+            Campaign.findOne.mockResolvedValue(data);
+            Campaign.update.mockResolvedValue([null, data]);
+
+            const response = await request
+                .put(
+                    `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}/pause`
+                )
+                .send({ pause: true });
+            expect(response.status).toBe(200);
+            expect(response.body.data).toEqual(data);
+            expect(response.body.message).toBe(
+                'Campaign paused status updated successfully'
+            );
+        });
+
+        it('400', async () => {
+            const response = await request.put(
+                `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}/pause`
+            );
+            expect(response.status).toBe(400);
+            expect(response.body.message).toBe(
+                'Missing required fields: pause or pause is not a boolean'
+            );
+        });
+
+        it('404 campaign group', async () => {
+            Campaign.findOne.mockResolvedValue(null);
+
+            const response = await request
+                .put(
+                    `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}/pause`
+                )
+                .send({ pause: true });
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe('Campaign group not found');
+        });
+
+        it('500', async () => {
+            Campaign.findOne.mockRejectedValue(new Error('Error'));
+            const response = await request
+                .put(
+                    `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}/pause`
+                )
+                .send({ pause: true });
+            expect(response.status).toBe(500);
+            expect(response.body.message).toBe('Error');
+        });
+    });
+
+    describe("Delete campaign from campaign group", () => {
+        const clientId = 1;
+        const campaignGroupId = 1;
+        const campaignId = 1;
+
+        it("200", async () => {
+            const data = {
+                id: 1,
+                name: "Campaña 1",
+                client: "Test Client 1",
+                campaigns: [
+                    {
+                        id: 1,
+                        name: "Test Campaign 1",
+                        deleted: false,
+                    },
+                ],
+                budget: {
+                    campaigns: [
+                        {
+                            id: 1,
+                            name: "Test Campaign 1",
+                            deleted: false,
+                        },
+                    ],
+                },
+            };
+
+            Campaign.findOne.mockResolvedValue(data);
+            Campaign.update.mockResolvedValue([null, data]);
+
+            const response = await request.delete(
+                `/api/clients/${clientId}/marketingcampaign/${campaignGroupId}/campaigns/${campaignId}`
+            );
+            expect(response.status).toBe(200);
+            expect(response.body.data).toEqual(data);
+            expect(response.body.message).toBe(
+                "Campaign deleted successfully"
+            );
+        });
+
+        it("404 campaign group", async () => {
+            Campaign.findOne.mockResolvedValue(null);
+
+            const response = await request.delete(
+                `/api/clients/${clientId}/marketingcampaign/${campaignGroupId}/campaigns/${campaignId}`
+            );
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe("Campaign group not found");
+        });
+
+        it("500", async () => {
+            Campaign.findOne.mockRejectedValue(new Error("Error"));
+            const response = await request.delete(
+                `/api/clients/${clientId}/marketingcampaign/${campaignGroupId}/campaigns/${campaignId}`
+            );
+            expect(response.status).toBe(500);
+            expect(response.body.message).toBe("Error");
         });
     });
 });
