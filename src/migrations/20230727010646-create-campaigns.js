@@ -10,66 +10,58 @@ module.exports = {
                 primaryKey: true,
                 type: Sequelize.INTEGER,
             },
-            client_id: {
+            campaign_group_id: {
                 type: Sequelize.INTEGER,
                 allowNull: false,
+                references: {
+                    model: 'campaign_groups',
+                    key: 'id',
+                },
+                onDelete: 'cascade',
+                onUpdate: 'cascade',
+            },
+            // bigquery campaign id, naming convention is inverted
+            id_campaign: {
+                type: Sequelize.INTEGER,
+                allowNull: true,
             },
             name: {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
-            company_name: {
+            goal: {
+                type: Sequelize.STRING,
+                allowNull: true,
+            },
+            channel: {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
-            goals: {
-                type: Sequelize.TEXT,
-                allowNull: true,
-            },
-            total_gross_budget: {
-                type: Sequelize.FLOAT,
-                allowNull: false,
-            },
-            margin: {
-                type: Sequelize.FLOAT,
-                allowNull: false,
-            },
-            flight_time_start: {
-                type: Sequelize.DATE,
-                allowNull: false,
-            },
-            flight_time_end: {
-                type: Sequelize.DATE,
-                allowNull: false,
-            },
-            net_budget: {
-                type: Sequelize.FLOAT,
-                allowNull: false,
-            },
-            channels: {
+            campaign_type: {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
-            comments: {
-                type: Sequelize.TEXT,
+            // insert here the adsets from bigquery or create a new table.
+            adset: {
+                type: Sequelize.JSON,
                 allowNull: true,
             },
-            // this will contain the entire table of budgets
-            budget: {
-                type: Sequelize.JSON,
+            paused: {
+                type: Sequelize.BOOLEAN,
                 allowNull: false,
+                defaultValue: false,
             },
-            campaign_types: {
-                type: Sequelize.JSON,
+            pause_reason: {
+                type: Sequelize.STRING,
                 allowNull: true,
             },
-            // for each channel and its channel types, there are campaigns and adsets
-            campaigns: {
-                type: Sequelize.JSON,
-                allowNull: true,
+            deleted: {
+                type: Sequelize.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
             },
-            adsets: {
-                type: Sequelize.JSON,
+            delete_reason: {
+                type: Sequelize.STRING,
                 allowNull: true,
             },
             createdAt: {
@@ -79,6 +71,11 @@ module.exports = {
             },
             updatedAt: {
                 allowNull: false,
+                type: Sequelize.DATE,
+                defaultValue: Sequelize.fn('now'),
+            },
+            deletedAt: {
+                allowNull: true,
                 type: Sequelize.DATE,
                 defaultValue: Sequelize.fn('now'),
             },

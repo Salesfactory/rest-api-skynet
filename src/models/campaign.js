@@ -1,77 +1,58 @@
 'use strict';
-
 const { Model } = require('sequelize');
-
-// Campaign model
 module.exports = (sequelize, DataTypes) => {
     class Campaign extends Model {
         static associate(models) {
-            Campaign.belongsTo(models.Client, {
-                foreignKey: 'client_id',
-                as: 'client',
+            Campaign.belongsTo(models.CampaignGroup, {
+                foreignKey: 'campaign_group_id',
+                as: 'campaign_group',
             });
         }
     }
     Campaign.init(
         {
-            client_id: {
+            campaign_group_id: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
+            },
+            id_campaign: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
             },
             name: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-            company_name: {
+            goal: {
+                type: DataTypes.STRING,
+                allowNull: true,
+            },
+            channel: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-            goals: {
-                type: DataTypes.TEXT,
-                allowNull: true,
-            },
-            total_gross_budget: {
-                type: DataTypes.FLOAT,
-                allowNull: false,
-            },
-            margin: {
-                type: DataTypes.FLOAT,
-                allowNull: false,
-            },
-            flight_time_start: {
-                type: DataTypes.DATE,
-                allowNull: false,
-            },
-            flight_time_end: {
-                type: DataTypes.DATE,
-                allowNull: false,
-            },
-            net_budget: {
-                type: DataTypes.FLOAT,
-                allowNull: false,
-            },
-            channels: {
+            campaign_type: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-            comments: {
-                type: DataTypes.TEXT,
+            adset: {
+                type: DataTypes.JSON,
                 allowNull: true,
             },
-            budget: {
-                type: DataTypes.JSON,
+            paused: {
+                type: DataTypes.BOOLEAN,
                 allowNull: false,
             },
-            campaign_types: {
-                type: DataTypes.JSON,
+            pause_reason: {
+                type: DataTypes.STRING,
                 allowNull: true,
             },
-            campaigns: {
-                type: DataTypes.JSON,
-                allowNull: true,
+            deleted: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
             },
-            adsets: {
-                type: DataTypes.JSON,
+            delete_reason: {
+                type: DataTypes.STRING,
                 allowNull: true,
             },
         },

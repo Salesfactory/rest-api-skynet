@@ -1,5 +1,5 @@
 const { bigqueryClient } = require('../config/bigquery');
-const { Campaign, Client } = require('../models');
+const { Budget, Campaign, CampaignGroup, Client } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
 
@@ -38,12 +38,42 @@ const getMarketingCampaignsByClient = async (req, res) => {
                 : {}),
         };
 
-        const campaigns = await Campaign.findAll({
+        const campaigns = await CampaignGroup.findAll({
             where: searchParams,
             include: [
                 {
                     model: Client,
                     as: 'client',
+                    attributes: ['id', 'name'],
+                },
+                {
+                    model: Budget,
+                    as: 'budgets',
+                    limit: 1,
+                    order: [['updatedAt', 'DESC']],
+                    attributes: [
+                        'months',
+                        'percentages',
+                        'net_budgets',
+                        'channels',
+                        'campaign_types',
+                        'campaigns',
+                        'adsets',
+                    ],
+                },
+                {
+                    model: Campaign,
+                    as: 'campaigns',
+                    attributes: [
+                        'id_campaign',
+                        'name',
+                        'goal',
+                        'channel',
+                        'campaign_type',
+                        'adset',
+                        'paused',
+                        'deleted',
+                    ],
                 },
             ],
         });
@@ -73,12 +103,43 @@ const getMarketingCampaignsById = async (req, res) => {
             req.query.clientName = client.name;
         }
 
-        const campaign = await Campaign.findOne({
+        const campaign = await CampaignGroup.findOne({
             where: { id: campaignId },
             include: [
                 {
                     model: Client,
                     as: 'client',
+                    attributes: ['id', 'name'],
+                },
+                {
+                    model: Budget,
+                    as: 'budgets',
+                    limit: 1,
+                    order: [['updatedAt', 'DESC']],
+                    attributes: [
+                        'id',
+                        'months',
+                        'percentages',
+                        'net_budgets',
+                        'channels',
+                        'campaign_types',
+                        'campaigns',
+                        'adsets',
+                    ],
+                },
+                {
+                    model: Campaign,
+                    as: 'campaigns',
+                    attributes: [
+                        'id_campaign',
+                        'name',
+                        'goal',
+                        'channel',
+                        'campaign_type',
+                        'adset',
+                        'paused',
+                        'deleted',
+                    ],
                 },
             ],
         });
@@ -197,24 +258,39 @@ const createMarketingCampaign = async (req, res) => {
             }
         }
 
-        const campaign = await Campaign.create({
-            client_id: clientId,
-            name,
-            company_name,
-            goals,
-            total_gross_budget,
-            margin,
-            flight_time_start,
-            flight_time_end,
-            net_budget,
-            channels,
-            comments,
-            budget,
-        });
+        const campaignGroup = (
+            await CampaignGroup.create({
+                client_id: clientId,
+                name,
+                company_name,
+                goals,
+                total_gross_budget,
+                margin,
+                flight_time_start,
+                flight_time_end,
+                net_budget,
+                channels,
+                comments,
+            })
+        ).get({ plain: true });
+
+        if (campaignGroup) {
+            const newBudget = await Budget.create({
+                campaign_group_id: campaignGroup.id,
+                months: budget.months,
+                percentages: budget.percentages,
+                net_budgets: budget.net_budgets,
+                channels: budget.channels,
+                campaign_types: budget.campaign_types,
+                campaigns: budget.campaigns,
+                adsets: budget.adsets,
+            });
+            campaignGroup.budgets = newBudget;
+        }
 
         res.status(201).json({
             message: 'Marketing campaign created successfully',
-            data: campaign,
+            data: campaignGroup,
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -251,7 +327,7 @@ const updateMarketingCampaign = async (req, res) => {
             });
         }
 
-        const campaign = await Campaign.findOne({
+        const campaign = await CampaignGroup.findOne({
             where: { id: campaignId },
         });
 
@@ -556,7 +632,7 @@ const updateMarketingCampaign = async (req, res) => {
             }
         }
 
-        const updatedCampaign = await Campaign.update(
+        const updatedCampaignGroup = await CampaignGroup.update(
             {
                 client_id: clientId,
                 name,
@@ -569,10 +645,6 @@ const updateMarketingCampaign = async (req, res) => {
                 net_budget,
                 channels,
                 comments,
-                budget,
-                campaign_types,
-                campaigns,
-                adsets,
             },
             {
                 where: { id: campaignId },
@@ -580,9 +652,56 @@ const updateMarketingCampaign = async (req, res) => {
                 plain: true,
             }
         );
+
+        if (budget) {
+            const newBudget = await Budget.create({
+                campaign_group_id: campaignId,
+                months: budget.months,
+                percentages: budget.percentages,
+                net_budgets: budget.net_budgets,
+                channels: budget.channels,
+                campaign_types: budget.campaign_types,
+                campaigns: budget.campaigns,
+                adsets: budget.adsets,
+            });
+            updatedCampaignGroup[1].budgets = newBudget;
+        }
+
+        if (campaigns) {
+            campaigns.forEach(async campaign => {
+                const campaignExists = await Campaign.findOne({
+                    where: { id_campaign: campaign.id },
+                });
+
+                const campaignData = {
+                    campaign_group_id: campaignId,
+                    name: campaign.name,
+                    goal: campaign.goal,
+                    channel: campaign.channel,
+                    campaign_type: campaign.campaign_type,
+                    adset: adsets.filter(
+                        adset => adset.campaign_id === campaign.id
+                    ),
+                    paused: false,
+                    deleted: false,
+                };
+
+                if (campaignExists) {
+                    Campaign.update(campaignData, {
+                        where: { id_campaign: campaign.id },
+                    });
+                } else {
+                    Campaign.create({
+                        id_campaign: campaign.id,
+                        ...campaignData,
+                    });
+                }
+            });
+        }
+
         res.status(200).json({
             message: 'Marketing campaign updated successfully',
-            data: updatedCampaign[1],
+            data: updatedCampaignGroup[1],
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -603,7 +722,7 @@ const deleteMarketingCampaign = async (req, res) => {
             });
         }
 
-        const campaign = await Campaign.findOne({
+        const campaign = await CampaignGroup.findOne({
             where: { id: campaignId },
         });
 
@@ -613,7 +732,7 @@ const deleteMarketingCampaign = async (req, res) => {
             });
         }
 
-        await Campaign.destroy({
+        await CampaignGroup.destroy({
             where: { id: campaignId },
         });
 
@@ -695,7 +814,7 @@ const getRecentCampaigns = async (req, res) => {
     const { search } = req.query;
     try {
         const searchLower = search ? search.toLowerCase() : null;
-        const campaigns = await Campaign.findAll({
+        const campaigns = await CampaignGroup.findAll({
             limit: 10,
             order: [['createdAt', 'DESC']],
             attributes: ['id', 'name', 'company_name', 'createdAt'],
@@ -763,7 +882,7 @@ const getCampaignsByGroup = async (req, res) => {
             });
         }
 
-        const marketingCampaign = await Campaign.findOne({
+        const marketingCampaign = await CampaignGroup.findOne({
             where: {
                 id: marketingCampaignId,
             },
@@ -775,27 +894,27 @@ const getCampaignsByGroup = async (req, res) => {
             });
         }
 
-        let filteredCampaigns = marketingCampaign.campaigns;
-
-        filteredCampaigns.forEach(campaign => {
-            campaign.adsets = marketingCampaign.adsets.filter(
-                adset => adset.campaign_id == campaign.id
-            );
+        const filteredCampaigns = await Campaign.findAll({
+            where: {
+                campaign_group_id: marketingCampaignId,
+                channel: sequelize.where(
+                    sequelize.fn('LOWER', sequelize.col('channel')),
+                    'LIKE',
+                    `%${channel}%`
+                ),
+                campaign_type: sequelize.where(
+                    sequelize.fn('LOWER', sequelize.col('campaign_type')),
+                    'LIKE',
+                    `%${campaignType}%`
+                ),
+            },
+            include: [
+                {
+                    model: CampaignGroup,
+                    as: 'campaign_group',
+                },
+            ],
         });
-
-        filteredCampaigns = channel
-            ? filteredCampaigns.filter(campaign =>
-                  campaign.channel.toLowerCase().includes(channel.toLowerCase())
-              )
-            : filteredCampaigns;
-
-        filteredCampaigns = campaignType
-            ? filteredCampaigns.filter(campaign =>
-                  campaign.campaign_type
-                      .toLowerCase()
-                      .includes(campaignType.toLowerCase())
-              )
-            : filteredCampaigns;
 
         if (filteredCampaigns.length === 0) {
             return res.status(404).json({
@@ -804,7 +923,6 @@ const getCampaignsByGroup = async (req, res) => {
         }
 
         filteredCampaigns.forEach(campaign => {
-            campaign.marketingCampaignId = marketingCampaignId;
             campaign.clientId = clientId;
         });
 
@@ -835,7 +953,7 @@ const getCampaignsById = async (req, res) => {
             });
         }
 
-        const marketingCampaign = await Campaign.findOne({
+        const marketingCampaign = await CampaignGroup.findOne({
             where: {
                 id: marketingCampaignId,
             },
@@ -847,14 +965,16 @@ const getCampaignsById = async (req, res) => {
             });
         }
 
-        let filteredCampaigns = marketingCampaign.campaigns.filter(
-            campaign => campaign.id == campaignId
-        );
-
-        filteredCampaigns.forEach(campaign => {
-            campaign.adsets = marketingCampaign.adsets.filter(
-                adset => adset.campaign_id == campaign.id
-            );
+        let filteredCampaigns = await Campaign.findAll({
+            where: {
+                campaign_group_id: marketingCampaignId,
+            },
+            include: [
+                {
+                    model: CampaignGroup,
+                    as: 'campaign_group',
+                },
+            ],
         });
 
         if (filteredCampaigns.length === 0) {
@@ -897,7 +1017,7 @@ const updateCampaignGoals = async (req, res) => {
             });
         }
 
-        const marketingCampaign = await Campaign.findOne({
+        const marketingCampaign = await CampaignGroup.findOne({
             where: { id: marketingCampaignId },
         });
 
@@ -907,9 +1027,9 @@ const updateCampaignGoals = async (req, res) => {
             });
         }
 
-        const campaign = marketingCampaign.campaigns.find(
-            campaign => campaign.id == campaignId
-        );
+        const campaign = await Campaign.findOne({
+            where: { id: campaignId },
+        });
 
         if (!campaign) {
             return res.status(404).json({
@@ -917,24 +1037,12 @@ const updateCampaignGoals = async (req, res) => {
             });
         }
 
-        marketingCampaign.campaigns.forEach(campaign => {
-            if (campaign.id == campaignId) {
-                campaign.goals = goals;
-            }
-        });
-        marketingCampaign.budget.campaigns.forEach(campaign => {
-            if (campaign.id == campaignId) {
-                campaign.goals = goals;
-            }
-        });
-
         const updatedCampaign = await Campaign.update(
             {
-                campaigns: marketingCampaign.campaigns,
-                budget: marketingCampaign.budget,
+                goal: goals,
             },
             {
-                where: { id: marketingCampaignId },
+                where: { id: campaignId },
                 returning: true,
                 plain: true,
             }
@@ -950,11 +1058,7 @@ const updateCampaignGoals = async (req, res) => {
 };
 
 const pauseCampaign = async (req, res) => {
-    const {
-        id: clientId,
-        cid: campaignGroupId,
-        caid: campaignId,
-    } = req.params;
+    const { id: clientId, cid: campaignGroupId, caid: campaignId } = req.params;
     const { pause, reason } = req.body;
 
     try {
@@ -964,7 +1068,7 @@ const pauseCampaign = async (req, res) => {
             });
         }
 
-        const campaignGroup = await Campaign.findOne({
+        const campaignGroup = await CampaignGroup.findOne({
             where: { id: campaignGroupId, client_id: clientId },
         });
 
@@ -974,9 +1078,9 @@ const pauseCampaign = async (req, res) => {
             });
         }
 
-        const campaign = campaignGroup.campaigns.find(
-            campaign => campaign.id == campaignId
-        );
+        const campaign = await Campaign.findOne({
+            where: { id: campaignId, campaign_group_id: campaignGroupId },
+        });
 
         if (!campaign) {
             return res.status(404).json({
@@ -984,26 +1088,13 @@ const pauseCampaign = async (req, res) => {
             });
         }
 
-        campaignGroup.campaigns.forEach(campaign => {
-            if (campaign.id == campaignId) {
-                campaign.paused = pause;
-                campaign.pause_reason = reason;
-            }
-        });
-        campaignGroup.budget.campaigns.forEach(campaign => {
-            if (campaign.id == campaignId) {
-                campaign.paused = pause;
-                campaign.pause_reason = reason;
-            }
-        });
-
         const updatedCampaign = await Campaign.update(
             {
-                campaigns: campaignGroup.campaigns,
-                budget: campaignGroup.budget,
+                paused: pause,
+                pause_reason: reason,
             },
             {
-                where: { id: campaignGroupId },
+                where: { id: campaignId },
                 returning: true,
                 plain: true,
             }
@@ -1019,16 +1110,12 @@ const pauseCampaign = async (req, res) => {
 };
 
 const deleteCampaign = async (req, res) => {
-    const {
-        id: clientId,
-        cid: campaignGroupId,
-        caid: campaignId,
-    } = req.params;
+    const { id: clientId, cid: campaignGroupId, caid: campaignId } = req.params;
 
     const { reason } = req.body;
 
     try {
-        const campaignGroup = await Campaign.findOne({
+        const campaignGroup = await CampaignGroup.findOne({
             where: { id: campaignGroupId, client_id: clientId },
         });
 
@@ -1038,9 +1125,9 @@ const deleteCampaign = async (req, res) => {
             });
         }
 
-        const campaign = campaignGroup.campaigns.find(
-            campaign => campaign.id == campaignId && !campaign.deleted
-        );
+        const campaign = await Campaign.findOne({
+            where: { id: campaignId, campaign_group_id: campaignGroupId },
+        });
 
         if (!campaign) {
             return res.status(404).json({
@@ -1048,28 +1135,17 @@ const deleteCampaign = async (req, res) => {
             });
         }
 
-        campaignGroup.campaigns.forEach(campaign => {
-            if (campaign.id == campaignId) {
-                campaign.deleted = true;
-                campaign.deleted_at = (new Date()).toISOString().slice(0, 19).replace('T', ' ');
-                campaign.delete_reason = reason;
-            }
-        });
-        campaignGroup.budget.campaigns.forEach(campaign => {
-            if (campaign.id == campaignId) {
-                campaign.deleted = true;
-                campaign.deleted_at = (new Date()).toISOString().slice(0, 19).replace('T', ' ');
-                campaign.delete_reason = reason;
-            }
-        });
-
         const updatedCampaign = await Campaign.update(
             {
-                campaigns: campaignGroup.campaigns,
-                budget: campaignGroup.budget,
+                deleted: true,
+                deleted_at: new Date()
+                    .toISOString()
+                    .slice(0, 19)
+                    .replace('T', ' '),
+                delete_reason: reason,
             },
             {
-                where: { id: campaignGroupId },
+                where: { id: campaignId },
                 returning: true,
                 plain: true,
             }

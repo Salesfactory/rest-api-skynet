@@ -1,9 +1,16 @@
 const supertest = require('supertest');
 const makeApp = require('../src/app');
-const { Campaign, Client } = require('../src/models');
+const { Budget, Campaign, CampaignGroup, Client } = require('../src/models');
 
 jest.mock('../src/models', () => ({
     User: {
+        create: jest.fn(),
+        update: jest.fn(),
+        findOne: jest.fn(),
+        findAll: jest.fn(),
+        destroy: jest.fn(),
+    },
+    Budget: {
         create: jest.fn(),
         update: jest.fn(),
         findOne: jest.fn(),
@@ -15,6 +22,13 @@ jest.mock('../src/models', () => ({
         findAll: jest.fn(),
     },
     Campaign: {
+        create: jest.fn(),
+        update: jest.fn(),
+        findOne: jest.fn(),
+        findAll: jest.fn(),
+        destroy: jest.fn(),
+    },
+    CampaignGroup: {
         create: jest.fn(),
         update: jest.fn(),
         findOne: jest.fn(),
@@ -56,7 +70,7 @@ describe('Campaign Endpoints Test', () => {
 
             const search = 'august';
 
-            Campaign.findAll.mockResolvedValue(data);
+            CampaignGroup.findAll.mockResolvedValue(data);
 
             const response = await request.get(
                 `/api/campaigns?search=${search}`
@@ -69,7 +83,7 @@ describe('Campaign Endpoints Test', () => {
         });
 
         it('500', async () => {
-            Campaign.findAll.mockRejectedValue(new Error('Error'));
+            CampaignGroup.findAll.mockRejectedValue(new Error('Error'));
             const response = await request.get(`/api/campaigns`);
 
             expect(response.status).toBe(500);
@@ -112,7 +126,7 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.findAll.mockResolvedValue(data);
+            CampaignGroup.findAll.mockResolvedValue(data);
 
             const response = await request.get(
                 `/api/clients/${clientId}/marketingcampaign`
@@ -125,7 +139,7 @@ describe('Campaign Endpoints Test', () => {
         });
 
         it('500', async () => {
-            Campaign.findAll.mockRejectedValue(new Error('Error'));
+            CampaignGroup.findAll.mockRejectedValue(new Error('Error'));
             const response = await request.get(
                 `/api/clients/${clientId}/marketingcampaign`
             );
@@ -153,7 +167,7 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.findOne.mockResolvedValue(null);
+            CampaignGroup.findOne.mockResolvedValue(null);
             const response = await request.get(
                 `/api/clients/${clientId}/marketingcampaign/${campaignId}`
             );
@@ -182,7 +196,7 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.findOne.mockResolvedValue(data);
+            CampaignGroup.findOne.mockResolvedValue(data);
 
             const response = await request.get(
                 `/api/clients/${clientId}/marketingcampaign/${campaignId}`
@@ -195,7 +209,7 @@ describe('Campaign Endpoints Test', () => {
         });
 
         it('500', async () => {
-            Campaign.findOne.mockRejectedValue(new Error('Error'));
+            CampaignGroup.findOne.mockRejectedValue(new Error('Error'));
             const response = await request.get(
                 `/api/clients/${clientId}/marketingcampaign/${campaignId}`
             );
@@ -287,19 +301,30 @@ describe('Campaign Endpoints Test', () => {
                 ...sendData,
                 createdAt: '2023-07-07 18:13:23.552748-04',
                 updatedAt: '2023-07-07 18:13:23.552748-04',
+                get: jest.fn().mockResolvedValue({
+                    campaigns: [
+                        {
+                            id: 1,
+                            name: 'Test Campaign 1',
+                        },
+                    ],
+                }),
             };
 
             Client.findOne.mockResolvedValue({
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.create.mockResolvedValue(data);
+            CampaignGroup.create.mockResolvedValue(data);
+            Budget.create.mockResolvedValue(data.budget);
 
             const response = await request
                 .post(`/api/clients/${clientId}/marketingcampaign`)
                 .send(sendData);
             expect(response.status).toBe(201);
-            expect(response.body.data).toEqual(data);
+            expect(response.body.data).toEqual({
+                budgets: data.budget,
+            });
             expect(response.body.message).toBe(
                 'Marketing campaign created successfully'
             );
@@ -333,7 +358,7 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.findOne.mockResolvedValue(null);
+            CampaignGroup.findOne.mockResolvedValue(null);
             const response = await request.put(
                 `/api/clients/${clientId}/marketingcampaign/${campaignId}`
             );
@@ -366,8 +391,8 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.findOne.mockResolvedValue(data);
-            Campaign.update.mockResolvedValue([null, data]);
+            CampaignGroup.findOne.mockResolvedValue(data);
+            CampaignGroup.update.mockResolvedValue([null, data]);
 
             const response = await request
                 .put(`/api/clients/${clientId}/marketingcampaign/${campaignId}`)
@@ -407,7 +432,7 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.findOne.mockResolvedValue(null);
+            CampaignGroup.findOne.mockResolvedValue(null);
             const response = await request.delete(
                 `/api/clients/${clientId}/marketingcampaign/${campaignId}`
             );
@@ -424,8 +449,8 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.findOne.mockResolvedValue(data);
-            Campaign.destroy.mockResolvedValue(1);
+            CampaignGroup.findOne.mockResolvedValue(data);
+            CampaignGroup.destroy.mockResolvedValue(1);
 
             const response = await request.delete(
                 `/api/clients/${clientId}/marketingcampaign/${campaignId}`
@@ -492,25 +517,6 @@ describe('Campaign Endpoints Test', () => {
                     channel: 'Facebook',
                     campaign_type: 'Facebook Ads',
                     goals: '1. Do something\n2. Do something else\n3. Nothing else',
-                    adsets: [
-                        {
-                            id: 1,
-                            campaign_id: 1,
-                            name: 'Facebook Ads - Campaign 1 - Adset 1',
-                            channel: 'Facebook',
-                            campaign_type: 'Facebook Ads',
-                            campaign: 'Facebook Ads - Campaign 1',
-                        },
-                        {
-                            id: 2,
-                            campaign_id: 1,
-                            name: 'Facebook Ads - Campaign 1 - Adset 2',
-                            channel: 'Facebook',
-                            campaign_type: 'Facebook Ads',
-                            campaign: 'Facebook Ads - Campaign 1',
-                        },
-                    ],
-                    marketingCampaignId: '1',
                     clientId: '1',
                 },
             ];
@@ -522,7 +528,8 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.findOne.mockResolvedValue(marketingCampaign);
+            CampaignGroup.findOne.mockResolvedValue(marketingCampaign);
+            Campaign.findAll.mockResolvedValue(marketingCampaign.campaigns);
 
             const response = await request.get(
                 `/api/clients/${clientId}/marketingcampaign/${campaignId}/campaigns?channel=${channel}&campaignType=${campaignType}`
@@ -549,7 +556,7 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.findOne.mockResolvedValue(null);
+            CampaignGroup.findOne.mockResolvedValue(null);
             const response = await request.get(
                 `/api/clients/${clientId}/marketingcampaign/${campaignId}/campaigns`
             );
@@ -595,7 +602,8 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.findOne.mockResolvedValue(marketingCampaign);
+            CampaignGroup.findOne.mockResolvedValue(marketingCampaign);
+            Campaign.findAll.mockResolvedValue([]);
 
             const channel = 'facex';
             const campaignType = 'ads';
@@ -688,7 +696,8 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.findOne.mockResolvedValue(marketingCampaign);
+            CampaignGroup.findOne.mockResolvedValue(marketingCampaign);
+            Campaign.findAll.mockResolvedValue(data);
 
             const response = await request.get(
                 `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}`
@@ -714,7 +723,7 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.findOne.mockResolvedValue(null);
+            CampaignGroup.findOne.mockResolvedValue(null);
             const response = await request.get(
                 `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}`
             );
@@ -760,7 +769,8 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.findOne.mockResolvedValue(marketingCampaign);
+            CampaignGroup.findOne.mockResolvedValue(marketingCampaign);
+            Campaign.findAll.mockResolvedValue([]);
 
             const response = await request.get(
                 `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}`
@@ -823,8 +833,12 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.findOne.mockResolvedValue(data);
-            Campaign.update.mockResolvedValue([null, data]);
+            CampaignGroup.findOne.mockResolvedValue(data);
+            Campaign.findOne.mockResolvedValue({
+                id: 1,
+                name: 'Test Campaign 1',
+            });
+            Campaign.update.mockResolvedValue([null, data.campaigns[0]]);
 
             const response = await request
                 .put(
@@ -832,7 +846,7 @@ describe('Campaign Endpoints Test', () => {
                 )
                 .send(sendData);
             expect(response.status).toBe(200);
-            expect(response.body.data).toEqual(data);
+            expect(response.body.data).toEqual(data.campaigns[0]);
             expect(response.body.message).toBe(
                 'Campaign goals updated successfully'
             );
@@ -880,7 +894,7 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
-            Campaign.findOne.mockResolvedValue(null);
+            CampaignGroup.findOne.mockResolvedValue(null);
             const response = await request
                 .put(
                     `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}/goals`
@@ -933,8 +947,9 @@ describe('Campaign Endpoints Test', () => {
                 },
             };
 
-            Campaign.findOne.mockResolvedValue(data);
-            Campaign.update.mockResolvedValue([null, data]);
+            CampaignGroup.findOne.mockResolvedValue(data);
+            Campaign.findOne.mockResolvedValue(data.campaigns[0]);
+            Campaign.update.mockResolvedValue([null, data.campaigns[0]]);
 
             const response = await request
                 .put(
@@ -942,7 +957,7 @@ describe('Campaign Endpoints Test', () => {
                 )
                 .send({ pause: true });
             expect(response.status).toBe(200);
-            expect(response.body.data).toEqual(data);
+            expect(response.body.data).toEqual(data.campaigns[0]);
             expect(response.body.message).toBe(
                 'Campaign paused status updated successfully'
             );
@@ -959,7 +974,7 @@ describe('Campaign Endpoints Test', () => {
         });
 
         it('404 campaign group', async () => {
-            Campaign.findOne.mockResolvedValue(null);
+            CampaignGroup.findOne.mockResolvedValue(null);
 
             const response = await request
                 .put(
@@ -971,7 +986,7 @@ describe('Campaign Endpoints Test', () => {
         });
 
         it('500', async () => {
-            Campaign.findOne.mockRejectedValue(new Error('Error'));
+            CampaignGroup.findOne.mockRejectedValue(new Error('Error'));
             const response = await request
                 .put(
                     `/api/clients/${clientId}/marketingcampaign/${marketingCampaignId}/campaigns/${campaignId}/pause`
@@ -982,20 +997,20 @@ describe('Campaign Endpoints Test', () => {
         });
     });
 
-    describe("Delete campaign from campaign group", () => {
+    describe('Delete campaign from campaign group', () => {
         const clientId = 1;
         const campaignGroupId = 1;
         const campaignId = 1;
 
-        it("200", async () => {
+        it('200', async () => {
             const data = {
                 id: 1,
-                name: "Campaña 1",
-                client: "Test Client 1",
+                name: 'Campaña 1',
+                client: 'Test Client 1',
                 campaigns: [
                     {
                         id: 1,
-                        name: "Test Campaign 1",
+                        name: 'Test Campaign 1',
                         deleted: false,
                     },
                 ],
@@ -1003,43 +1018,43 @@ describe('Campaign Endpoints Test', () => {
                     campaigns: [
                         {
                             id: 1,
-                            name: "Test Campaign 1",
+                            name: 'Test Campaign 1',
                             deleted: false,
                         },
                     ],
                 },
             };
 
-            Campaign.findOne.mockResolvedValue(data);
-            Campaign.update.mockResolvedValue([null, data]);
+            CampaignGroup.findOne.mockResolvedValue(data);
+            CampaignGroup.update.mockResolvedValue([null, data]);
+            Campaign.findOne.mockResolvedValue(data.campaigns[0]);
+            Campaign.update.mockResolvedValue([null, data.campaigns[0]]);
 
             const response = await request.delete(
                 `/api/clients/${clientId}/marketingcampaign/${campaignGroupId}/campaigns/${campaignId}`
             );
             expect(response.status).toBe(200);
-            expect(response.body.data).toEqual(data);
-            expect(response.body.message).toBe(
-                "Campaign deleted successfully"
-            );
+            expect(response.body.data).toEqual(data.campaigns[0]);
+            expect(response.body.message).toBe('Campaign deleted successfully');
         });
 
-        it("404 campaign group", async () => {
-            Campaign.findOne.mockResolvedValue(null);
+        it('404 campaign group', async () => {
+            CampaignGroup.findOne.mockResolvedValue(null);
 
             const response = await request.delete(
                 `/api/clients/${clientId}/marketingcampaign/${campaignGroupId}/campaigns/${campaignId}`
             );
             expect(response.status).toBe(404);
-            expect(response.body.message).toBe("Campaign group not found");
+            expect(response.body.message).toBe('Campaign group not found');
         });
 
-        it("500", async () => {
-            Campaign.findOne.mockRejectedValue(new Error("Error"));
+        it('500', async () => {
+            CampaignGroup.findOne.mockRejectedValue(new Error('Error'));
             const response = await request.delete(
                 `/api/clients/${clientId}/marketingcampaign/${campaignGroupId}/campaigns/${campaignId}`
             );
             expect(response.status).toBe(500);
-            expect(response.body.message).toBe("Error");
+            expect(response.body.message).toBe('Error');
         });
     });
 });
