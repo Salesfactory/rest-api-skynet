@@ -313,11 +313,11 @@
                 }
             }
         },
-        "/channels/{channelName}/campaignTypes": {
+        "/channels/campaignTypes": {
             "parameters": [
                 {
                     "name": "channelName",
-                    "in": "path",
+                    "in": "query",
                     "required": true,
                     "type": "string"
                 }
