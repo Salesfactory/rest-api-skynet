@@ -61,7 +61,7 @@ describe('Channel Endpoints Test', () => {
             bigqueryClient.query.mockResolvedValue(data);
 
             const response = await request.get(
-                `/api/channels/${channelName}/campaignTypes`
+                `/api/channels/campaignTypes?channelName=${channelName}`
             );
 
             expect(response.status).toBe(200);
@@ -77,7 +77,7 @@ describe('Channel Endpoints Test', () => {
             bigqueryClient.query.mockRejectedValue(new Error('Error'));
 
             const response = await request.get(
-                `/api/channels/${channelName}/campaignTypes`
+                `/api/channels/campaignTypes?channelName=${channelName}`
             );
 
             expect(response.status).toBe(500);
