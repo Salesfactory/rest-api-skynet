@@ -857,10 +857,17 @@ const getRecentCampaigns = async (req, res) => {
                       }
                     : {}),
             },
+            include: [
+                {
+                    model: Client,
+                    as: 'client',
+                    attributes: ['id', 'name'],
+                },
+            ],
         });
 
         res.status(200).json({
-            message: 'Recent marketing campaigns retrieved successfully',
+            message: 'Recent campaigns groups retrieved successfully',
             data: campaigns,
         });
     } catch (error) {

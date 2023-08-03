@@ -78,7 +78,7 @@ describe('Campaign Endpoints Test', () => {
             expect(response.status).toBe(200);
             expect(response.body.data).toEqual(data);
             expect(response.body.message).toBe(
-                'Recent marketing campaigns retrieved successfully'
+                'Recent campaigns groups retrieved successfully'
             );
         });
 
