@@ -22,7 +22,7 @@ module.exports = {
             },
             // bigquery campaign id, naming convention is inverted
             id_campaign: {
-                type: Sequelize.INTEGER,
+                type: Sequelize.BIGINT,
                 allowNull: true,
             },
             name: {

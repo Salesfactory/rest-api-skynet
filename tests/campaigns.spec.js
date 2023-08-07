@@ -269,31 +269,31 @@ describe('Campaign Endpoints Test', () => {
                             values: [1, 1, 1, 1],
                         },
                     ],
+                    campaign_types: [
+                        {
+                            name: 'Test Campaign Type 1',
+                            channel: 'Facebook',
+                            values: [1, 1, 1, 1],
+                        },
+                    ],
+                    campaigns: [
+                        {
+                            name: 'Test Campaign 1',
+                            channel: 'Facebook',
+                            campaign_type: 'Test Campaign Type 1',
+                            values: [1, 1, 1, 1],
+                        },
+                    ],
+                    adsets: [
+                        {
+                            name: 'Test Adset 1',
+                            campaign: 'Test Campaign 1',
+                            channel: 'Facebook',
+                            campaign_type: 'Test Campaign Type 1',
+                            values: [1, 1, 1, 1],
+                        },
+                    ],
                 },
-                campaign_types: [
-                    {
-                        name: 'Test Campaign Type 1',
-                        channel: 'Facebook',
-                        values: [1, 1, 1, 1],
-                    },
-                ],
-                campaigns: [
-                    {
-                        name: 'Test Campaign 1',
-                        channel: 'Facebook',
-                        campaign_type: 'Test Campaign Type 1',
-                        values: [1, 1, 1, 1],
-                    },
-                ],
-                adsets: [
-                    {
-                        name: 'Test Adset 1',
-                        campaign: 'Test Campaign 1',
-                        channel: 'Facebook',
-                        campaign_type: 'Test Campaign Type 1',
-                        values: [1, 1, 1, 1],
-                    },
-                ],
             };
 
             const data = {

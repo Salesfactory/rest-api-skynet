@@ -2,6 +2,8 @@ const { bigqueryClient } = require('../config/bigquery');
 const { Budget, Campaign, CampaignGroup, Client } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
+const ExcelJS = require('exceljs');
+const fs = require('fs');
 
 // Marketing campaign list for client
 const getMarketingCampaignsByClient = async (req, res) => {
@@ -174,6 +176,9 @@ const createMarketingCampaign = async (req, res) => {
         channels,
         comments,
         budget,
+        campaign_types,
+        campaigns,
+        adsets,
     } = req.body;
     try {
         const client = await Client.findOne({
@@ -258,6 +263,92 @@ const createMarketingCampaign = async (req, res) => {
             }
         }
 
+        if (campaigns) {
+            if (!Array.isArray(campaigns)) {
+                return res.status(400).json({
+                    message: `Missing required fields: campaigns`,
+                });
+            }
+            for (const campaign of campaigns) {
+                if (!campaign.id) {
+                    return res.status(400).json({
+                        message: `Missing required fields: campaigns.id`,
+                    });
+                }
+                if (!campaign.name || typeof campaign.name !== 'string') {
+                    return res.status(400).json({
+                        message: `Missing required fields: campaigns.name`,
+                    });
+                }
+                if (!campaign.channel || typeof campaign.channel !== 'string') {
+                    return res.status(400).json({
+                        message: `Missing required fields: campaigns.channel`,
+                    });
+                }
+                if (
+                    !campaign.campaign_type ||
+                    typeof campaign.campaign_type !== 'string'
+                ) {
+                    return res.status(400).json({
+                        message: `Missing required fields: campaigns.campaign_type`,
+                    });
+                }
+                if (budget.campaign_types.length > 0) {
+                    const campaignType = budget.campaign_types.find(
+                        type => type.name === campaign.campaign_type
+                    );
+                    if (!campaignType) {
+                        return res.status(400).json({
+                            message: `Missing required fields: campaigns.campaign_type`,
+                        });
+                    }
+                }
+            }
+        }
+
+        if (adsets) {
+            if (!Array.isArray(adsets)) {
+                return res.status(400).json({
+                    message: `Missing required fields: adsets`,
+                });
+            }
+            for (const adset of adsets) {
+                if (!adset.id) {
+                    return res.status(400).json({
+                        message: `Missing required fields: adsets.id`,
+                    });
+                }
+                if (!adset.campaign_id) {
+                    return res.status(400).json({
+                        message: `Missing required fields: adsets.campaign_id`,
+                    });
+                }
+                if (!adset.name || typeof adset.name !== 'string') {
+                    return res.status(400).json({
+                        message: `Missing required fields: adsets.name`,
+                    });
+                }
+                if (!adset.channel || typeof adset.channel !== 'string') {
+                    return res.status(400).json({
+                        message: `Missing required fields: adsets.channel`,
+                    });
+                }
+                if (
+                    !adset.campaign_type ||
+                    typeof adset.campaign_type !== 'string'
+                ) {
+                    return res.status(400).json({
+                        message: `Missing required fields: adsets.campaign_type`,
+                    });
+                }
+                if (!adset.campaign || typeof adset.campaign !== 'string') {
+                    return res.status(400).json({
+                        message: `Missing required fields: adsets.campaign`,
+                    });
+                }
+            }
+        }
+
         const campaignGroup = (
             await CampaignGroup.create({
                 client_id: clientId,
@@ -288,11 +379,33 @@ const createMarketingCampaign = async (req, res) => {
             campaignGroup.budgets = newBudget;
         }
 
+        if (campaigns && Array.isArray(campaigns)) {
+            campaigns.forEach(async campaign => {
+                const campaignData = {
+                    campaign_group_id: campaignGroup.id,
+                    name: campaign.name,
+                    goal: campaign.goal,
+                    channel: campaign.channel,
+                    campaign_type: campaign.campaign_type,
+                    adset: adsets.filter(
+                        adset => adset.campaign_id === campaign.id
+                    ),
+                    paused: false,
+                    deleted: false,
+                };
+                Campaign.create({
+                    id_campaign: campaign.id,
+                    ...campaignData,
+                });
+            });
+        }
+
         res.status(201).json({
             message: 'Marketing campaign created successfully',
             data: campaignGroup,
         });
     } catch (error) {
+        console.log(error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -1167,6 +1280,217 @@ const deleteCampaign = async (req, res) => {
     }
 };
 
+const getCampaignGroupSpreadsheet = async (req, res) => {
+    const { id: clientId, cid: campaignGroupId } = req.params;
+
+    try {
+        const client = await Client.findOne({
+            where: { id: clientId },
+        });
+
+        if (!client) {
+            return res.status(404).json({
+                message: `Client not found`,
+            });
+        }
+
+        const campaignGroup = await CampaignGroup.findOne({
+            where: { id: campaignGroupId, client_id: clientId },
+            include: [
+                {
+                    model: Budget,
+                    as: 'budgets',
+                    limit: 1,
+                    order: [['updatedAt', 'DESC']],
+                    attributes: [
+                        'months',
+                        'percentages',
+                        'net_budgets',
+                        'channels',
+                        'campaign_types',
+                        'campaigns',
+                        'adsets',
+                    ],
+                },
+            ],
+        });
+
+        if (!campaignGroup) {
+            return res.status(404).json({
+                message: `Campaign group not found`,
+            });
+        }
+
+        const campaignGroupBudget = campaignGroup.budgets[0];
+        const xlsxDataset = [];
+
+        if (!campaignGroupBudget) {
+            return res.status(404).json({
+                message: `This campaigngroup doesn't have a budget linked to it`,
+            });
+        } else {
+            const allMonths = [
+                'january',
+                'february',
+                'march',
+                'april',
+                'may',
+                'june',
+                'july',
+                'august',
+                'september',
+                'october',
+                'november',
+                'december',
+            ];
+
+            const randomId =
+                Math.random().toString(36).substring(2, 15) +
+                Math.random().toString(23).substring(2, 5);
+            const fileName = `${randomId}.xlsx`;
+
+            const workbook = new ExcelJS.Workbook();
+            const sheet = workbook.addWorksheet('Sheet1');
+
+            sheet.addRow(['Monthly Budget Allocation']);
+            sheet.addRow([
+                'Channel',
+                'Campaign Type/Tactic',
+                'Campaign Name',
+                'Campaign Goal',
+                'Adset Name',
+                ...allMonths.flatMap(month => {
+                    const monthR =
+                        month.charAt(0).toUpperCase() + month.slice(1);
+                    return [monthR, monthR + ' ADB'];
+                }),
+                'Total',
+            ]);
+
+            const lastDayOfTheMonth = [
+                31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+            ];
+
+            const channels = campaignGroupBudget.channels.map(
+                channel => channel.name
+            );
+
+            let totalsByMonth = new Array(25).fill(0);
+
+            channels.forEach(channel => {
+                const campaignTypes = campaignGroupBudget.campaign_types
+                    .filter(type => type.channel === channel)
+                    .map(type => type.name);
+
+                campaignTypes.forEach(campaignType => {
+                    const campaigns = campaignGroupBudget.campaigns.filter(
+                        campaign =>
+                            campaign.channel === channel &&
+                            campaign.campaign_type === campaignType
+                    );
+
+                    campaigns.forEach(campaign => {
+                        const adsets = campaignGroupBudget.adsets.filter(
+                            adset =>
+                                adset.channel === channel &&
+                                adset.campaign_type === campaignType &&
+                                adset.campaign === campaign.name
+                        );
+
+                        adsets.forEach(adset => {
+                            const row = [
+                                channel,
+                                campaignType,
+                                campaign.name,
+                                campaign.goal,
+                                adset.name,
+                            ];
+
+                            let total = 0;
+                            allMonths.forEach((month, index) => {
+                                const mappedCampaignMonths =
+                                    campaignGroupBudget.months.map(month =>
+                                        month.toLowerCase()
+                                    );
+                                if (mappedCampaignMonths.includes(month)) {
+                                    const monthIndex =
+                                        mappedCampaignMonths.indexOf(month);
+
+                                    const cleanValue = Number(
+                                        adset.values[monthIndex].value.replace(
+                                            /[^0-9.-]+/g,
+                                            ''
+                                        )
+                                    );
+
+                                    if (isNaN(cleanValue) || cleanValue === 0) {
+                                        row.push('');
+                                        row.push('');
+                                    } else {
+                                        const monthValue = cleanValue;
+                                        const monthValueADB =
+                                            cleanValue /
+                                            lastDayOfTheMonth[index];
+
+                                        row.push(monthValue);
+                                        row.push(monthValueADB);
+
+                                        total += monthValue + monthValueADB;
+
+                                        totalsByMonth[index * 2] += monthValue;
+                                        totalsByMonth[index * 2 + 1] +=
+                                            monthValueADB;
+                                    }
+                                } else {
+                                    row.push('');
+                                    row.push('');
+                                    totalsByMonth[index * 2] += 0;
+                                    totalsByMonth[index * 2 + 1] += 0;
+                                }
+                            });
+                            row.push(total);
+                            totalsByMonth[totalsByMonth.length - 1] += total;
+
+                            xlsxDataset.push(row);
+                        });
+                    });
+                });
+            });
+
+            console.log(xlsxDataset);
+
+            xlsxDataset.push([
+                '',
+                '',
+                'Total Base Budget',
+                '',
+                '',
+                ...totalsByMonth,
+            ]);
+
+            xlsxDataset.forEach(row => {
+                sheet.addRow(row);
+            });
+
+            res.setHeader(
+                'Content-Type',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            );
+            res.setHeader(
+                'Content-Disposition',
+                'attachment; filename=' + fileName
+            );
+
+            workbook.xlsx.write(res).then(function (data) {
+                res.end();
+            });
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getMarketingCampaignsByClient,
     getMarketingCampaignsById,
@@ -1180,4 +1504,5 @@ module.exports = {
     updateCampaignGoals,
     pauseCampaign,
     deleteCampaign,
+    getCampaignGroupSpreadsheet,
 };
