@@ -645,7 +645,7 @@
                 }
             }
         },
-        "/clients/{id}/advertisements": {
+        "/clients/{id}/non-orchestrated/campaigns": {
             "parameters": [
                 {
                     "name": "id",
@@ -657,13 +657,6 @@
                     "name": "channel",
                     "in": "query",
                     "description": "The channel of the advertisement (e.g., Facebook, Twitter, etc.)",
-                    "required": true,
-                    "type": "string"
-                },
-                {
-                    "name": "adsetName",
-                    "in": "query",
-                    "description": "The name of the advertisement set",
                     "required": true,
                     "type": "string"
                 },
@@ -680,18 +673,75 @@
                     "description": "The type of the campaign (e.g., OUTCOME_TRAFFIC, OUTCOME_SALES, etc.)",
                     "required": true,
                     "type": "string"
+                },
+                {
+                    "name": "keywords",
+                    "in": "query",
+                    "description": "Keywords to find campaigns (can be multiple, separated by commas)",
+                    "required": false,
+                    "type": "string"
                 }
             ],
             "get": {
-                "summary": "Get advertisements for a specific client",
-                "description": "Retrieve a list of advertisements based on the specified parameters for a given client.",
+                "summary": "Get non orchestrated campaigns for a specific client",
+                "description": "Retrieve a list of non orchestrated campaigns based on the specified parameters for a given client.",
                 "tags": ["clients"],
                 "responses": {
                     "200": {
-                        "description": "Advertisements retrieved successfully"
+                        "description": "Bigquery campaigns retrieved successfully"
                     },
                     "400": {
-                        "description": "Missing required fields: channel, adsetName, campaignName, campaignType"
+                        "description": "Missing required fields: channel, campaignName, campaignType"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "500": {
+                        "description": "Internal server error. Something went wrong on the server side."
+                    }
+                }
+            }
+        },
+        "/clients/{id}/non-orchestrated/adsets": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "adsetName",
+                    "in": "query",
+                    "description": "The name of the campaign set",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "campaignId",
+                    "in": "query",
+                    "description": "The id of the campaign",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "keywords",
+                    "in": "query",
+                    "description": "Keywords to find campaigns (can be multiple, separated by commas)",
+                    "required": false,
+                    "type": "string"
+                }
+            ],
+            "get": {
+                "summary": "Get adsets for a specific campaign of a client",
+                "description": "Retrieve a list of adsets of a campaign based on the specified parameters for a given client.",
+                "tags": ["clients"],
+                "responses": {
+                    "200": {
+                        "description": "Bigquery adsets retrieved successfully"
+                    },
+                    "400": {
+                        "description": "Missing required fields: adsetName, campaignId"
                     },
                     "404": {
                         "description": "Client not found"

@@ -405,7 +405,6 @@ const createMarketingCampaign = async (req, res) => {
             data: campaignGroup,
         });
     } catch (error) {
-        console.log(error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -858,9 +857,9 @@ const deleteMarketingCampaign = async (req, res) => {
     }
 };
 
-const getClientCampaignAdvertisements = async (req, res) => {
+const getClientBigqueryCampaigns = async (req, res) => {
     const { id: clientId } = req.params;
-    const { channel, adsetName, campaignName, campaignType } = req.query;
+    const { keywords, channel, campaignName, campaignType } = req.query;
     try {
         const client = await Client.findOne({
             where: { id: clientId },
@@ -877,7 +876,6 @@ const getClientCampaignAdvertisements = async (req, res) => {
         const requiredFields = [
             'clientId',
             'channel',
-            'adsetName',
             'campaignName',
             'campaignType',
         ];
@@ -888,34 +886,110 @@ const getClientCampaignAdvertisements = async (req, res) => {
             });
         }
 
+        const splittedKeywords = keywords ? keywords.split(',') : [];
+        const hasKeywords = splittedKeywords?.length > 0;
+
+        const params = [channel, client.name, `%${campaignName}%`];
+
         let sqlQuery = `
-        SELECT campaign_id, campaign_name, adset_id, adset_name, campaign_type 
+        SELECT campaign_id, campaign_name, campaign_type 
         FROM \`agency_6133.cs_paid_ads__basic_performance\` 
-        WHERE datasource = ?
-        AND advertiser_name = ? 
-        AND adset_name LIKE ?
-        AND campaign_name LIKE ?
-        AND campaign_type LIKE ?
+        WHERE datasource = ? AND advertiser_name = ? `;
+
+        if (hasKeywords) {
+            sqlQuery += `AND (campaign_name LIKE ? `;
+            splittedKeywords.forEach(keyword => {
+                sqlQuery += `OR campaign_name LIKE ? `;
+                params.push(`%${keyword}%`);
+            });
+            sqlQuery += `) `;
+        } else {
+            sqlQuery += `AND campaign_name LIKE ? `;
+        }
+
+        sqlQuery += `AND campaign_type LIKE ?
+        AND DATE(date) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH) AND CURRENT_DATE()
+        GROUP BY 1,2,3
+        `;
+
+        params.push(`%${campaignType}%`);
+
+        const options = {
+            query: sqlQuery,
+            params,
+        };
+
+        const response = await bigqueryClient.query(options);
+        const campaigns = response[0];
+        res.status(200).json({
+            message: 'BigQuery campaigns retrieved successfully',
+            data: campaigns,
+        });
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
+};
+
+const getClientBigqueryAdsets = async (req, res) => {
+    const { id: clientId } = req.params;
+    const { keywords, campaignId, adsetName } = req.query;
+    try {
+        const client = await Client.findOne({
+            where: { id: clientId },
+        });
+
+        if (!client) {
+            return res.status(404).json({
+                message: `Client not found`,
+            });
+        } else {
+            req.query.clientId = client.id;
+        }
+
+        const requiredFields = ['clientId', 'campaignId', 'adsetName'];
+        const missingFields = requiredFields.filter(field => !req.query[field]);
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                message: `Missing required fields: ${missingFields.join(', ')}`,
+            });
+        }
+
+        const splittedKeywords = keywords ? keywords.split(',') : [];
+        const hasKeywords = splittedKeywords?.length > 0;
+
+        const params = [client.name, campaignId, `%${adsetName}%`];
+
+        let sqlQuery = `
+        SELECT campaign_id, campaign_name, campaign_type, adset_id, adset_name  
+        FROM \`agency_6133.cs_paid_ads__basic_performance\` 
+        WHERE advertiser_name = ? AND campaign_id = ? `;
+
+        if (hasKeywords) {
+            sqlQuery += `AND (adset_name LIKE ? `;
+            splittedKeywords.forEach(keyword => {
+                sqlQuery += `OR adset_name LIKE ? `;
+                params.push(`%${keyword}%`);
+            });
+            sqlQuery += `) `;
+        } else {
+            sqlQuery += `AND adset_name LIKE ? `;
+        }
+
+        sqlQuery += `
         AND DATE(date) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH) AND CURRENT_DATE()
         GROUP BY 1,2,3,4,5
         `;
 
         const options = {
             query: sqlQuery,
-            params: [
-                channel,
-                client.name,
-                `%${adsetName}%`,
-                `%${campaignName}%`,
-                `%${campaignType}%`,
-            ],
+            params,
         };
 
         const response = await bigqueryClient.query(options);
-        const advertisements = response[0];
+        const adsets = response[0];
         res.status(200).json({
-            message: 'Advertisements retrieved successfully',
-            data: advertisements,
+            message: 'BigQuery adsets retrieved successfully',
+            data: adsets,
         });
     } catch (error) {
         res.status(500).send({ message: error.message });
@@ -1463,8 +1537,6 @@ const getCampaignGroupSpreadsheet = async (req, res) => {
                 });
             });
 
-            console.log(xlsxDataset);
-
             xlsxDataset.push([
                 '',
                 '',
@@ -1492,7 +1564,6 @@ const getCampaignGroupSpreadsheet = async (req, res) => {
             });
         }
     } catch (error) {
-        console.log(error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -1503,7 +1574,8 @@ module.exports = {
     createMarketingCampaign,
     updateMarketingCampaign,
     deleteMarketingCampaign,
-    getClientCampaignAdvertisements,
+    getClientBigqueryCampaigns,
+    getClientBigqueryAdsets,
     getRecentCampaigns,
     getCampaignsByGroup,
     getCampaignsById,
