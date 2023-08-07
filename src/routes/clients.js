@@ -6,10 +6,8 @@ const { clientController, campaignController } = require('../controllers');
 router.get('/', clientController.getClients);
 router.get('/:clientId', clientController.getClient);
 // non orchestrated campaign advertisements
-router.get(
-    '/:id/advertisements',
-    campaignController.getClientCampaignAdvertisements
-);
+router.get('/:id/non-orchestrated/campaigns', campaignController.getClientBigqueryCampaigns);
+router.get('/:id/non-orchestrated/adsets', campaignController.getClientBigqueryAdsets);
 // marketing campaigns routes
 router.get(
     '/:id/marketingcampaign',

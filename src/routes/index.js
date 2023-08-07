@@ -39,7 +39,7 @@ const validateToken = (req, res, next) => {
 
 router.use('/users', validateToken, userRouter);
 router.use('/channels', validateToken, channelRouter);
-router.use('/clients', validateToken, clientRouter);
+router.use('/clients', clientRouter);
 router.use('/campaigns', campaigntRouter);
 
 module.exports = router;
