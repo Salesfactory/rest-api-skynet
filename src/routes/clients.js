@@ -54,5 +54,10 @@ router.delete(
     '/:id/marketingcampaign/:cid/campaigns/:caid',
     campaignController.deleteCampaign
 );
+// get campaigngroup monthly budget spreadsheet
+router.get(
+    '/:id/marketingcampaign/:cid/generate-spreadsheet',
+    campaignController.getCampaignGroupSpreadsheet
+);
 
 module.exports = router;
