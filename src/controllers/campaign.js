@@ -936,10 +936,10 @@ const getRecentCampaigns = async (req, res) => {
                     ? {
                           [Op.or]: [
                               {
-                                  name: sequelize.where(
+                                  '$CampaignGroup.name$': sequelize.where(
                                       sequelize.fn(
                                           'LOWER',
-                                          sequelize.col('name')
+                                          sequelize.col('CampaignGroup.name')
                                       ),
                                       'LIKE',
                                       `%${searchLower}%`
@@ -949,7 +949,9 @@ const getRecentCampaigns = async (req, res) => {
                                   company_name: sequelize.where(
                                       sequelize.fn(
                                           'LOWER',
-                                          sequelize.col('company_name')
+                                          sequelize.col(
+                                              'CampaignGroup.company_name'
+                                          )
                                       ),
                                       'LIKE',
                                       `%${searchLower}%`
@@ -957,8 +959,12 @@ const getRecentCampaigns = async (req, res) => {
                               },
                               {
                                   createdAt: sequelize.where(
-                                      sequelize.literal(
-                                          `TO_CHAR("createdAt", 'month')`
+                                      sequelize.fn(
+                                          'TO_CHAR',
+                                          sequelize.col(
+                                              'CampaignGroup.createdAt'
+                                          ),
+                                          'month'
                                       ),
                                       'LIKE',
                                       sequelize.literal(
