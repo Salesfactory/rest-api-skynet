@@ -3,10 +3,10 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
     async up(queryInterface, Sequelize) {
-        await queryInterface.addConstraint('campaigns', {
+        await queryInterface.addConstraint('campaign_groups', {
             fields: ['client_id'],
             type: 'foreign key',
-            name: 'campaigns_client_id_fkey',
+            name: 'campaign_group_client_id_fkey',
             references: {
                 table: 'clients',
                 field: 'id',
@@ -18,8 +18,8 @@ module.exports = {
 
     async down(queryInterface, Sequelize) {
         queryInterface.removeConstraint(
-            'campaigns',
-            'campaigns_client_id_fkey'
+            'campaign_groups',
+            'campaign_group_client_id_fkey'
         );
     },
 };

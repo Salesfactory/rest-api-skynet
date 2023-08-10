@@ -313,6 +313,54 @@
                 }
             }
         },
+        "/channels/campaignTypes": {
+            "parameters": [
+                {
+                    "name": "channelName",
+                    "in": "query",
+                    "required": true,
+                    "type": "string"
+                }
+            ],
+            "get": {
+                "summary": "Get campaign types for a specific channel",
+                "description": "Retrieve a list of campaign types for the specified channel.",
+                "tags": ["channels"],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation. Returns the list of campaign types.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer",
+                                    "example": 200
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Campaign types retrieved successfully"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "campaign_type": {
+                                                "type": "string",
+                                                "example": "DISPLAY"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error. Something went wrong on the server side."
+                    }
+                }
+            }
+        },
         "/clients": {
             "get": {
                 "summary": "Get client names",
@@ -330,6 +378,78 @@
                                     "client": {
                                         "type": "string",
                                         "example": "client 1"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/{clientId}": {
+            "get": {
+                "summary": "Retrieve a client by ID",
+                "description": "This endpoint retrieves a specific client by its unique ID.",
+                "operationId": "getClient",
+                "parameters": [
+                    {
+                        "name": "clientId",
+                        "in": "path",
+                        "description": "Unique ID of the client to retrieve.",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Client retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Client retrieved successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Client"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Client not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Client not found"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "An unexpected error occurred"
+                                        }
                                     }
                                 }
                             }
@@ -525,6 +645,113 @@
                 }
             }
         },
+        "/clients/{id}/non-orchestrated/campaigns": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "channel",
+                    "in": "query",
+                    "description": "The channel of the advertisement (e.g., Facebook, Twitter, etc.)",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "campaignName",
+                    "in": "query",
+                    "description": "The name of the campaign",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "campaignType",
+                    "in": "query",
+                    "description": "The type of the campaign (e.g., OUTCOME_TRAFFIC, OUTCOME_SALES, etc.)",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "keywords",
+                    "in": "query",
+                    "description": "Keywords to find campaigns (can be multiple, separated by commas)",
+                    "required": false,
+                    "type": "string"
+                }
+            ],
+            "get": {
+                "summary": "Get non orchestrated campaigns for a specific client",
+                "description": "Retrieve a list of non orchestrated campaigns based on the specified parameters for a given client.",
+                "tags": ["clients"],
+                "responses": {
+                    "200": {
+                        "description": "Bigquery campaigns retrieved successfully"
+                    },
+                    "400": {
+                        "description": "Missing required fields: channel, campaignName, campaignType"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "500": {
+                        "description": "Internal server error. Something went wrong on the server side."
+                    }
+                }
+            }
+        },
+        "/clients/{id}/non-orchestrated/adsets": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "adsetName",
+                    "in": "query",
+                    "description": "The name of the campaign set",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "campaignId",
+                    "in": "query",
+                    "description": "The id of the campaign",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "keywords",
+                    "in": "query",
+                    "description": "Keywords to find campaigns (can be multiple, separated by commas)",
+                    "required": false,
+                    "type": "string"
+                }
+            ],
+            "get": {
+                "summary": "Get adsets for a specific campaign of a client",
+                "description": "Retrieve a list of adsets of a campaign based on the specified parameters for a given client.",
+                "tags": ["clients"],
+                "responses": {
+                    "200": {
+                        "description": "Bigquery adsets retrieved successfully"
+                    },
+                    "400": {
+                        "description": "Missing required fields: adsetName, campaignId"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "500": {
+                        "description": "Internal server error. Something went wrong on the server side."
+                    }
+                }
+            }
+        },
         "/campaigns": {
             "get": {
                 "summary": "Get recently created marketing campaigns",
@@ -537,6 +764,228 @@
                             "items": {
                                 "$ref": "#/definitions/RecentCampaign"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/{id}/marketingcampaign/{cid}/campaigns": {
+            "get": {
+                "summary": "Get campaigns for a marketing campaign",
+                "tags": ["clients"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "cid",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Campaign retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer",
+                                    "example": 200
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Campaign retrieved successfully"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/CampaignObject"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/{id}/marketingcampaign/{cid}/campaigns/{caid}": {
+            "get": {
+                "summary": "Get a specific campaign for a marketing campaign",
+                "tags": ["clients"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "cid",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "caid",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Campaign retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/CampaignObject"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/{id}/marketingcampaign/{cid}/campaigns/{caid}/goals": {
+            "put": {
+                "summary": "Update goals for a specific campaign in a marketing campaign",
+                "tags": ["clients"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "cid",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "caid",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "body",
+                        "name": "goals",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "goals": {
+                                    "type": "string",
+                                    "example": "1. Do something\n2. Do something else\n3. Nothing else"
+                                }
+                            },
+                            "required": ["goals"]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Goals updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/MarketingCampaign"
+                        }
+                    }
+                }
+            }
+        },
+        "/{id}/marketingcampaign/{cid}/campaigns/{caid}/pause": {
+            "put": {
+                "summary": "Pause a specific campaign in a marketing campaign",
+                "tags": ["clients"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "cid",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "caid",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "body",
+                        "name": "pause",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "pause": {
+                                    "type": "boolean"
+                                },
+                                "reason": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["pause"]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Campaign paused successfully",
+                        "schema": {
+                            "$ref": "#/definitions/MarketingCampaignWithPauseReason"
+                        }
+                    }
+                }
+            }
+        },
+        "/{id}/marketingcampaign/{cid}/campaigns/{caid}": {
+            "delete": {
+                "summary": "Delete a specific campaign in a marketing campaign",
+                "tags": ["clients"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "cid",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "caid",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "body",
+                        "name": "delete",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "reason": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Campaign deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/MarketingCampaignWithDeleteInfo"
                         }
                     }
                 }
@@ -663,6 +1112,125 @@
                                     ]
                                 }
                             ]
+                        },
+                        "campaign_types": {
+                            "example": [
+                                {
+                                    "name": "Campaign Type 1",
+                                    "channel": "Facebook",
+                                    "values": [
+                                        {
+                                            "percentage": "15%",
+                                            "value": "$127.49"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "campaigns": {
+                            "example": [
+                                {
+                                    "id": 1,
+                                    "name": "Campaign 1",
+                                    "channel": "Facebook",
+                                    "campaign_type": "Campaign Type 1",
+                                    "values": [
+                                        {
+                                            "percentage": "15%",
+                                            "value": "$127.49"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "adsets": {
+                            "example": [
+                                {
+                                    "id": 1,
+                                    "name": "Adset 1",
+                                    "channel": "Facebook",
+                                    "campaign_type": "Campaign Type 1",
+                                    "campaign": "Campaign 1",
+                                    "values": [
+                                        {
+                                            "percentage": "15%",
+                                            "value": "$127.49"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "campaign_types": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "example": "Facebook Ads"
+                            },
+                            "channel": {
+                                "type": "string",
+                                "example": "Facebook"
+                            }
+                        }
+                    }
+                },
+                "campaigns": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "name": {
+                                "type": "string",
+                                "example": "Campaign 1"
+                            },
+                            "channel": {
+                                "type": "string",
+                                "example": "Facebook"
+                            },
+                            "campaign_type": {
+                                "type": "string",
+                                "example": "Campaign Type 1"
+                            }
+                        }
+                    }
+                },
+                "adsets": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "campaign_id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "name": {
+                                "type": "string",
+                                "example": "Adset 1"
+                            },
+                            "channel": {
+                                "type": "string",
+                                "example": "Facebook"
+                            },
+                            "campaign_type": {
+                                "type": "string",
+                                "example": "Campaign Type 1"
+                            },
+                            "campaign": {
+                                "type": "string",
+                                "example": "Campaign 1"
+                            }
                         }
                     }
                 },
@@ -697,6 +1265,124 @@
                     "type": "string",
                     "format": "date-time",
                     "example": "2023-08-11T16:47:01.294Z"
+                }
+            }
+        },
+        "CampaignObject": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Facebook Ads - Campaign 1"
+                },
+                "channel": {
+                    "type": "string",
+                    "example": "Facebook"
+                },
+                "campaign_type": {
+                    "type": "string",
+                    "example": "Facebook Ads"
+                },
+                "goals": {
+                    "type": "string",
+                    "example": "1. Do something\n2. Do something else\n3. Nothing else"
+                },
+                "adsets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/AdsetObject"
+                    }
+                }
+            }
+        },
+        "AdsetObject": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "campaign_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Facebook Ads - Campaign 1 - Adset 1"
+                },
+                "channel": {
+                    "type": "string",
+                    "example": "Facebook"
+                },
+                "campaign_type": {
+                    "type": "string",
+                    "example": "Facebook Ads"
+                },
+                "campaign": {
+                    "type": "string",
+                    "example": "Facebook Ads - Campaign 1"
+                }
+            }
+        },
+        "MarketingCampaignWithPauseReason": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/MarketingCampaign"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "pause": {
+                            "type": "boolean",
+                            "example": true
+                        },
+                        "reason": {
+                            "type": "string",
+                            "example": "Campaign performance"
+                        }
+                    },
+                    "required": ["pause"]
+                }
+            ]
+        },
+        "MarketingCampaignWithDeleteInfo": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/MarketingCampaign"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "deleted": {
+                            "type": "boolean",
+                            "example": true
+                        },
+                        "deleted_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2023-08-25T10:15:00Z"
+                        },
+                        "delete_reason": {
+                            "type": "string",
+                            "example": "Campaign completion"
+                        }
+                    }
+                }
+            ]
+        },
+        "Client": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         }

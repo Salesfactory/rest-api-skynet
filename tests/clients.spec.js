@@ -57,13 +57,48 @@ describe('Client Endpoints Test', () => {
         });
     });
 
-    describe('Get advertisements by: channel, adName, campaignName', () => {
+    describe('Get Client', () => {
+        it('should retrieve client successfully', async () => {
+            const data = { id: 1, name: 'Client 1' };
+            Client.findOne.mockResolvedValue(data);
+
+            const res = await request.get(`/api/clients/1`);
+
+            expect(res.status).toBe(200);
+            expect(res.body.message).toBe('Client retrieved successfully');
+            expect(res.body.data).toMatchObject(data); // Assumes data returns the plain object of client
+        });
+
+        // Not found test case
+        it('should return 404 if client is not found', async () => {
+            Client.findOne.mockResolvedValue(null);
+            const res = await request.get('/api/clients/9999999'); // assuming this ID does not exist
+
+            expect(res.status).toBe(404);
+            expect(res.body.message).toBe('Client not found');
+        });
+
+        // Failure test case
+        it('should return 500 if server error occurs', async () => {
+            // Here you would need to mock a situation where the server will throw an error
+            // This might be mocking the Client.findOne method to throw an error, or some other way that suits your codebase
+
+            Client.findOne.mockRejectedValue(new Error('Server Error'));
+
+            const res = await request.get('/api/clients/1');
+
+            expect(res.status).toBe(500);
+            expect(res.body.message).toBe('Server Error');
+        });
+    });
+
+    describe('Get non-orchestrated campaigns by: channel, campaignName, campaignType', () => {
         const clientId = 1;
         it('404 client not found', async () => {
             Client.findOne.mockResolvedValue(null);
 
             const response = await request.get(
-                `/api/clients/${clientId}/advertisements?channel=Test&adName=Test%20Ad&campaignName=Test%20Campaign`
+                `/api/clients/${clientId}/non-orchestrated/campaigns?channel=Test&campaignName=Test%20Campaign&campaignType=Test`
             );
             expect(response.status).toBe(404);
             expect(response.body.message).toBe('Client not found');
@@ -77,11 +112,11 @@ describe('Client Endpoints Test', () => {
             Client.findOne.mockResolvedValue(client);
 
             const response = await request.get(
-                `/api/clients/${clientId}/advertisements?channel=Test&adName=Test%20Ad`
+                `/api/clients/${clientId}/non-orchestrated/campaigns?channel=Test`
             );
             expect(response.status).toBe(400);
             expect(response.body.message).toBe(
-                'Missing required fields: campaignName'
+                'Missing required fields: campaignName, campaignType'
             );
         });
 
@@ -96,26 +131,24 @@ describe('Client Endpoints Test', () => {
                     {
                         campaign_id: '23855226587440359',
                         campaign_name: 'Test Campaign',
-                        adset_id: '23855226587570359',
-                        adset_name: 'Test Ad',
+                        campaign_type: 'Test',
                     },
                     {
                         campaign_id: '23855226587440359',
                         campaign_name: 'Test Campaign',
-                        adset_id: '23855229119530359',
-                        adset_name: 'Test Ad',
+                        campaign_type: 'Test',
                     },
                 ],
             ];
 
             bigqueryClient.query.mockResolvedValue(data);
             const response = await request.get(
-                `/api/clients/${clientId}/advertisements?channel=Test&adName=Test%20Ad&campaignName=Test%20Campaign`
+                `/api/clients/${clientId}/non-orchestrated/campaigns?channel=Test&campaignName=Test%20Campaign&campaignType=Test`
             );
             expect(response.status).toBe(200);
             expect(response.body.data).toEqual(data[0]);
             expect(response.body.message).toBe(
-                'Advertisements retrieved successfully'
+                'BigQuery campaigns retrieved successfully'
             );
         });
 
@@ -128,7 +161,87 @@ describe('Client Endpoints Test', () => {
             bigqueryClient.query.mockRejectedValue(new Error('Error'));
 
             const response = await request.get(
-                `/api/clients/${clientId}/advertisements?channel=Test&adName=Test%20Ad&campaignName=Test%20Campaign`
+                `/api/clients/${clientId}/non-orchestrated/campaigns?channel=Test&campaignName=Test%20Campaign&campaignType=Test`
+            );
+            expect(response.status).toBe(500);
+            expect(response.body.message).toBe('Error');
+        });
+    });
+
+    describe('Get non-orchestrated adsets by: campaign id, adset name', () => {
+        const clientId = 1;
+        it('404 client not found', async () => {
+            Client.findOne.mockResolvedValue(null);
+
+            const response = await request.get(
+                `/api/clients/${clientId}/non-orchestrated/adsets?campaignId=123&adsetName=Test%20Adset`
+            );
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe('Client not found');
+        });
+
+        it('400 missing required fields', async () => {
+            const client = {
+                id: 1,
+                name: 'Test Client 1',
+            };
+            Client.findOne.mockResolvedValue(client);
+
+            const response = await request.get(
+                `/api/clients/${clientId}/non-orchestrated/adsets?`
+            );
+            expect(response.status).toBe(400);
+            expect(response.body.message).toBe(
+                'Missing required fields: campaignId, adsetName'
+            );
+        });
+
+        it('200', async () => {
+            const client = {
+                id: 1,
+                name: 'Test Client 1',
+            };
+            Client.findOne.mockResolvedValue(client);
+            const data = [
+                [
+                    {
+                        campaign_id: '23855226587440359',
+                        campaign_name: 'Test Campaign',
+                        campaign_type: 'Test',
+                        adset_id: '23855226587440359',
+                        adset_name: 'Test Adset',
+                    },
+                    {
+                        campaign_id: '23855226587440359',
+                        campaign_name: 'Test Campaign',
+                        campaign_type: 'Test',
+                        adset_id: '23855226587440359',
+                        adset_name: 'Test Adset',
+                    },
+                ],
+            ];
+
+            bigqueryClient.query.mockResolvedValue(data);
+            const response = await request.get(
+                `/api/clients/${clientId}/non-orchestrated/adsets?campaignId=123&adsetName=Test%20Adset`
+            );
+            expect(response.status).toBe(200);
+            expect(response.body.data).toEqual(data[0]);
+            expect(response.body.message).toBe(
+                'BigQuery adsets retrieved successfully'
+            );
+        });
+
+        it('500', async () => {
+            const client = {
+                id: 1,
+                name: 'Test Client 1',
+            };
+            Client.findOne.mockResolvedValue(client);
+            bigqueryClient.query.mockRejectedValue(new Error('Error'));
+
+            const response = await request.get(
+                `/api/clients/${clientId}/non-orchestrated/adsets?campaignId=123&adsetName=Test%20Adset`
             );
             expect(response.status).toBe(500);
             expect(response.body.message).toBe('Error');
