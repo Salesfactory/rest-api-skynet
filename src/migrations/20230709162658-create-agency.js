@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
     async up(queryInterface, Sequelize) {
-        await queryInterface.createTable('clients', {
+        await queryInterface.createTable('agencies', {
             id: {
                 allowNull: false,
                 autoIncrement: true,
@@ -17,26 +17,17 @@ module.exports = {
                 type: Sequelize.JSON,
                 allowNull: true,
             },
-            sub_advertiser_aliases: {
-                type: Sequelize.JSON,
-                allowNull: true,
-            },
-            advertiser_ids: {
-                type: Sequelize.JSON,
-                allowNull: true,
-            },
-            sub_advertiser_ids: {
-                type: Sequelize.JSON,
-                allowNull: true,
-            },
-            agency_id: {
-                type: Sequelize.INTEGER,
-                allowNull: true,
-            },
-            active: {
-                type: Sequelize.BOOLEAN,
+            table_name: {
+                type: Sequelize.STRING,
                 allowNull: false,
-                defaultValue: true,
+            },
+            advertiser_id_field: {
+                type: Sequelize.STRING,
+                allowNull: false,
+            },
+            advertiser_name_field: {
+                type: Sequelize.STRING,
+                allowNull: false,
             },
             createdAt: {
                 allowNull: false,
@@ -51,6 +42,6 @@ module.exports = {
         });
     },
     async down(queryInterface, Sequelize) {
-        await queryInterface.dropTable('clients');
+        await queryInterface.dropTable('agencies');
     },
 };
