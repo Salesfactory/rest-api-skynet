@@ -1,4 +1,5 @@
 const { bigqueryClient } = require('../config/bigquery');
+const { Agency } = require('../models');
 
 const getChannels = async (req, res) => {
     try {
@@ -25,13 +26,20 @@ const getChannelTypes = async (req, res) => {
             });
         }
 
-        const query = `SELECT campaign_type FROM \`agency_6133.cs_paid_ads__basic_performance\` WHERE channel = @channelName GROUP BY campaign_type LIMIT 1000`;
+        const query = `SELECT campaign_type FROM \`agency_6133.cs_paid_ads__basic_performance\` 
+        WHERE channel IN UNNEST(@channelNames) GROUP BY campaign_type LIMIT 1000
+        `;
+        const agencies = await Agency.findAll();
+        const aliases = agencies.map(agency => agency.aliases).flat();
+        aliases.push(channelName);
+
+        const params = {
+            channelNames: aliases,
+        };
 
         const [rows] = await bigqueryClient.query({
             query,
-            params: {
-                channelName,
-            },
+            params
         });
 
         const channelTypes = rows.filter(row => row.campaign_type != '');

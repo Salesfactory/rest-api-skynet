@@ -1,9 +1,14 @@
 const { bigqueryClient } = require('../config/bigquery');
-const { Budget, Campaign, CampaignGroup, Client } = require('../models');
+const {
+    Budget,
+    Campaign,
+    CampaignGroup,
+    Client,
+    Agency,
+} = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
 const ExcelJS = require('exceljs');
-const fs = require('fs');
 
 // Marketing campaign list for client
 const getMarketingCampaignsByClient = async (req, res) => {
@@ -863,6 +868,12 @@ const getClientBigqueryCampaigns = async (req, res) => {
     try {
         const client = await Client.findOne({
             where: { id: clientId },
+            include: [
+                {
+                    model: Agency,
+                    as: 'agency',
+                },
+            ],
         });
 
         if (!client) {
@@ -879,7 +890,9 @@ const getClientBigqueryCampaigns = async (req, res) => {
             'campaignName',
             'campaignType',
         ];
+
         const missingFields = requiredFields.filter(field => !req.query[field]);
+
         if (missingFields.length > 0) {
             return res.status(400).json({
                 message: `Missing required fields: ${missingFields.join(', ')}`,
@@ -889,26 +902,67 @@ const getClientBigqueryCampaigns = async (req, res) => {
         const splittedKeywords = keywords ? keywords.split(',') : [];
         const hasKeywords = splittedKeywords?.length > 0;
 
-        const params = [channel, client.name, `%${campaignName}%`];
+        let params = [];
+        let sqlQuery = `SELECT cs.campaign_id, cs.campaign_name, cs.campaign_type
+        FROM \`agency_6133.cs_paid_ads__basic_performance\` as cs
+        `;
 
-        let sqlQuery = `
-        SELECT campaign_id, campaign_name, campaign_type 
-        FROM \`agency_6133.cs_paid_ads__basic_performance\` 
-        WHERE datasource = ? AND advertiser_name = ? `;
+        const agency = client.agency;
+
+        if (!agency) {
+            const datasource = channel;
+            const advertiserAliases = client.aliases;
+            const advertiserIds = client.advertiser_ids;
+
+            params = [
+                datasource,
+                advertiserAliases,
+                advertiserIds,
+                `%${campaignName}%`,
+            ];
+
+            sqlQuery += `WHERE cs.datasource = ? AND cs.advertiser_name IN UNNEST(?) AND cs.advertiser_id IN UNNEST(?) `;
+        } else {
+            const advertiserIdField = agency.advertiser_id_field;
+            const advertiserNameField = agency.advertiser_name_field;
+            const agencyTableName = agency.table_name;
+            const advertiserAliases = client.aliases;
+            const subAdvertiserAliases = client.sub_advertiser_aliases;
+            const advertiserIds = client.advertiser_ids;
+            const subAdvertiserIds = client.sub_advertiser_ids;
+            const agencyDatasources = agency.aliases;
+            agencyDatasources.push(channel);
+
+            params = [
+                agencyDatasources,
+                advertiserIds,
+                subAdvertiserIds,
+                advertiserAliases,
+                subAdvertiserAliases,
+                `%${campaignName}%`,
+            ];
+
+            sqlQuery += `LEFT JOIN \`agency_6133.${agencyTableName}\` as atn
+            ON cs.campaign_id = atn.campaign_id 
+            WHERE cs.datasource IN UNNEST(?) 
+            AND (cs.advertiser_id IN UNNEST(?) OR atn.${advertiserIdField} IN UNNEST(?)) 
+            AND (cs.advertiser_name IN UNNEST(?) OR atn.${advertiserNameField} IN UNNEST(?))
+            `;
+        }
 
         if (hasKeywords) {
-            sqlQuery += `AND (campaign_name LIKE ? `;
+            sqlQuery += `AND (cs.campaign_name LIKE ? `;
             splittedKeywords.forEach(keyword => {
-                sqlQuery += `OR campaign_name LIKE ? `;
+                sqlQuery += `OR cs.campaign_name LIKE ? `;
                 params.push(`%${keyword}%`);
             });
             sqlQuery += `) `;
         } else {
-            sqlQuery += `AND campaign_name LIKE ? `;
+            sqlQuery += `AND cs.campaign_name LIKE ? `;
         }
 
-        sqlQuery += `AND campaign_type LIKE ?
-        AND DATE(date) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH) AND CURRENT_DATE()
+        sqlQuery += `AND cs.campaign_type LIKE ?
+        AND DATE(cs.date) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH) AND CURRENT_DATE()
         GROUP BY 1,2,3
         `;
 
@@ -936,6 +990,12 @@ const getClientBigqueryAdsets = async (req, res) => {
     try {
         const client = await Client.findOne({
             where: { id: clientId },
+            include: [
+                {
+                    model: Agency,
+                    as: 'agency',
+                },
+            ],
         });
 
         if (!client) {
@@ -957,26 +1017,64 @@ const getClientBigqueryAdsets = async (req, res) => {
         const splittedKeywords = keywords ? keywords.split(',') : [];
         const hasKeywords = splittedKeywords?.length > 0;
 
-        const params = [client.name, campaignId, `%${adsetName}%`];
+        let params = [];
+        let sqlQuery = `SELECT cs.campaign_id, cs.campaign_name, cs.campaign_type, cs.adset_id, cs.adset_name  
+        FROM \`agency_6133.cs_paid_ads__basic_performance\` as cs
+        `;
 
-        let sqlQuery = `
-        SELECT campaign_id, campaign_name, campaign_type, adset_id, adset_name  
-        FROM \`agency_6133.cs_paid_ads__basic_performance\` 
-        WHERE advertiser_name = ? AND campaign_id = ? `;
+        const agency = client.agency;
+
+        if (!agency) {
+            const advertiserAliases = client.aliases;
+            const advertiserIds = client.advertiser_ids;
+
+            params = [
+                advertiserAliases,
+                advertiserIds,
+                campaignId,
+                `%${adsetName}%`,
+            ];
+
+            sqlQuery += `WHERE cs.advertiser_name IN UNNEST(?) AND cs.advertiser_id IN UNNEST(?) AND cs.campaign_id = ? `;
+        } else {
+            const advertiserIdField = agency.advertiser_id_field;
+            const advertiserNameField = agency.advertiser_name_field;
+            const agencyTableName = agency.table_name;
+            const advertiserAliases = client.aliases;
+            const subAdvertiserAliases = client.sub_advertiser_aliases;
+            const advertiserIds = client.advertiser_ids;
+            const subAdvertiserIds = client.sub_advertiser_ids;
+
+            params = [
+                advertiserIds,
+                subAdvertiserIds,
+                advertiserAliases,
+                subAdvertiserAliases,
+                campaignId,
+                `%${adsetName}%`,
+            ];
+
+            sqlQuery += `LEFT JOIN \`agency_6133.${agencyTableName}\` as atn
+            ON cs.campaign_id = atn.campaign_id 
+            WHERE (cs.advertiser_id IN UNNEST(?) OR atn.${advertiserIdField} IN UNNEST(?)) 
+            AND (cs.advertiser_name IN UNNEST(?) OR atn.${advertiserNameField} IN UNNEST(?))
+            AND cs.campaign_id = ? 
+            `;
+        }
 
         if (hasKeywords) {
-            sqlQuery += `AND (adset_name LIKE ? `;
+            sqlQuery += `AND (cs.adset_name LIKE ? `;
             splittedKeywords.forEach(keyword => {
-                sqlQuery += `OR adset_name LIKE ? `;
+                sqlQuery += `OR cs.adset_name LIKE ? `;
                 params.push(`%${keyword}%`);
             });
             sqlQuery += `) `;
         } else {
-            sqlQuery += `AND adset_name LIKE ? `;
+            sqlQuery += `AND cs.adset_name LIKE ? `;
         }
 
         sqlQuery += `
-        AND DATE(date) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH) AND CURRENT_DATE()
+        AND DATE(cs.date) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH) AND CURRENT_DATE()
         GROUP BY 1,2,3,4,5
         `;
 
