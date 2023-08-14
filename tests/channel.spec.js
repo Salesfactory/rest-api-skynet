@@ -2,7 +2,7 @@ const supertest = require('supertest');
 const makeApp = require('../src/app');
 const { bigqueryClient } = require('../src/config/bigquery');
 
-const { User } = require('../src/models');
+const { User, Agency } = require('../src/models');
 
 jest.mock('../src/models', () => ({
     User: {
@@ -12,6 +12,9 @@ jest.mock('../src/models', () => ({
         findAll: jest.fn(),
         destroy: jest.fn(),
     },
+    Agency: {
+        findAll: jest.fn(),
+    }
 }));
 
 jest.mock('../src/config/bigquery', () => ({
@@ -59,6 +62,11 @@ describe('Channel Endpoints Test', () => {
             ];
 
             bigqueryClient.query.mockResolvedValue(data);
+
+            Agency.findAll.mockResolvedValue([
+                { aliases: ['Facebook', 'FB'] },
+                { aliases: ['Google', 'GOOGL'] },
+            ]);
 
             const response = await request.get(
                 `/api/channels/campaignTypes?channelName=${channelName}`
