@@ -120,7 +120,45 @@ describe('Client Endpoints Test', () => {
             );
         });
 
-        it('200', async () => {
+        it('200 non agency', async () => {
+            const client = {
+                id: 1,
+                name: 'Test Client 1',
+                agency: {
+                    advertiser_id_field: 'advertiser_id',
+                    advertiser_name_field: 'advertiser_name',
+                    table_name: 'test_table',
+                    aliases: ['test_alias'],
+                },
+            };
+            Client.findOne.mockResolvedValue(client);
+            const data = [
+                [
+                    {
+                        campaign_id: '23855226587440359',
+                        campaign_name: 'Test Campaign',
+                        campaign_type: 'Test',
+                    },
+                    {
+                        campaign_id: '23855226587440359',
+                        campaign_name: 'Test Campaign',
+                        campaign_type: 'Test',
+                    },
+                ],
+            ];
+
+            bigqueryClient.query.mockResolvedValue(data);
+            const response = await request.get(
+                `/api/clients/${clientId}/non-orchestrated/campaigns?channel=Test&campaignName=Test%20Campaign&campaignType=Test`
+            );
+            expect(response.status).toBe(200);
+            expect(response.body.data).toEqual(data[0]);
+            expect(response.body.message).toBe(
+                'BigQuery campaigns retrieved successfully'
+            );
+        });
+
+        it('200 agency', async () => {
             const client = {
                 id: 1,
                 name: 'Test Client 1',
@@ -196,10 +234,51 @@ describe('Client Endpoints Test', () => {
             );
         });
 
-        it('200', async () => {
+        it('200 non agency', async () => {
             const client = {
                 id: 1,
                 name: 'Test Client 1',
+            };
+            Client.findOne.mockResolvedValue(client);
+            const data = [
+                [
+                    {
+                        campaign_id: '23855226587440359',
+                        campaign_name: 'Test Campaign',
+                        campaign_type: 'Test',
+                        adset_id: '23855226587440359',
+                        adset_name: 'Test Adset',
+                    },
+                    {
+                        campaign_id: '23855226587440359',
+                        campaign_name: 'Test Campaign',
+                        campaign_type: 'Test',
+                        adset_id: '23855226587440359',
+                        adset_name: 'Test Adset',
+                    },
+                ],
+            ];
+
+            bigqueryClient.query.mockResolvedValue(data);
+            const response = await request.get(
+                `/api/clients/${clientId}/non-orchestrated/adsets?campaignId=123&adsetName=Test%20Adset`
+            );
+            expect(response.status).toBe(200);
+            expect(response.body.data).toEqual(data[0]);
+            expect(response.body.message).toBe(
+                'BigQuery adsets retrieved successfully'
+            );
+        });
+
+        it('200 agency', async () => {
+            const client = {
+                id: 1,
+                name: 'Test Client 1',
+                agency: {
+                    advertiser_id_field: 'advertiser_id',
+                    advertiser_name_field: 'advertiser_name',
+                    table_name: 'test_table',
+                },
             };
             Client.findOne.mockResolvedValue(client);
             const data = [
