@@ -124,12 +124,6 @@ describe('Client Endpoints Test', () => {
             const client = {
                 id: 1,
                 name: 'Test Client 1',
-                agency: {
-                    advertiser_id_field: 'advertiser_id',
-                    advertiser_name_field: 'advertiser_name',
-                    table_name: 'test_table',
-                    aliases: ['test_alias'],
-                },
             };
             Client.findOne.mockResolvedValue(client);
             const data = [
@@ -162,6 +156,12 @@ describe('Client Endpoints Test', () => {
             const client = {
                 id: 1,
                 name: 'Test Client 1',
+                agency: {
+                    advertiser_id_field: 'advertiser_id',
+                    advertiser_name_field: 'advertiser_name',
+                    table_name: 'test_table',
+                    aliases: ['test_alias'],
+                },
             };
             Client.findOne.mockResolvedValue(client);
             const data = [
