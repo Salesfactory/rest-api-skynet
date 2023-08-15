@@ -4,7 +4,7 @@ const { Agency } = require('../models');
 const getChannels = async (req, res) => {
     try {
         const response = await bigqueryClient.query(
-            'SELECT channel FROM `agency_6133.cs_paid_ads__basic_performance` GROUP BY channel LIMIT 1000'
+            'SELECT datasource FROM `agency_6133.cs_paid_ads__basic_performance` where channel != "" GROUP BY datasource LIMIT 1000'
         );
         const channels = response[0];
         res.status(200).json({
