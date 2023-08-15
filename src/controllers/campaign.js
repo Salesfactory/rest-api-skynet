@@ -398,7 +398,7 @@ const createMarketingCampaign = async (req, res) => {
                     paused: false,
                     deleted: false,
                 };
-                Campaign.create({
+                await Campaign.create({
                     id_campaign: campaign.id,
                     ...campaignData,
                 });
@@ -908,6 +908,9 @@ const getClientBigqueryCampaigns = async (req, res) => {
         `;
 
         const agency = client.agency;
+        const lowerCampaignName = campaignName
+            .replace(/[^a-zA-Z0-9 ]/g, ' ')
+            .toLowerCase();
 
         if (!agency) {
             const datasource = channel;
@@ -918,7 +921,7 @@ const getClientBigqueryCampaigns = async (req, res) => {
                 datasource,
                 advertiserAliases,
                 advertiserIds,
-                `%${campaignName}%`,
+                `%${lowerCampaignName}%`,
             ];
 
             sqlQuery += `WHERE cs.datasource = ? AND cs.advertiser_name IN UNNEST(?) AND cs.advertiser_id IN UNNEST(?) `;
@@ -939,7 +942,7 @@ const getClientBigqueryCampaigns = async (req, res) => {
                 subAdvertiserIds,
                 advertiserAliases,
                 subAdvertiserAliases,
-                `%${campaignName}%`,
+                `%${lowerCampaignName}%`,
             ];
 
             sqlQuery += `LEFT JOIN \`agency_6133.${agencyTableName}\` as atn
@@ -951,14 +954,17 @@ const getClientBigqueryCampaigns = async (req, res) => {
         }
 
         if (hasKeywords) {
-            sqlQuery += `AND (cs.campaign_name LIKE ? `;
+            sqlQuery += `AND (LOWER(REGEXP_REPLACE(cs.campaign_name, r'[^a-zA-Z0-9 ]', ' ')) LIKE ? `;
             splittedKeywords.forEach(keyword => {
-                sqlQuery += `OR cs.campaign_name LIKE ? `;
-                params.push(`%${keyword}%`);
+                const lowerKeyword = keyword
+                    .replace(/[^a-zA-Z0-9 ]/g, ' ')
+                    .toLowerCase();
+                sqlQuery += `OR LOWER(REGEXP_REPLACE(cs.campaign_name, r'[^a-zA-Z0-9 ]', ' ')) LIKE ? `;
+                params.push(`%${lowerKeyword}%`);
             });
             sqlQuery += `) `;
         } else {
-            sqlQuery += `AND cs.campaign_name LIKE ? `;
+            sqlQuery += `AND LOWER(REGEXP_REPLACE(cs.campaign_name, r'[^a-zA-Z0-9 ]', ' ')) LIKE ? `;
         }
 
         sqlQuery += `AND cs.campaign_type LIKE ?
@@ -1023,6 +1029,9 @@ const getClientBigqueryAdsets = async (req, res) => {
         `;
 
         const agency = client.agency;
+        const lowerAdsetName = adsetName
+            .replace(/[^a-zA-Z0-9 ]/g, ' ')
+            .toLowerCase();
 
         if (!agency) {
             const advertiserAliases = client.aliases;
@@ -1032,7 +1041,7 @@ const getClientBigqueryAdsets = async (req, res) => {
                 advertiserAliases,
                 advertiserIds,
                 campaignId,
-                `%${adsetName}%`,
+                `%${lowerAdsetName}%`,
             ];
 
             sqlQuery += `WHERE cs.advertiser_name IN UNNEST(?) AND cs.advertiser_id IN UNNEST(?) AND cs.campaign_id = ? `;
@@ -1051,7 +1060,7 @@ const getClientBigqueryAdsets = async (req, res) => {
                 advertiserAliases,
                 subAdvertiserAliases,
                 campaignId,
-                `%${adsetName}%`,
+                `%${lowerAdsetName}%`,
             ];
 
             sqlQuery += `LEFT JOIN \`agency_6133.${agencyTableName}\` as atn
@@ -1063,14 +1072,17 @@ const getClientBigqueryAdsets = async (req, res) => {
         }
 
         if (hasKeywords) {
-            sqlQuery += `AND (cs.adset_name LIKE ? `;
+            sqlQuery += `AND (LOWER(REGEXP_REPLACE(cs.adset_name, r'[^a-zA-Z0-9 ]', ' ')) LIKE ? `;
             splittedKeywords.forEach(keyword => {
-                sqlQuery += `OR cs.adset_name LIKE ? `;
-                params.push(`%${keyword}%`);
+                const lowerKeyword = keyword
+                    .replace(/[^a-zA-Z0-9 ]/g, ' ')
+                    .toLowerCase();
+                sqlQuery += `OR LOWER(REGEXP_REPLACE(cs.adset_name, r'[^a-zA-Z0-9 ]', ' ')) LIKE ? `;
+                params.push(`%${lowerKeyword}%`);
             });
             sqlQuery += `) `;
         } else {
-            sqlQuery += `AND cs.adset_name LIKE ? `;
+            sqlQuery += `AND LOWER(REGEXP_REPLACE(cs.adset_name, r'[^a-zA-Z0-9 ]', ' ')) LIKE ? `;
         }
 
         sqlQuery += `
