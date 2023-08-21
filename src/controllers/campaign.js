@@ -389,7 +389,7 @@ const createMarketingCampaign = async (req, res) => {
                 const campaignData = {
                     campaign_group_id: campaignGroup.id,
                     name: campaign.name,
-                    goal: campaign.goal,
+                    goal: campaign.goals,
                     channel: campaign.channel,
                     campaign_type: campaign.campaign_type,
                     adset: adsets.filter(
@@ -1592,7 +1592,7 @@ const getCampaignGroupSpreadsheet = async (req, res) => {
                                 channel,
                                 campaignType,
                                 campaign.name,
-                                campaign.goal,
+                                campaign.goals,
                                 adset.name,
                             ];
 
