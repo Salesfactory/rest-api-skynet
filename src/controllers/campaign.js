@@ -203,7 +203,6 @@ const createMarketingCampaign = async (req, res) => {
             'name',
             'company_name',
             'total_gross_budget',
-            'margin',
             'flight_time_start',
             'flight_time_end',
             'net_budget',
@@ -216,6 +215,12 @@ const createMarketingCampaign = async (req, res) => {
         if (missingFields.length > 0) {
             return res.status(400).json({
                 message: `Missing required fields: ${missingFields.join(', ')}`,
+            });
+        }
+
+        if (isNaN(margin)) {
+            return res.status(400).json({
+                message: `Margin is required or must be a number`,
             });
         }
 
