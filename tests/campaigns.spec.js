@@ -243,7 +243,7 @@ describe('Campaign Endpoints Test', () => {
 
             expect(response.status).toBe(400);
             expect(response.body.message).toBe(
-                `Missing required fields: name, company_name, total_gross_budget, margin, flight_time_start, flight_time_end, net_budget, channels, budget`
+                `Missing required fields: name, company_name, total_gross_budget, flight_time_start, flight_time_end, net_budget, channels, budget`
             );
         });
 
