@@ -96,7 +96,7 @@ describe('utils', () => {
 
         expect(validation).toBe(false);
         expect(message).toBe(
-            'Invalid allocations: [{"id":"1","name":"Google Ads","budget":27.06,"percentage":50,"allocations":[]},{"id":"2","name":"Amazon Advertising","budget":27.06,"percentage":50,"type":"CHANNEL","allocations":[]}]'
+            'Invalid allocations: Missing or invalid: [type] in allocation'
         );
     });
 });

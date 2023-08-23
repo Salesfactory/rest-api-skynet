@@ -47,19 +47,18 @@ function validateObjectAllocations(obj, periods) {
         ) {
             return {
                 validation: false,
-                message:
-                    'Missing budget, percentage or allocations:' +
-                    JSON.stringify(obj),
+                message: 'Missing budget, percentage or allocations',
             };
         }
 
         if (Array.isArray(obj[key].allocations)) {
-            if (!validateAllocations(obj[key].allocations)) {
+            const { validation, message } = validateAllocations(
+                obj[key].allocations
+            );
+            if (!validation) {
                 return {
                     validation: false,
-                    message:
-                        'Invalid allocations: ' +
-                        JSON.stringify(obj[key].allocations),
+                    message: 'Invalid allocations: ' + message,
                 };
             }
         }
@@ -74,17 +73,13 @@ function validateObjectAllocations(obj, periods) {
 function validateAllocations(allocations, level = 0) {
     if (!Array.isArray(allocations)) {
         if (debug) console.log('Invalid allocations:', allocations);
-        return false;
+        return {
+            validation: false,
+            message: 'Invalid allocations',
+        };
     }
 
-    const requiredProperties = [
-        'id',
-        'name',
-        'budget',
-        'percentage',
-        'type',
-        'allocations',
-    ];
+    const requiredProperties = ['id', 'name', 'budget', 'percentage', 'type'];
 
     for (const allocation of allocations) {
         if (debug)
@@ -99,32 +94,54 @@ function validateAllocations(allocations, level = 0) {
             );
 
         if (requiredProperties.some(prop => !allocation.hasOwnProperty(prop))) {
+            const missingProperties = requiredProperties.filter(
+                prop => !allocation.hasOwnProperty(prop)
+            );
             if (debug) {
-                const missingProperties = requiredProperties.filter(
-                    prop => !allocation.hasOwnProperty(prop)
-                );
                 console.log(
                     `Missing or invalid: [${missingProperties.join(
                         ', '
                     )}] in allocation`
                 );
             }
-            return false;
+            return {
+                validation: false,
+                message: `Missing or invalid: [${missingProperties.join(
+                    ', '
+                )}] in allocation`,
+            };
         }
 
         if (Array.isArray(allocation.allocations)) {
             if (allocation.allocations.length > 0) {
-                if (!validateAllocations(allocation.allocations, level + 1)) {
-                    return false;
+                const { validation, message } = validateAllocations(
+                    allocation.allocations,
+                    level + 1
+                );
+                if (!validation) {
+                    return {
+                        validation: false,
+                        message: message,
+                    };
                 }
             }
-        } else {
-            if (debug) console.log('allocations property is not an array');
-            return false;
+        } else if (allocation.allocations) {
+            if (debug)
+                console.log(
+                    'allocations property is not an array',
+                    allocation.allocations
+                );
+            return {
+                validation: false,
+                message: 'allocations property is not an array or is not null',
+            };
         }
     }
 
-    return true;
+    return {
+        validation: true,
+        message: 'Valid allocations',
+    };
 }
 
 module.exports = {
