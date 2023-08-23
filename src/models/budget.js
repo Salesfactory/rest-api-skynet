@@ -15,33 +15,13 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.INTEGER,
                 allowNull: false,
             },
-            months: {
+            periods: {
                 type: DataTypes.JSON,
                 allowNull: false,
             },
-            percentages: {
+            allocations: {
                 type: DataTypes.JSON,
                 allowNull: false,
-            },
-            net_budgets: {
-                type: DataTypes.JSON,
-                allowNull: false,
-            },
-            channels: {
-                type: DataTypes.JSON,
-                allowNull: false,
-            },
-            campaign_types: {
-                type: DataTypes.JSON,
-                allowNull: true,
-            },
-            campaigns: {
-                type: DataTypes.JSON,
-                allowNull: true,
-            },
-            adsets: {
-                type: DataTypes.JSON,
-                allowNull: true,
             },
         },
         {
