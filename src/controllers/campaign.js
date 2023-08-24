@@ -193,9 +193,9 @@ const createMarketingCampaign = async (req, res) => {
         }
 
         for (const channel of channels) {
-            if (typeof channel !== 'string') {
+            if (typeof channel.name !== 'string') {
                 return res.status(400).json({
-                    message: `Invalid channels array`,
+                    message: `Invalid channels array, name must be string`,
                 });
             }
         }
@@ -214,8 +214,6 @@ const createMarketingCampaign = async (req, res) => {
             }
         }
 
-        const channelNames = channels.join(', ');
-
         const campaignGroup = (
             await CampaignGroup.create({
                 client_id: client.id,
@@ -227,7 +225,7 @@ const createMarketingCampaign = async (req, res) => {
                 flight_time_start,
                 flight_time_end,
                 net_budget,
-                channels: channelNames,
+                channels,
                 comments,
             })
         ).get({ plain: true });

@@ -256,7 +256,10 @@ describe('Campaign Endpoints Test', () => {
                 flight_time_start: '2023-02-01T04:00:00.000Z',
                 flight_time_end: '2023-03-01T04:00:00.000Z',
                 net_budget: '108.24',
-                channels: ['Google Ads', 'Amazon Advertising'],
+                channels: [
+                    { id: '1', name: 'Google Ads' },
+                    { id: '2', name: 'Amazon Advertising' },
+                ],
                 allocations: {
                     february: {
                         budget: 54.12,
