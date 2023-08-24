@@ -49,12 +49,17 @@ describe('utils', () => {
                     ],
                 },
             },
-            periods: ['february', 'march'],
+            periods: [
+                { id: 'february', label: 'february' },
+                { id: 'march', label: 'march' },
+            ],
         };
+
+        const periodIds = campaignGroup.periods.map(period => period.id);
 
         const { validation, message } = utils.validateObjectAllocations(
             campaignGroup.allocations,
-            campaignGroup.periods
+            periodIds
         );
 
         expect(validation).toBe(true);
@@ -86,12 +91,17 @@ describe('utils', () => {
                     ],
                 },
             },
-            periods: ['february', 'march'],
+            periods: [
+                { id: 'february', label: 'february' },
+                { id: 'march', label: 'march' },
+            ],
         };
+
+        const periodIds = campaignGroup.periods.map(period => period.id);
 
         const { validation, message } = utils.validateObjectAllocations(
             campaignGroup.allocations,
-            campaignGroup.periods
+            periodIds
         );
 
         expect(validation).toBe(false);

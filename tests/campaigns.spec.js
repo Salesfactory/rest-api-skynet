@@ -303,7 +303,10 @@ describe('Campaign Endpoints Test', () => {
                         ],
                     },
                 },
-                periods: ['february', 'march'],
+                periods: [
+                    { id: 'february', label: 'february' },
+                    { id: 'march', label: 'march' },
+                ],
             };
 
             const data = {
@@ -386,7 +389,10 @@ describe('Campaign Endpoints Test', () => {
                 flight_time_end: '2023-03-01T04:00:00.000Z',
                 net_budget: '108.24',
                 channels: ['Google Ads'],
-                periods: ['february', 'march'],
+                periods: [
+                    { id: 'february', label: 'february' },
+                    { id: 'march', label: 'march' },
+                ],
             };
 
             const data = {
