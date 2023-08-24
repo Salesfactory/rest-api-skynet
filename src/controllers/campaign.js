@@ -200,10 +200,12 @@ const createMarketingCampaign = async (req, res) => {
             }
         }
 
+        const periodIds = periods.map(period => period.id);
+
         if (allocations && typeof allocations === 'object') {
             const { validation, message } = validateObjectAllocations(
                 allocations,
-                periods
+                periodIds
             );
             if (!validation) {
                 return res.status(400).json({
