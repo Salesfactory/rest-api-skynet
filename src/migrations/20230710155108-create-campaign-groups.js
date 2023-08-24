@@ -43,7 +43,7 @@ module.exports = {
                 allowNull: false,
             },
             channels: {
-                type: Sequelize.STRING,
+                type: Sequelize.JSON,
                 allowNull: false,
             },
             net_budget: {
