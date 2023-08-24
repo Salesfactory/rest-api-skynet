@@ -195,7 +195,7 @@ const createMarketingCampaign = async (req, res) => {
         for (const channel of channels) {
             if (typeof channel.name !== 'string') {
                 return res.status(400).json({
-                    message: `Invalid channels array, name and id must be strings`,
+                    message: `Invalid channels array, name must be string`,
                 });
             }
         }
