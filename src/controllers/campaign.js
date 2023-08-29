@@ -1,4 +1,5 @@
 const { bigqueryClient } = require('../config/bigquery');
+const { createSheet } = require('../utils/reports');
 const {
     Budget,
     Campaign,
@@ -10,6 +11,57 @@ const { Op } = require('sequelize');
 const sequelize = require('sequelize');
 const ExcelJS = require('exceljs');
 const { validateObjectAllocations } = require('../utils');
+
+//creacion de reporte excel
+const createReport = async (req, res) => {
+    const { id: clientId, cid: campaignGroupId } = req.params;
+
+    try {
+        const client = await Client.findOne({
+            where: { id: clientId },
+        });
+
+        if (!client) {
+            return res.status(404).json({
+                message: `Client not found`,
+            });
+        }
+
+        const campaignGroup = await CampaignGroup.findOne({
+            where: { id: campaignGroupId, client_id: clientId },
+            include: [
+                {
+                    model: Budget,
+                    as: 'budgets',
+                    limit: 1,
+                    order: [['updatedAt', 'DESC']],
+                    attributes: ['periods', 'allocations'],
+                },
+            ],
+        });
+
+        if (!campaignGroup) {
+            return res.status(404).json({
+                message: `Campaign group not found`,
+            });
+        }
+
+        const campaignGroupBudget = campaignGroup.budgets[0];
+        const { periods: timePeriod, allocations } =
+            campaignGroupBudget.dataValues;
+
+        await createSheet(timePeriod, allocations)
+            .then(file => {
+                x = file.write('file.xlsx', res);
+                return res;
+            })
+            .catch(error => {
+                return res.status(500).json({ message: error.message });
+            });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 // Marketing campaign list for client
 const getMarketingCampaignsByClient = async (req, res) => {
@@ -999,214 +1051,6 @@ const deleteCampaign = async (req, res) => {
     }
 };
 
-const getCampaignGroupSpreadsheet = async (req, res) => {
-    const { id: clientId, cid: campaignGroupId } = req.params;
-
-    try {
-        const client = await Client.findOne({
-            where: { id: clientId },
-        });
-
-        if (!client) {
-            return res.status(404).json({
-                message: `Client not found`,
-            });
-        }
-
-        const campaignGroup = await CampaignGroup.findOne({
-            where: { id: campaignGroupId, client_id: clientId },
-            include: [
-                {
-                    model: Budget,
-                    as: 'budgets',
-                    limit: 1,
-                    order: [['updatedAt', 'DESC']],
-                    attributes: [
-                        'months',
-                        'percentages',
-                        'net_budgets',
-                        'channels',
-                        'campaign_types',
-                        'campaigns',
-                        'adsets',
-                    ],
-                },
-            ],
-        });
-
-        if (!campaignGroup) {
-            return res.status(404).json({
-                message: `Campaign group not found`,
-            });
-        }
-
-        const campaignGroupBudget = campaignGroup.budgets[0];
-        const xlsxDataset = [];
-
-        if (!campaignGroupBudget) {
-            return res.status(404).json({
-                message: `This campaigngroup doesn't have a budget linked to it`,
-            });
-        } else {
-            const allMonths = [
-                'january',
-                'february',
-                'march',
-                'april',
-                'may',
-                'june',
-                'july',
-                'august',
-                'september',
-                'october',
-                'november',
-                'december',
-            ];
-
-            const randomId =
-                Math.random().toString(36).substring(2, 15) +
-                Math.random().toString(23).substring(2, 5);
-            const fileName = `${randomId}.xlsx`;
-
-            const workbook = new ExcelJS.Workbook();
-            const sheet = workbook.addWorksheet('Sheet1');
-
-            sheet.addRow(['Monthly Budget Allocation']);
-            sheet.addRow([
-                'Channel',
-                'Campaign Type/Tactic',
-                'Campaign Name',
-                'Campaign Goal',
-                'Adset Name',
-                ...allMonths.flatMap(month => {
-                    const monthR =
-                        month.charAt(0).toUpperCase() + month.slice(1);
-                    return [monthR, monthR + ' ADB'];
-                }),
-                'Total',
-            ]);
-
-            const lastDayOfTheMonth = [
-                31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
-            ];
-
-            const channels = campaignGroupBudget.channels.map(
-                channel => channel.name
-            );
-
-            let totalsByMonth = new Array(25).fill(0);
-
-            channels.forEach(channel => {
-                const campaignTypes = campaignGroupBudget.campaign_types
-                    .filter(type => type.channel === channel)
-                    .map(type => type.name);
-
-                campaignTypes.forEach(campaignType => {
-                    const campaigns = campaignGroupBudget.campaigns.filter(
-                        campaign =>
-                            campaign.channel === channel &&
-                            campaign.campaign_type === campaignType
-                    );
-
-                    campaigns.forEach(campaign => {
-                        const adsets = campaignGroupBudget.adsets.filter(
-                            adset =>
-                                adset.channel === channel &&
-                                adset.campaign_type === campaignType &&
-                                adset.campaign === campaign.name
-                        );
-
-                        adsets.forEach(adset => {
-                            const row = [
-                                channel,
-                                campaignType,
-                                campaign.name,
-                                campaign.goals,
-                                adset.name,
-                            ];
-
-                            let total = 0;
-                            allMonths.forEach((month, index) => {
-                                const mappedCampaignMonths =
-                                    campaignGroupBudget.months.map(month =>
-                                        month.toLowerCase()
-                                    );
-                                if (mappedCampaignMonths.includes(month)) {
-                                    const monthIndex =
-                                        mappedCampaignMonths.indexOf(month);
-
-                                    const cleanValue = Number(
-                                        adset.values[monthIndex].value.replace(
-                                            /[^0-9.-]+/g,
-                                            ''
-                                        )
-                                    );
-
-                                    if (isNaN(cleanValue) || cleanValue === 0) {
-                                        row.push('');
-                                        row.push('');
-                                    } else {
-                                        const monthValue = cleanValue;
-                                        const monthValueADB =
-                                            cleanValue /
-                                            lastDayOfTheMonth[index];
-
-                                        row.push(monthValue);
-                                        row.push(monthValueADB);
-
-                                        total += monthValue + monthValueADB;
-
-                                        totalsByMonth[index * 2] += monthValue;
-                                        totalsByMonth[index * 2 + 1] +=
-                                            monthValueADB;
-                                    }
-                                } else {
-                                    row.push('');
-                                    row.push('');
-                                    totalsByMonth[index * 2] += 0;
-                                    totalsByMonth[index * 2 + 1] += 0;
-                                }
-                            });
-                            row.push(total);
-                            totalsByMonth[totalsByMonth.length - 1] += total;
-
-                            xlsxDataset.push(row);
-                        });
-                    });
-                });
-            });
-
-            xlsxDataset.push([
-                '',
-                '',
-                'Total Base Budget',
-                '',
-                '',
-                ...totalsByMonth,
-            ]);
-
-            xlsxDataset.forEach(row => {
-                sheet.addRow(row);
-            });
-
-            res.setHeader(
-                'Content-Type',
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            );
-            res.setHeader(
-                'Content-Disposition',
-                'attachment; filename=' + fileName
-            );
-
-            workbook.xlsx.write(res).then(function (data) {
-                res.end();
-            });
-        }
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
 module.exports = {
     getMarketingCampaignsByClient,
     getMarketingCampaignsById,
@@ -1221,5 +1065,5 @@ module.exports = {
     updateCampaignGoals,
     pauseCampaign,
     deleteCampaign,
-    getCampaignGroupSpreadsheet,
+    createReport,
 };
