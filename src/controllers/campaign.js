@@ -60,17 +60,6 @@ const createReport = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-
-    // const { periods: timePeriod, allocations } = budgets[0];
-
-    // await createSheet(timePeriod, allocations)
-    //     .catch(error => {
-    //         return res.status(500).json({ message: error.message });
-    //     })
-    //     .then(file => {
-    //         x = file.write('file.xlsx', res);
-    //         return res;
-    //     });
 };
 
 // Marketing campaign list for client
