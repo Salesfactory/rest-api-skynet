@@ -13,19 +13,64 @@ const ExcelJS = require('exceljs');
 
 //creacion de reporte excel
 const createReport = async (req, res) => {
-    const {
-        body: { budgets },
-    } = req;
-    const { periods: timePeriod, allocations } = budgets[0];
+    const { id: clientId, cid: campaignGroupId } = req.params;
 
-    await createSheet(timePeriod, allocations)
-        .catch(error => {
-            return res.status(500).json({ message: error.message });
-        })
-        .then(file => {
-            x = file.write('file.xlsx', res);
-            return res;
+    try {
+        const client = await Client.findOne({
+            where: { id: clientId },
         });
+
+        if (!client) {
+            return res.status(404).json({
+                message: `Client not found`,
+            });
+        }
+
+        const campaignGroup = await CampaignGroup.findOne({
+            where: { id: campaignGroupId, client_id: clientId },
+            include: [
+                {
+                    model: Budget,
+                    as: 'budgets',
+                    limit: 1,
+                    order: [['updatedAt', 'DESC']],
+                    attributes: ['periods', 'allocations'],
+                },
+            ],
+        });
+
+        if (!campaignGroup) {
+            return res.status(404).json({
+                message: `Campaign group not found`,
+            });
+        }
+
+        const campaignGroupBudget = campaignGroup.budgets[0];
+        const { periods: timePeriod, allocations } =
+            campaignGroupBudget.dataValues;
+
+        await createSheet(timePeriod, allocations)
+            .then(file => {
+                x = file.write('file.xlsx', res);
+                return res;
+            })
+            .catch(error => {
+                return res.status(500).json({ message: error.message });
+            });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+
+    // const { periods: timePeriod, allocations } = budgets[0];
+
+    // await createSheet(timePeriod, allocations)
+    //     .catch(error => {
+    //         return res.status(500).json({ message: error.message });
+    //     })
+    //     .then(file => {
+    //         x = file.write('file.xlsx', res);
+    //         return res;
+    //     });
 };
 
 // Marketing campaign list for client
