@@ -16,6 +16,7 @@ const ordercategories = (timePeriod, allocations) => {
                             type.allocations.forEach((campaing, index) => {
                                 if (campaing.allocations) {
                                     const campaingName = campaing.name;
+                                    const campaingGoals = campaing.goals;
                                     campaing.allocations.forEach(
                                         (ADSET, index) => {
                                             const ADSETName = ADSET.name;
@@ -48,6 +49,7 @@ const ordercategories = (timePeriod, allocations) => {
                                                     channelName,
                                                     typeName,
                                                     campaingName,
+                                                    campaingGoals,
                                                     ADSETName,
                                                 });
                                                 budgetInfo.push({
@@ -136,6 +138,9 @@ const createSheet = (timePeriod, allocations) =>
                     .style(cellStyle);
                 ws.cell(2 + i, 3)
                     .string(element.campaingName)
+                    .style(cellStyle);
+                ws.cell(2 + i, 4)
+                    .string(element.campaingGoals)
                     .style(cellStyle);
                 ws.cell(2 + i, 5)
                     .string(element.ADSETName)
