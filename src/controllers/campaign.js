@@ -1,4 +1,5 @@
 const { bigqueryClient } = require('../config/bigquery');
+const { createSheet } = require('../utils/reports');
 const {
     Budget,
     Campaign,
@@ -9,6 +10,23 @@ const {
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
 const ExcelJS = require('exceljs');
+
+//creacion de reporte excel
+const createReport = async (req, res) => {
+    const {
+        body: { budgets },
+    } = req;
+    const { periods: timePeriod, allocations } = budgets[0];
+
+    await createSheet(timePeriod, allocations)
+        .catch(error => {
+            return res.status(500).json({ message: error.message });
+        })
+        .then(file => {
+            x = file.write('file.xlsx', res);
+            return res;
+        });
+};
 
 // Marketing campaign list for client
 const getMarketingCampaignsByClient = async (req, res) => {
@@ -1681,4 +1699,5 @@ module.exports = {
     pauseCampaign,
     deleteCampaign,
     getCampaignGroupSpreadsheet,
+    createReport,
 };
