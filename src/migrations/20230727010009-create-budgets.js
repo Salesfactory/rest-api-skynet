@@ -20,33 +20,13 @@ module.exports = {
                 onDelete: 'cascade',
                 onUpdate: 'cascade',
             },
-            months: {
+            periods: {
                 type: Sequelize.JSON,
                 allowNull: false,
             },
-            percentages: {
+            allocations: {
                 type: Sequelize.JSON,
                 allowNull: false,
-            },
-            net_budgets: {
-                type: Sequelize.JSON,
-                allowNull: false,
-            },
-            channels: {
-                type: Sequelize.JSON,
-                allowNull: false,
-            },
-            campaign_types: {
-                type: Sequelize.JSON,
-                allowNull: true,
-            },
-            campaigns: {
-                type: Sequelize.JSON,
-                allowNull: true,
-            },
-            adsets: {
-                type: Sequelize.JSON,
-                allowNull: true,
             },
             createdAt: {
                 allowNull: false,

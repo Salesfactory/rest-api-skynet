@@ -1,12 +1,26 @@
 const { bigqueryClient } = require('../config/bigquery');
-const { Agency } = require('../models');
+const { Agency, Channel } = require('../models');
+
+const getProtectedBigqueryChannels = async () => {
+    try {
+        const response = await bigqueryClient.query(
+            'SELECT datasource as channel FROM `agency_6133.cs_paid_ads__basic_performance` where channel != "" GROUP BY datasource LIMIT 1000'
+        );
+        const channels = response[0];
+        return channels;
+    } catch (error) {
+        return [];
+    }
+};
 
 const getChannels = async (req, res) => {
     try {
-        const response = await bigqueryClient.query(
-            'SELECT channel FROM `agency_6133.cs_paid_ads__basic_performance` GROUP BY channel LIMIT 1000'
-        );
-        const channels = response[0];
+        const channels = await Channel.findAll({
+            attributes: ['id', 'name'],
+            where: {
+                active: true,
+            },
+        });
         res.status(200).json({
             message: 'Channels retrieved successfully',
             data: channels,
@@ -39,7 +53,7 @@ const getChannelTypes = async (req, res) => {
 
         const [rows] = await bigqueryClient.query({
             query,
-            params
+            params,
         });
 
         const channelTypes = rows.filter(row => row.campaign_type != '');
@@ -54,6 +68,7 @@ const getChannelTypes = async (req, res) => {
 };
 
 module.exports = {
+    getProtectedBigqueryChannels,
     getChannels,
     getChannelTypes,
 };

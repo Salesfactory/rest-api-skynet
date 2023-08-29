@@ -55,7 +55,7 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
             },
             channels: {
-                type: DataTypes.STRING,
+                type: DataTypes.JSON,
                 allowNull: false,
             },
             net_budget: {

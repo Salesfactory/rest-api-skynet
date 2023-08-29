@@ -243,57 +243,73 @@ describe('Campaign Endpoints Test', () => {
 
             expect(response.status).toBe(400);
             expect(response.body.message).toBe(
-                `Missing required fields: name, company_name, total_gross_budget, margin, flight_time_start, flight_time_end, net_budget, channels, budget`
+                `Missing required fields: name, goals, total_gross_budget, flight_time_start, flight_time_end, net_budget, periods, channels, allocations`
             );
         });
 
         it('201', async () => {
             const sendData = {
                 name: 'Campaña 1',
-                client: 'Test Client 1',
-                company_name: 'Company',
-                goals: '1',
-                total_gross_budget: 1,
-                margin: 1,
-                flight_time_start: '2022-11-11 00:00:00-04',
-                flight_time_end: '2023-11-11 00:00:00-04',
-                net_budget: 1,
-                channels: 'a,b,c',
-                budget: {
-                    months: ['august', 'september', 'october', 'november'],
-                    percentages: [25, 25, 25, 25],
-                    net_budgets: [1, 1, 1, 1],
-                    channels: [
-                        {
-                            name: 'Facebook',
-                            values: [1, 1, 1, 1],
-                        },
-                    ],
-                    campaign_types: [
-                        {
-                            name: 'Test Campaign Type 1',
-                            channel: 'Facebook',
-                            values: [1, 1, 1, 1],
-                        },
-                    ],
-                    campaigns: [
-                        {
-                            name: 'Test Campaign 1',
-                            channel: 'Facebook',
-                            campaign_type: 'Test Campaign Type 1',
-                            values: [1, 1, 1, 1],
-                        },
-                    ],
-                    adsets: [
-                        {
-                            name: 'Test Adset 1',
-                            campaign: 'Test Campaign 1',
-                            channel: 'Facebook',
-                            campaign_type: 'Test Campaign Type 1',
-                            values: [1, 1, 1, 1],
-                        },
-                    ],
+                goals: 'test',
+                total_gross_budget: 123,
+                margin: 0.12,
+                flight_time_start: '2023-02-01T04:00:00.000Z',
+                flight_time_end: '2023-03-01T04:00:00.000Z',
+                net_budget: '108.24',
+                channels: [
+                    { id: '1', name: 'Google Ads' },
+                    { id: '2', name: 'Amazon Advertising' },
+                ],
+                allocations: {
+                    february: {
+                        budget: 54.12,
+                        percentage: 50,
+                        allocations: [
+                            {
+                                id: '1',
+                                name: 'Google Ads',
+                                budget: 27.06,
+                                percentage: 50,
+                                type: 'CHANNEL',
+                                allocations: [],
+                            },
+                            {
+                                id: '2',
+                                name: 'Amazon Advertising',
+                                budget: 27.06,
+                                percentage: 50,
+                                type: 'CHANNEL',
+                                allocations: [],
+                            },
+                        ],
+                    },
+                    march: {
+                        budget: 54.12,
+                        percentage: 50,
+                        allocations: [
+                            {
+                                id: '1',
+                                name: 'Google Ads',
+                                budget: 27.06,
+                                percentage: 50,
+                                type: 'CHANNEL',
+                                allocations: [],
+                            },
+                            {
+                                id: '2',
+                                name: 'Amazon Advertising',
+                                budget: 27.06,
+                                percentage: 50,
+                                type: 'CHANNEL',
+                                allocations: [],
+                            },
+                        ],
+                    },
                 },
+                periods: [
+                    { id: 'february', label: 'february' },
+                    { id: 'march', label: 'march' },
+                ],
             };
 
             const data = {
@@ -368,16 +384,18 @@ describe('Campaign Endpoints Test', () => {
 
         it('200', async () => {
             const sendData = {
-                name: 'Campaña 1',
-                client: 'Test Client 1',
-                company_name: 'Company',
-                goals: '1',
-                total_gross_budget: 1,
-                margin: 1,
-                flight_time_start: '2022-11-11 00:00:00-04',
-                flight_time_end: '2023-11-11 00:00:00-04',
-                net_budget: 1,
-                channels: 'a,b,c',
+                name: 'asd',
+                goals: 'asd',
+                total_gross_budget: 123,
+                margin: 0.12,
+                flight_time_start: '2023-02-01T04:00:00.000Z',
+                flight_time_end: '2023-03-01T04:00:00.000Z',
+                net_budget: '108.24',
+                channels: ['Google Ads'],
+                periods: [
+                    { id: 'february', label: 'february' },
+                    { id: 'march', label: 'march' },
+                ],
             };
 
             const data = {
