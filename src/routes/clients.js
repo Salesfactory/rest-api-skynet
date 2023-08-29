@@ -6,8 +6,14 @@ const { clientController, campaignController } = require('../controllers');
 router.get('/', clientController.getClients);
 router.get('/:clientId', clientController.getClient);
 // non orchestrated campaign advertisements
-router.get('/:id/non-orchestrated/campaigns', campaignController.getClientBigqueryCampaigns);
-router.get('/:id/non-orchestrated/adsets', campaignController.getClientBigqueryAdsets);
+router.get(
+    '/:id/non-orchestrated/campaigns',
+    campaignController.getClientBigqueryCampaigns
+);
+router.get(
+    '/:id/non-orchestrated/adsets',
+    campaignController.getClientBigqueryAdsets
+);
 // marketing campaigns routes
 router.get(
     '/:id/marketingcampaign',
@@ -55,7 +61,7 @@ router.delete(
 // get campaigngroup monthly budget spreadsheet
 router.get(
     '/:id/marketingcampaign/:cid/generate-spreadsheet',
-    campaignController.getCampaignGroupSpreadsheet
+    campaignController.createReport
 );
 
 module.exports = router;

@@ -116,17 +116,24 @@ const createSheet = (timePeriod, allocations) =>
             timePeriod,
             allocations
         );
-        const monts = [];
+        const months = [];
         if (campaingInfo.length) {
-            timePeriod.forEach((element, col) => {
+            timePeriod.forEach((element, index) => {
+                const col = index * 2;
                 ws.column(col + 6).setWidth(20);
                 ws.cell(1, col + 6)
                     .string(element.label)
                     .style(cellTitleStyle);
-                monts[element.id] = col;
+                ws.cell(1, col + 7)
+                    .string(element.label + ' ADB')
+                    .style(cellTitleStyle);
+                months[element.id] = {
+                    col,
+                    days: element.days,
+                };
             });
-            ws.column(6 + timePeriod.length).setWidth(25);
-            ws.cell(1, 6 + timePeriod.length)
+            ws.column(6 + timePeriod.length * 2).setWidth(25);
+            ws.cell(1, 6 + timePeriod.length * 2)
                 .string('Total Amount')
                 .style(cellTitleStyle);
             campaingInfo.forEach((element, i) => {
@@ -147,13 +154,18 @@ const createSheet = (timePeriod, allocations) =>
                     .style(cellStyle);
                 budgetInfo.forEach(budget => {
                     if (budget.index == i) {
-                        ws.cell(2 + i, 6 + monts[budget.month])
+                        ws.cell(2 + i, 6 + months[budget.month].col)
                             .number(budget.budget)
+                            .style({ numberFormat: '$###,##0.00;' });
+                        ws.cell(2 + i, 7 + months[budget.month].col)
+                            .number(
+                                budget.budget / (months[budget.month].days ?? 1)
+                            )
                             .style({ numberFormat: '$###,##0.00;' });
                     }
                 });
 
-                ws.cell(2 + i, 6 + timePeriod.length)
+                ws.cell(2 + i, 6 + timePeriod.length * 2)
                     .formula(
                         `SUM(${xl.getExcelCellRef(
                             2 + i,
@@ -162,6 +174,49 @@ const createSheet = (timePeriod, allocations) =>
                     )
                     .style(cellStyle);
             });
+
+            ws.cell(campaingInfo.length + 2, 5)
+                .string('Total')
+                .style(cellStyle);
+
+            for (const month in months) {
+                const { col } = months[month];
+
+                ws.cell(campaingInfo.length + 2, 6 + col)
+                    .formula(
+                        `SUM(${xl.getExcelCellRef(
+                            2,
+                            6 + col
+                        )}:${xl.getExcelCellRef(
+                            campaingInfo.length + 1,
+                            6 + col
+                        )})`
+                    )
+                    .style({ numberFormat: '$###,##0.00;' });
+                ws.cell(campaingInfo.length + 2, 7 + col)
+                    .formula(
+                        `SUM(${xl.getExcelCellRef(
+                            2,
+                            7 + col
+                        )}:${xl.getExcelCellRef(
+                            campaingInfo.length + 1,
+                            7 + col
+                        )})`
+                    )
+                    .style({ numberFormat: '$###,##0.00;' });
+            }
+
+            ws.cell(campaingInfo.length + 2, 6 + timePeriod.length * 2)
+                .formula(
+                    `SUM(${xl.getExcelCellRef(
+                        2,
+                        6 + timePeriod.length * 2
+                    )}:${xl.getExcelCellRef(
+                        campaingInfo.length + 1,
+                        6 + timePeriod.length * 2
+                    )})`
+                )
+                .style(cellStyle);
         }
         resolve(wb);
     });
