@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('../swagger.json');
+const cronjobs = require('./cronjobs');
 // api router
 const apiRouter = require('./routes');
 
@@ -35,6 +36,9 @@ module.exports = function () {
 
     // log all requests to the console
     app.use(morgan('common'));
+
+    // start job queue
+    cronjobs.start();
 
     // parse requests
     app.use(bodyParser.json());
