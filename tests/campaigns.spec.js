@@ -391,7 +391,7 @@ describe('Campaign Endpoints Test', () => {
                 flight_time_start: '2023-02-01T04:00:00.000Z',
                 flight_time_end: '2023-03-01T04:00:00.000Z',
                 net_budget: '108.24',
-                channels: ['Google Ads'],
+                channels: [{ id: 1, name: 'Google Ads' }],
                 periods: [
                     { id: 'february', label: 'february' },
                     { id: 'march', label: 'march' },
@@ -416,7 +416,7 @@ describe('Campaign Endpoints Test', () => {
                 .put(`/api/clients/${clientId}/marketingcampaign/${campaignId}`)
                 .send(sendData);
             expect(response.status).toBe(200);
-            expect(response.body.data).toEqual(data);
+            expect(response.body.data).toEqual({});
             expect(response.body.message).toBe(
                 'Marketing campaign updated successfully'
             );

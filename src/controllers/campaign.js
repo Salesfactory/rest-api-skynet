@@ -343,63 +343,77 @@ const updateMarketingCampaign = async (req, res) => {
             });
         }
 
-        if (channels && !Array.isArray(channels)) {
-            return res.status(400).json({
-                message: `Invalid channels array`,
-            });
-        }
-
-        for (const channel of channels) {
-            if (typeof channel !== 'string') {
+        if (channels) {
+            if (!Array.isArray(channels)) {
                 return res.status(400).json({
                     message: `Invalid channels array`,
                 });
             }
+
+            for (const channel of channels) {
+                if (typeof channel.name !== 'string') {
+                    return res.status(400).json({
+                        message: `Invalid channels array, name must be string`,
+                    });
+                }
+            }
         }
 
+        const periodIds = periods.map(period => period.id);
+
         if (allocations && typeof allocations === 'object') {
-            if (!validateObjectAllocations(allocations, periods)) {
+            const { validation, message } = validateObjectAllocations(
+                allocations,
+                periodIds
+            );
+            if (!validation) {
                 return res.status(400).json({
-                    message: `Invalid allocations object`,
+                    message,
                 });
             }
         }
 
-        const channelNames = channels.join(', ');
-
-        const updatedCampaignGroup = await CampaignGroup.update(
-            {
-                client_id: client.id,
-                name,
-                company_name: client.name,
-                goals,
-                total_gross_budget,
-                margin,
-                flight_time_start,
-                flight_time_end,
-                net_budget,
-                channels: channelNames,
-                comments,
-            },
-            {
-                where: { id: campaignId },
-                returning: true,
-                plain: true,
-            }
-        );
+        if (
+            name ||
+            goals ||
+            total_gross_budget ||
+            margin ||
+            net_budget ||
+            flight_time_start ||
+            flight_time_end ||
+            comments ||
+            channels
+        ) {
+            await CampaignGroup.update(
+                {
+                    client_id: client.id,
+                    name,
+                    company_name: client.name,
+                    goals,
+                    total_gross_budget,
+                    margin,
+                    flight_time_start,
+                    flight_time_end,
+                    net_budget,
+                    channels,
+                    comments,
+                },
+                {
+                    where: { id: campaignId, client_id: client.id },
+                }
+            );
+        }
 
         if (allocations) {
-            const newBudget = await Budget.create({
+            await Budget.create({
                 campaign_group_id: campaignId,
                 periods,
                 allocations,
             });
-            updatedCampaignGroup[1].budgets = newBudget;
         }
 
         res.status(200).json({
             message: 'Marketing campaign updated successfully',
-            data: updatedCampaignGroup[1],
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
