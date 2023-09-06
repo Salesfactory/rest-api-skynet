@@ -1075,4 +1075,77 @@ describe('Campaign Endpoints Test', () => {
             expect(response.body.message).toBe('Error');
         });
     });
+
+    describe('Budget pacing', () => {
+        const clientId = 1;
+        const campaignId = 1;
+
+        it('404 client', async () => {
+            Client.findOne.mockResolvedValue(null);
+            const response = await request.get(
+                `/api/clients/${clientId}/marketingcampaign/${campaignId}/spending`
+            );
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe(`Client not found`);
+        });
+
+        it('404 campaign', async () => {
+            Client.findOne.mockResolvedValue({
+                id: 1,
+                name: 'Test Client 1',
+            });
+            CampaignGroup.findOne.mockResolvedValue(null);
+            const response = await request.get(
+                `/api/clients/${clientId}/marketingcampaign/${campaignId}/spending`
+            );
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe(`Campaign group not found`);
+        });
+
+        it('200', async () => {
+            Client.findOne.mockResolvedValue({
+                id: 1,
+                name: 'Test Client 1',
+            });
+            const pacings = [
+                {
+                    periods: [
+                        {
+                            id: 'february_2023',
+                            label: 'February 2023',
+                            days: 28,
+                        },
+                    ],
+                    allocations: {
+                        february_2023: {
+                            budget: 54.12,
+                            percentage: 50,
+                            allocations: [],
+                        },
+                    },
+                },
+            ];
+            CampaignGroup.findOne.mockResolvedValue({
+                id: 1,
+                name: 'Campaña 1',
+                client: 'Test Client 1',
+                pacings,
+            });
+
+            const response = await request.get(
+                `/api/clients/${clientId}/marketingcampaign/${campaignId}/spending`
+            );
+            expect(response.status).toBe(200);
+            expect(response.body.data).toEqual(pacings[0]);
+        });
+
+        it('500', async () => {
+            Client.findOne.mockRejectedValue(new Error('Error'));
+            const response = await request.get(
+                `/api/clients/${clientId}/marketingcampaign/${campaignId}/spending`
+            );
+            expect(response.status).toBe(500);
+            expect(response.body.message).toBe('Error');
+        });
+    });
 });
