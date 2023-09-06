@@ -63,5 +63,10 @@ router.get(
     '/:id/marketingcampaign/:cid/generate-spreadsheet',
     campaignController.createReport
 );
+// get campaigngrop pacing
+router.get(
+    '/:id/marketingcampaign/:cid/spending',
+    campaignController.getCampaignGroupPacing
+);
 
 module.exports = router;

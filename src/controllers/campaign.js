@@ -1,11 +1,12 @@
 const { bigqueryClient } = require('../config/bigquery');
 const { createSheet } = require('../utils/reports');
 const {
+    Agency,
     Budget,
     Campaign,
     CampaignGroup,
     Client,
-    Agency,
+    Pacing,
 } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
@@ -58,6 +59,50 @@ const createReport = async (req, res) => {
             .catch(error => {
                 return res.status(500).json({ message: error.message });
             });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getCampaignGroupPacing = async (req, res) => {
+    const { id: clientId, cid: campaignGroupId } = req.params;
+
+    try {
+        const client = await Client.findOne({
+            where: { id: clientId },
+        });
+
+        if (!client) {
+            return res.status(404).json({
+                message: `Client not found`,
+            });
+        }
+
+        const campaignGroup = await CampaignGroup.findOne({
+            where: { id: campaignGroupId, client_id: clientId },
+            include: [
+                {
+                    model: Pacing,
+                    as: 'pacings',
+                    limit: 1,
+                    order: [['updatedAt', 'DESC']],
+                    attributes: ['periods', 'allocations'],
+                },
+            ],
+        });
+
+        if (!campaignGroup) {
+            return res.status(404).json({
+                message: `Campaign group not found`,
+            });
+        }
+
+        const pacing = campaignGroup.pacings[0];
+
+        res.status(200).json({
+            message: 'Campaign group pacing retrieved successfully',
+            data: pacing,
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -1080,4 +1125,5 @@ module.exports = {
     pauseCampaign,
     deleteCampaign,
     createReport,
+    getCampaignGroupPacing,
 };
