@@ -70,6 +70,10 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.TEXT,
                 allowNull: true,
             },
+            change_reason_log: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
         },
         {
             sequelize,
