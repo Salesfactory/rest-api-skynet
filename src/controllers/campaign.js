@@ -360,6 +360,7 @@ const updateMarketingCampaign = async (req, res) => {
         channels,
         allocations,
         comments,
+        change_reason_log,
     } = req.body;
     try {
         const client = await Client.findOne({
@@ -433,7 +434,8 @@ const updateMarketingCampaign = async (req, res) => {
             flight_time_start ||
             flight_time_end ||
             comments ||
-            channels
+            channels ||
+            change_reason_log
         ) {
             await CampaignGroup.update(
                 {
@@ -448,6 +450,7 @@ const updateMarketingCampaign = async (req, res) => {
                     net_budget,
                     channels,
                     comments,
+                    change_reason_log,
                 },
                 {
                     where: { id: campaignId, client_id: client.id },

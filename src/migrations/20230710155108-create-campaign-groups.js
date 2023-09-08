@@ -59,6 +59,10 @@ module.exports = {
                 allowNull: false,
                 defaultValue: false,
             },
+            change_reason_log: {
+                type: Sequelize.TEXT,
+                allowNull: true,
+            },
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE,
