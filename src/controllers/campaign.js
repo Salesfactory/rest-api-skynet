@@ -360,6 +360,7 @@ const updateMarketingCampaign = async (req, res) => {
         channels,
         allocations,
         comments,
+        change_reason_log,
     } = req.body;
     try {
         const client = await Client.findOne({
@@ -404,9 +405,15 @@ const updateMarketingCampaign = async (req, res) => {
             }
         }
 
-        const periodIds = periods.map(period => period.id);
-
         if (allocations && typeof allocations === 'object') {
+            if (!periods || !Array.isArray(periods)) {
+                return res.status(400).json({
+                    message: `Invalid periods array or missing periods array`,
+                });
+            }
+
+            const periodIds = periods.map(period => period.id);
+
             const { validation, message } = validateObjectAllocations(
                 allocations,
                 periodIds
@@ -427,7 +434,8 @@ const updateMarketingCampaign = async (req, res) => {
             flight_time_start ||
             flight_time_end ||
             comments ||
-            channels
+            channels ||
+            change_reason_log
         ) {
             await CampaignGroup.update(
                 {
@@ -442,6 +450,7 @@ const updateMarketingCampaign = async (req, res) => {
                     net_budget,
                     channels,
                     comments,
+                    change_reason_log,
                 },
                 {
                     where: { id: campaignId, client_id: client.id },
