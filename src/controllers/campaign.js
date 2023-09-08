@@ -404,9 +404,15 @@ const updateMarketingCampaign = async (req, res) => {
             }
         }
 
-        const periodIds = periods.map(period => period.id);
-
         if (allocations && typeof allocations === 'object') {
+            if (!periods || !Array.isArray(periods)) {
+                return res.status(400).json({
+                    message: `Invalid periods array or missing periods array`,
+                });
+            }
+
+            const periodIds = periods.map(period => period.id);
+
             const { validation, message } = validateObjectAllocations(
                 allocations,
                 periodIds
