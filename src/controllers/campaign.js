@@ -607,10 +607,9 @@ const getClientBigqueryCampaigns = async (req, res) => {
             sqlQuery += `AND LOWER(REGEXP_REPLACE(cs.campaign_name, r'[^a-zA-Z0-9 ]', ' ')) LIKE ? `;
         }
 
-        sqlQuery += `AND cs.campaign_type LIKE ?
-        AND DATE(cs.date) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH) AND CURRENT_DATE()
-        GROUP BY 1,2,3
-        `;
+        // look between range of dates
+        // AND DATE(cs.date) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH) AND CURRENT_DATE()
+        sqlQuery += `AND cs.campaign_type LIKE ? GROUP BY 1,2,3`;
 
         params.push(`%${campaignType}%`);
 
@@ -725,10 +724,9 @@ const getClientBigqueryAdsets = async (req, res) => {
             sqlQuery += `AND LOWER(REGEXP_REPLACE(cs.adset_name, r'[^a-zA-Z0-9 ]', ' ')) LIKE ? `;
         }
 
-        sqlQuery += `
-        AND DATE(cs.date) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH) AND CURRENT_DATE()
-        GROUP BY 1,2,3,4,5
-        `;
+        // look between range of dates
+        // AND DATE(cs.date) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH) AND CURRENT_DATE()
+        sqlQuery += `GROUP BY 1,2,3,4,5`;
 
         const options = {
             query: sqlQuery,
