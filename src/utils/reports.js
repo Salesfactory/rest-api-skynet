@@ -5,67 +5,95 @@ const ordercategories = (timePeriod, allocations) => {
         budgetInfo = [];
 
     timePeriod.forEach((element, col) => {
-        const elementName = element.id;
-        if (allocations[elementName].allocations) {
-            allocations[elementName].allocations.forEach((channel, row) => {
+        const periodName = element.id;
+        if (allocations[periodName].allocations) {
+            allocations[periodName].allocations.forEach((channel, row) => {
                 if (channel.allocations) {
                     const channelName = channel.name;
                     channel.allocations.forEach((type, index) => {
                         if (type.allocations) {
                             const typeName = type.name;
                             type.allocations.forEach((campaing, index) => {
-                                if (campaing.allocations) {
-                                    const campaingName = campaing.name;
-                                    const campaingGoals = campaing.goals;
+                                const campaingName = campaing.name;
+                                const campaingGoals = campaing.goals;
+
+                                const insertBudget = ({
+                                    channelName,
+                                    typeName,
+                                    campaingName,
+                                    ADSETName,
+                                    budget,
+                                    hasAllocations,
+                                }) => {
+                                    const cmplength = campaingInfo.length;
+                                    let indice = 0;
+                                    let exist = false;
+
+                                    for (
+                                        let index = 0;
+                                        index < cmplength && !exist;
+                                        index++
+                                    ) {
+                                        if (
+                                            campaingInfo[index].channelName ==
+                                                channelName &&
+                                            campaingInfo[index].typeName ==
+                                                typeName &&
+                                            campaingInfo[index].campaingName ==
+                                                campaingName &&
+                                            // if campaign has allocations or not
+                                            ((campaingInfo[index].ADSETName ==
+                                                ADSETName &&
+                                                hasAllocations) ||
+                                                !hasAllocations)
+                                        ) {
+                                            exist = true;
+                                            indice = index;
+                                        }
+                                    }
+
+                                    if (!exist) {
+                                        campaingInfo.push({
+                                            channelName,
+                                            typeName,
+                                            campaingName,
+                                            campaingGoals,
+                                            ADSETName,
+                                            month: periodName,
+                                        });
+                                    }
+                                    budgetInfo.push({
+                                        index: !exist ? cmplength : indice,
+                                        month: periodName,
+                                        budget: budget,
+                                    });
+                                };
+
+                                if (
+                                    Array.isArray(campaing.allocations) &&
+                                    campaing.allocations.length > 0
+                                ) {
                                     campaing.allocations.forEach(
                                         (ADSET, index) => {
-                                            const ADSETName = ADSET.name;
-                                            const long = campaingInfo.length;
-                                            let indice = 0;
-                                            let exist = false;
-                                            for (
-                                                let index = 0;
-                                                index < long && !exist;
-                                                index++
-                                            ) {
-                                                if (
-                                                    campaingInfo[index]
-                                                        .channelName ==
-                                                        channelName &&
-                                                    campaingInfo[index]
-                                                        .typeName == typeName &&
-                                                    campaingInfo[index]
-                                                        .campaingName ==
-                                                        campaingName &&
-                                                    campaingInfo[index]
-                                                        .ADSETName == ADSETName
-                                                ) {
-                                                    exist = true;
-                                                    indice = index;
-                                                }
-                                            }
-                                            if (!exist) {
-                                                campaingInfo.push({
-                                                    channelName,
-                                                    typeName,
-                                                    campaingName,
-                                                    campaingGoals,
-                                                    ADSETName,
-                                                });
-                                                budgetInfo.push({
-                                                    index: long,
-                                                    month: elementName,
-                                                    budget: ADSET.budget,
-                                                });
-                                            } else {
-                                                budgetInfo.push({
-                                                    index: indice,
-                                                    month: elementName,
-                                                    budget: ADSET.budget,
-                                                });
-                                            }
+                                            insertBudget({
+                                                channelName,
+                                                typeName,
+                                                campaingName,
+                                                ADSETName: ADSET.name,
+                                                budget: ADSET.budget,
+                                                hasAllocations: true,
+                                            });
                                         }
                                     );
+                                } else {
+                                    insertBudget({
+                                        channelName,
+                                        typeName,
+                                        campaingName,
+                                        ADSETName: '',
+                                        budget: campaing.budget,
+                                        hasAllocations: false,
+                                    });
                                 }
                             });
                         }
