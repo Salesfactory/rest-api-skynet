@@ -1,11 +1,12 @@
 const { bigqueryClient } = require('../config/bigquery');
 const { createSheet } = require('../utils/reports');
 const {
+    Agency,
     Budget,
     Campaign,
     CampaignGroup,
     Client,
-    Agency,
+    Pacing,
 } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
@@ -58,6 +59,50 @@ const createReport = async (req, res) => {
             .catch(error => {
                 return res.status(500).json({ message: error.message });
             });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getCampaignGroupPacing = async (req, res) => {
+    const { id: clientId, cid: campaignGroupId } = req.params;
+
+    try {
+        const client = await Client.findOne({
+            where: { id: clientId },
+        });
+
+        if (!client) {
+            return res.status(404).json({
+                message: `Client not found`,
+            });
+        }
+
+        const campaignGroup = await CampaignGroup.findOne({
+            where: { id: campaignGroupId, client_id: clientId },
+            include: [
+                {
+                    model: Pacing,
+                    as: 'pacings',
+                    limit: 1,
+                    order: [['updatedAt', 'DESC']],
+                    attributes: ['periods', 'allocations'],
+                },
+            ],
+        });
+
+        if (!campaignGroup) {
+            return res.status(404).json({
+                message: `Campaign group not found`,
+            });
+        }
+
+        const pacing = campaignGroup.pacings[0];
+
+        res.status(200).json({
+            message: 'Campaign group pacing retrieved successfully',
+            data: pacing,
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -315,6 +360,7 @@ const updateMarketingCampaign = async (req, res) => {
         channels,
         allocations,
         comments,
+        change_reason_log,
     } = req.body;
     try {
         const client = await Client.findOne({
@@ -343,63 +389,85 @@ const updateMarketingCampaign = async (req, res) => {
             });
         }
 
-        if (channels && !Array.isArray(channels)) {
-            return res.status(400).json({
-                message: `Invalid channels array`,
-            });
-        }
-
-        for (const channel of channels) {
-            if (typeof channel !== 'string') {
+        if (channels) {
+            if (!Array.isArray(channels)) {
                 return res.status(400).json({
                     message: `Invalid channels array`,
                 });
             }
+
+            for (const channel of channels) {
+                if (typeof channel.name !== 'string') {
+                    return res.status(400).json({
+                        message: `Invalid channels array, name must be string`,
+                    });
+                }
+            }
         }
 
         if (allocations && typeof allocations === 'object') {
-            if (!validateObjectAllocations(allocations, periods)) {
+            if (!periods || !Array.isArray(periods)) {
                 return res.status(400).json({
-                    message: `Invalid allocations object`,
+                    message: `Invalid periods array or missing periods array`,
+                });
+            }
+
+            const periodIds = periods.map(period => period.id);
+
+            const { validation, message } = validateObjectAllocations(
+                allocations,
+                periodIds
+            );
+            if (!validation) {
+                return res.status(400).json({
+                    message,
                 });
             }
         }
 
-        const channelNames = channels.join(', ');
-
-        const updatedCampaignGroup = await CampaignGroup.update(
-            {
-                client_id: client.id,
-                name,
-                company_name: client.name,
-                goals,
-                total_gross_budget,
-                margin,
-                flight_time_start,
-                flight_time_end,
-                net_budget,
-                channels: channelNames,
-                comments,
-            },
-            {
-                where: { id: campaignId },
-                returning: true,
-                plain: true,
-            }
-        );
+        if (
+            name ||
+            goals ||
+            total_gross_budget ||
+            margin ||
+            net_budget ||
+            flight_time_start ||
+            flight_time_end ||
+            comments ||
+            channels ||
+            change_reason_log
+        ) {
+            await CampaignGroup.update(
+                {
+                    client_id: client.id,
+                    name,
+                    company_name: client.name,
+                    goals,
+                    total_gross_budget,
+                    margin,
+                    flight_time_start,
+                    flight_time_end,
+                    net_budget,
+                    channels,
+                    comments,
+                    change_reason_log,
+                },
+                {
+                    where: { id: campaignId, client_id: client.id },
+                }
+            );
+        }
 
         if (allocations) {
-            const newBudget = await Budget.create({
+            await Budget.create({
                 campaign_group_id: campaignId,
                 periods,
                 allocations,
             });
-            updatedCampaignGroup[1].budgets = newBudget;
         }
 
         res.status(200).json({
             message: 'Marketing campaign updated successfully',
-            data: updatedCampaignGroup[1],
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -548,10 +616,9 @@ const getClientBigqueryCampaigns = async (req, res) => {
             sqlQuery += `AND LOWER(REGEXP_REPLACE(cs.campaign_name, r'[^a-zA-Z0-9 ]', ' ')) LIKE ? `;
         }
 
-        sqlQuery += `AND cs.campaign_type LIKE ?
-        AND DATE(cs.date) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH) AND CURRENT_DATE()
-        GROUP BY 1,2,3
-        `;
+        // look between range of dates
+        // AND DATE(cs.date) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH) AND CURRENT_DATE()
+        sqlQuery += `AND cs.campaign_type LIKE ? GROUP BY 1,2,3`;
 
         params.push(`%${campaignType}%`);
 
@@ -666,10 +733,9 @@ const getClientBigqueryAdsets = async (req, res) => {
             sqlQuery += `AND LOWER(REGEXP_REPLACE(cs.adset_name, r'[^a-zA-Z0-9 ]', ' ')) LIKE ? `;
         }
 
-        sqlQuery += `
-        AND DATE(cs.date) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH) AND CURRENT_DATE()
-        GROUP BY 1,2,3,4,5
-        `;
+        // look between range of dates
+        // AND DATE(cs.date) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH) AND CURRENT_DATE()
+        sqlQuery += `GROUP BY 1,2,3,4,5`;
 
         const options = {
             query: sqlQuery,
@@ -1066,4 +1132,5 @@ module.exports = {
     pauseCampaign,
     deleteCampaign,
     createReport,
+    getCampaignGroupPacing,
 };

@@ -18,6 +18,10 @@ module.exports = (sequelize, DataTypes) => {
                 foreignKey: 'campaign_group_id',
                 as: 'campaigns',
             });
+            CampaignGroup.hasMany(models.Pacing, {
+                foreignKey: 'campaign_group_id',
+                as: 'pacings',
+            });
         }
     }
     CampaignGroup.init(
@@ -63,6 +67,10 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
             },
             comments: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            change_reason_log: {
                 type: DataTypes.TEXT,
                 allowNull: true,
             },
