@@ -63,6 +63,11 @@ module.exports = {
                 type: Sequelize.TEXT,
                 allowNull: true,
             },
+            status: {
+                type: Sequelize.STRING,
+                allowNull: false,
+                defaultValue: 'N/S',
+            },
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE,
