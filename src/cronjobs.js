@@ -165,20 +165,10 @@ const start = () => {
                                                                     spending,
                                                                 });
 
-                                                            adset.mtd_spent =
-                                                                adsetMetrics.mtd_spent;
-                                                            adset.budget_remaining =
-                                                                adsetMetrics.budget_remaining;
-                                                            adset.budget_spent =
-                                                                adsetMetrics.budget_spent;
-                                                            adset.month_elapsed =
-                                                                adsetMetrics.month_elapsed;
-                                                            adset.adb =
-                                                                adsetMetrics.adb;
-                                                            adset.adb_current =
-                                                                adsetMetrics.adb_current;
-                                                            adset.avg_daily_spent =
-                                                                adsetMetrics.avg_daily_spent;
+                                                            setSpending(
+                                                                adset,
+                                                                adsetMetrics
+                                                            );
                                                         }
                                                     }
                                                 }
@@ -209,20 +199,10 @@ const start = () => {
                                                         ],
                                                     });
 
-                                                campaign.mtd_spent =
-                                                    campaignMetrics.mtd_spent;
-                                                campaign.budget_remaining =
-                                                    campaignMetrics.budget_remaining;
-                                                campaign.budget_spent =
-                                                    campaignMetrics.budget_spent;
-                                                campaign.month_elapsed =
-                                                    campaignMetrics.month_elapsed;
-                                                campaign.adb =
-                                                    campaignMetrics.adb;
-                                                campaign.adb_current =
-                                                    campaignMetrics.adb_current;
-                                                campaign.avg_daily_spent =
-                                                    campaignMetrics.avg_daily_spent;
+                                                setSpending(
+                                                    campaign,
+                                                    campaignMetrics
+                                                );
                                             }
                                         }
 
@@ -246,19 +226,7 @@ const start = () => {
                                             ],
                                         });
 
-                                        campaignType.mtd_spent =
-                                            typeMetrics.mtd_spent;
-                                        campaignType.budget_remaining =
-                                            typeMetrics.budget_remaining;
-                                        campaignType.budget_spent =
-                                            typeMetrics.budget_spent;
-                                        campaignType.month_elapsed =
-                                            typeMetrics.month_elapsed;
-                                        campaignType.adb = typeMetrics.adb;
-                                        campaignType.adb_current =
-                                            typeMetrics.adb_current;
-                                        campaignType.avg_daily_spent =
-                                            typeMetrics.avg_daily_spent;
+                                        setSpending(campaignType, typeMetrics);
                                     }
                                 }
 
@@ -294,19 +262,7 @@ const start = () => {
                                         previousPeriodBudget -
                                         previousPeriodSpent;
                                 }
-
-                                channel.mtd_spent = channelMetrics.mtd_spent;
-                                channel.budget_remaining =
-                                    channelMetrics.budget_remaining;
-                                channel.budget_spent =
-                                    channelMetrics.budget_spent;
-                                channel.month_elapsed =
-                                    channelMetrics.month_elapsed;
-                                channel.adb = channelMetrics.adb;
-                                channel.adb_current =
-                                    channelMetrics.adb_current;
-                                channel.avg_daily_spent =
-                                    channelMetrics.avg_daily_spent;
+                                setSpending(channel, channelMetrics);
                             }
                         }
 
@@ -365,3 +321,13 @@ const start = () => {
 };
 
 module.exports = { start };
+
+function setSpending(allocation, metric) {
+    allocation.mtd_spent = metric.mtd_spent;
+    allocation.budget_remaining = metric.budget_remaining;
+    allocation.budget_spent = metric.budget_spent;
+    allocation.month_elapsed = metric.month_elapsed;
+    allocation.adb = metric.adb;
+    allocation.adb_current = metric.adb_current;
+    allocation.avg_daily_spent = metric.avg_daily_spent;
+}
