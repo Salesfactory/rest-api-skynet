@@ -32,7 +32,7 @@ const start = () => {
         });
 
         // update all budget metrics every day at 2 hours 0 minutes
-        cron.schedule('* * * * *', async () => {
+        cron.schedule('0 2 * * *', async () => {
             try {
                 await updateBudgetMetrics();
             } catch (error) {
