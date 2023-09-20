@@ -4,6 +4,8 @@ const { channelController } = require('./controllers');
 const { getBigquerySpending, getMetrics } = require('./utils/bq_spend');
 const cloneDeep = require('lodash/cloneDeep');
 
+const util = require('util');
+
 const formattedTime = time => {
     return (
         time.getHours().toString().padStart(2, '0') +
@@ -33,17 +35,16 @@ const start = () => {
         });
 
         // update all budget metrics every day at 2 hours 0 minutes
-        cron.schedule('0 2 * * *', async () => {
+        cron.schedule('* * * * *', async () => {
             try {
                 await updateBudgetMetrics();
             } catch (error) {
+                console.log(error);
                 logMessage('Error while updating budget metrics: ' + error);
             }
         });
     }
 };
-
-module.exports = { start };
 
 async function checkAndInsertNewChannels() {
     logMessage('Starting daily check for new channels');
@@ -66,7 +67,7 @@ async function checkAndInsertNewChannels() {
     logMessage('Finished daily check for new channels');
 }
 
-function setSpending(allocation, metric) {
+const setSpending = (allocation, metric) => {
     allocation.mtd_spent = metric.mtd_spent;
     allocation.budget_remaining = metric.budget_remaining;
     allocation.budget_spent = metric.budget_spent;
@@ -74,14 +75,26 @@ function setSpending(allocation, metric) {
     allocation.adb = metric.adb;
     allocation.adb_current = metric.adb_current;
     allocation.avg_daily_spent = metric.avg_daily_spent;
-}
+};
+
 async function updateBudgetMetrics() {
     logMessage('Starting daily budget metrics update');
 
     const campaigns = await fetchCampaignsWithBudgets();
+    const currentDate = new Date();
 
     for (const campaign of campaigns) {
-        await computeAndStoreMetrics(campaign);
+        logMessage('Calculating metrics for campaign: ' + campaign.id);
+        const { periods, allocations } = await computeAndStoreMetrics({
+            campaign,
+            currentDate,
+        });
+        logMessage("Updating campaign's metrics in the database");
+        await updateOrInsertPacingMetrics({
+            campaign,
+            periods,
+            allocations,
+        });
     }
 
     logMessage('Finished daily budget metrics update');
@@ -101,37 +114,44 @@ async function fetchCampaignsWithBudgets() {
                 },
             ],
         },
-        { raw: true }
+        { raw: true, plain: true }
     );
 }
 
-async function computeAndStoreMetrics(campaign) {
+/**
+ * Compute and store metrics for a campaign
+ * @param { campaign, currentDate }
+ * @returns { periods, allocations }
+ */
+async function computeAndStoreMetrics({ campaign, currentDate }) {
     const budget = campaign.budgets[0];
     const { periods, allocations } = budget || { periods: [], allocations: {} };
 
     let allocationsCopy = cloneDeep(allocations);
     let previousPeriodId = null;
 
-    logMessage('Calculating metrics for campaign: ' + campaign.id);
-
     for (const [index, period] of periods.entries()) {
         // using the copy of allocations object
         const periodAllocations = allocationsCopy[period.id];
         const { budget: periodBudget } = periodAllocations;
-
         const isFirstPeriod = index === 0;
+        let periodSpendings = 0;
 
         // channels
         for (const channel of periodAllocations.allocations) {
             const { budget: channelBudget } = channel;
+            let channelSpendings = 0;
 
             if (Array.isArray(channel.allocations)) {
                 // campaign types
                 for (const campaignType of channel.allocations) {
                     const { budget: typeBudget } = campaignType;
+                    let typeSpendings = 0;
 
                     if (Array.isArray(campaignType.allocations)) {
                         // fiter campaigns only with bigquery id
+                        // and replace allocations with filtered array
+                        // so we don't iterate over the allocations that don't have bigquery id
                         campaignType.allocations =
                             campaignType.allocations.filter(
                                 campaign => campaign.bigquery_campaign_id
@@ -143,10 +163,13 @@ async function computeAndStoreMetrics(campaign) {
                                 budget: campaignBudget,
                                 bigquery_campaign_id,
                             } = campaign;
+                            let campaignSpendings = 0;
 
                             if (Array.isArray(campaign.allocations)) {
                                 if (bigquery_campaign_id) {
                                     // fiter adsets only with bigquery id
+                                    // and replace allocations with filtered array
+                                    // so we don't iterate over the allocations that don't have bigquery id
                                     campaign.allocations =
                                         campaign.allocations.filter(
                                             adset => adset.bigquery_adset_id
@@ -154,10 +177,7 @@ async function computeAndStoreMetrics(campaign) {
 
                                     // adsets
                                     for (const adset of campaign.allocations) {
-                                        const {
-                                            // budget: adsetBudget,
-                                            bigquery_adset_id,
-                                        } = adset;
+                                        const { bigquery_adset_id } = adset;
 
                                         if (bigquery_adset_id) {
                                             // get spending by period
@@ -174,73 +194,51 @@ async function computeAndStoreMetrics(campaign) {
                                                 period: period.label,
                                                 periodBudget: campaignBudget,
                                                 spending,
+                                                currentDate,
                                             });
+
+                                            campaignSpendings +=
+                                                adsetMetrics.mtd_spent;
 
                                             setSpending(adset, adsetMetrics);
                                         }
                                     }
                                 }
 
-                                const campaignSpendings =
-                                    campaign.allocations.reduce(
-                                        (acc, adset) => {
-                                            if (adset.mtd_spent) {
-                                                acc += adset.mtd_spent;
-                                            }
-                                            return acc;
-                                        },
-                                        0
-                                    );
-
                                 const campaignMetrics = getMetrics({
                                     period: period.label,
                                     periodBudget: typeBudget,
-                                    spending: [
-                                        {
-                                            spend: campaignSpendings,
-                                        },
-                                    ],
+                                    spending: [{ spend: campaignSpendings }],
+                                    currentDate,
                                 });
+
+                                typeSpendings += campaignMetrics.mtd_spent;
 
                                 setSpending(campaign, campaignMetrics);
                             }
                         }
 
-                        const typeSpendings = campaignType.allocations.reduce(
-                            (acc, campaign) => {
-                                if (campaign.mtd_spent) {
-                                    acc += campaign.mtd_spent;
-                                }
-                                return acc;
-                            },
-                            0
-                        );
-
                         const typeMetrics = getMetrics({
                             period: period.label,
                             periodBudget: channelBudget,
                             spending: [{ spend: typeSpendings }],
+                            currentDate,
                         });
+
+                        channelSpendings += typeMetrics.mtd_spent;
 
                         setSpending(campaignType, typeMetrics);
                     }
                 }
 
-                const channelSpendings = channel.allocations.reduce(
-                    (acc, campaignType) => {
-                        if (campaignType.mtd_spent) {
-                            acc += campaignType.mtd_spent;
-                        }
-                        return acc;
-                    },
-                    0
-                );
-
                 const channelMetrics = getMetrics({
                     period: period.label,
                     periodBudget,
                     spending: [{ spend: channelSpendings }],
+                    currentDate,
                 });
+
+                periodSpendings += channelMetrics.mtd_spent;
 
                 // carry over is 0 for the first period
                 if (isFirstPeriod) {
@@ -258,26 +256,22 @@ async function computeAndStoreMetrics(campaign) {
             }
         }
 
-        const periodSpendings = periodAllocations.allocations.reduce(
-            (acc, channel) => {
-                if (channel.mtd_spent) {
-                    acc += channel.mtd_spent;
-                }
-                return acc;
-            },
-            0
-        );
-
         allocationsCopy[period.id].mtd_spent = periodSpendings;
         // set previous period id to current period id
         previousPeriodId = period.id;
     }
 
-    logMessage("Updating campaign's metrics in the database");
-    await updateOrInsertPacingMetrics(campaign, periods, allocationsCopy);
+    return {
+        periods,
+        allocations: allocationsCopy,
+    };
 }
 
-async function updateOrInsertPacingMetrics(campaign, periods, allocationsCopy) {
+async function updateOrInsertPacingMetrics({
+    campaign,
+    periods,
+    allocationsCopy,
+}) {
     const campaignPacing = await Pacing.findOne({
         where: { campaign_group_id: campaign.id },
     });
@@ -300,3 +294,5 @@ async function updateOrInsertPacingMetrics(campaign, periods, allocationsCopy) {
         });
     }
 }
+
+module.exports = { start, computeAndStoreMetrics };

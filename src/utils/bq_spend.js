@@ -43,21 +43,7 @@ const fetchAllBigQuerySpendingsForCampaign = ({ campaignId }) => {
     return bigqueryClient.query(options);
 };
 
-const monthNames = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-];
-function parseMonthYearToIndexAndYear(monthYear) {
+const parseMonthYearToIndexAndYear = monthYear => {
     const [monthStr, yearStr] = monthYear.split(' ');
     const monthNames = [
         'January',
@@ -85,7 +71,7 @@ function parseMonthYearToIndexAndYear(monthYear) {
     }
 
     return { monthIndex, year };
-}
+};
 
 const calculatePercentageMonthElapsed = ({ currentDate, monthIndex, year }) => {
     if (
@@ -155,14 +141,13 @@ const calculateDaysElapsedInMonth = ({ currentDate, monthIndex, year }) => {
     return 0;
 };
 
-const getMetrics = ({ period, periodBudget, spending }) => {
+const getMetrics = ({ period, periodBudget, spending, currentDate }) => {
     // to avoid division by zero
     if (periodBudget === 0) periodBudget = NaN;
     const { monthIndex, year } = parseMonthYearToIndexAndYear(period);
     // if (isNaN(monthIndex) || isNaN(year)) {
     //     return -1;
     // }
-    const currentDate = new Date();
     const MTDSpend = spending.length > 0 ? spending[0].spend : 0;
     const remainingBudget = periodBudget - MTDSpend;
     const percentageBudgetSpent = (remainingBudget / periodBudget) * 100;
@@ -175,11 +160,11 @@ const getMetrics = ({ period, periodBudget, spending }) => {
         monthIndex,
         year,
     });
-    const remainingDays = calculateRemainingDaysInMonth(
+    const remainingDays = calculateRemainingDaysInMonth({
         currentDate,
         monthIndex,
-        year
-    );
+        year,
+    });
     const adb = periodBudget / monthDays;
     const currentAdb =
         remainingDays > 0 ? remainingBudget / remainingDays : 'N/A';
