@@ -1,4 +1,5 @@
 const { bigqueryClient } = require('../config/bigquery');
+const cloneDeep = require('lodash/cloneDeep');
 
 const getBigquerySpending = ({ campaignId, adsetId, period }) => {
     let params = [campaignId, adsetId];
@@ -24,12 +25,17 @@ const getBigquerySpending = ({ campaignId, adsetId, period }) => {
     return bigqueryClient.query(options);
 };
 
-const fetchAllBigQuerySpendingsForCampaign = ({ campaignId }) => {
+const fetchAllBigQuerySpendingsForCampaign = ({ campaignId, period }) => {
     let params = [campaignId];
     let sqlQuery = `SELECT FORMAT_DATE('%B %Y', cs.date) as _date, cs.adset_id, SUM(cs.spend) as spend 
         FROM \`agency_6133.cs_paid_ads__basic_performance\` as cs
         WHERE cs.campaign_id = ? 
         `;
+
+    if (period) {
+        sqlQuery += `AND FORMAT_DATE('%B %Y', cs.date) = ? `;
+        params.push(period);
+    }
 
     sqlQuery += `GROUP BY cs.campaign_id, cs.adset_id, _date 
         ORDER BY PARSE_DATE('%B %Y', _date) ASC
@@ -186,6 +192,165 @@ const getMetrics = ({ period, periodBudget, spending, currentDate }) => {
     };
 };
 
+const setSpending = (allocation, metric) => {
+    allocation.mtd_spent = metric.mtd_spent;
+    allocation.budget_remaining = metric.budget_remaining;
+    allocation.budget_spent = metric.budget_spent;
+    allocation.month_elapsed = metric.month_elapsed;
+    allocation.adb = metric.adb;
+    allocation.adb_current = metric.adb_current;
+    allocation.avg_daily_spent = metric.avg_daily_spent;
+};
+
+/**
+ * Compute and store metrics for a campaign
+ * @param { campaign, currentDate }
+ * @returns { periods, allocations }
+ */
+async function computeAndStoreMetrics({ campaign, currentDate }) {
+    const budget = campaign.budgets[0];
+    const { periods, allocations } = budget || { periods: [], allocations: {} };
+
+    let allocationsCopy = cloneDeep(allocations);
+    let previousPeriodId = null;
+
+    for (const [index, period] of periods.entries()) {
+        // using the copy of allocations object
+        const periodAllocations = allocationsCopy[period.id];
+        const { budget: periodBudget } = periodAllocations;
+        const isFirstPeriod = index === 0;
+        let periodSpendings = 0;
+
+        // channels
+        for (const channel of periodAllocations.allocations) {
+            const { budget: channelBudget } = channel;
+            let channelSpendings = 0;
+
+            if (Array.isArray(channel.allocations)) {
+                // campaign types
+                for (const campaignType of channel.allocations) {
+                    const { budget: typeBudget } = campaignType;
+                    let typeSpendings = 0;
+
+                    if (Array.isArray(campaignType.allocations)) {
+                        // fiter campaigns only with bigquery id
+                        // and replace allocations with filtered array
+                        // so we don't iterate over the allocations that don't have bigquery id
+                        campaignType.allocations =
+                            campaignType.allocations.filter(
+                                campaign => campaign.bigquery_campaign_id
+                            );
+
+                        // campaigns
+                        for (const campaign of campaignType.allocations) {
+                            const {
+                                budget: campaignBudget,
+                                bigquery_campaign_id,
+                            } = campaign;
+                            let campaignSpendings = 0;
+
+                            if (Array.isArray(campaign.allocations)) {
+                                if (bigquery_campaign_id) {
+                                    // fiter adsets only with bigquery id
+                                    // and replace allocations with filtered array
+                                    // so we don't iterate over the allocations that don't have bigquery id
+                                    campaign.allocations =
+                                        campaign.allocations.filter(
+                                            adset => adset.bigquery_adset_id
+                                        );
+
+                                    // adsets
+                                    for (const adset of campaign.allocations) {
+                                        const { bigquery_adset_id } = adset;
+
+                                        if (bigquery_adset_id) {
+                                            // get spending by period
+                                            const spending =
+                                                await getBigquerySpending({
+                                                    campaignId:
+                                                        bigquery_campaign_id,
+                                                    adsetId: bigquery_adset_id,
+                                                    period: period.label,
+                                                });
+                                            console.log('SPENDING', spending);
+
+                                            const adsetMetrics = getMetrics({
+                                                period: period.label,
+                                                periodBudget: campaignBudget,
+                                                spending: spending[0],
+                                                currentDate,
+                                            });
+
+                                            campaignSpendings +=
+                                                adsetMetrics.mtd_spent;
+
+                                            setSpending(adset, adsetMetrics);
+                                        }
+                                    }
+                                }
+
+                                const campaignMetrics = getMetrics({
+                                    period: period.label,
+                                    periodBudget: typeBudget,
+                                    spending: [{ spend: campaignSpendings }],
+                                    currentDate,
+                                });
+
+                                typeSpendings += campaignMetrics.mtd_spent;
+
+                                setSpending(campaign, campaignMetrics);
+                            }
+                        }
+
+                        const typeMetrics = getMetrics({
+                            period: period.label,
+                            periodBudget: channelBudget,
+                            spending: [{ spend: typeSpendings }],
+                            currentDate,
+                        });
+
+                        channelSpendings += typeMetrics.mtd_spent;
+
+                        setSpending(campaignType, typeMetrics);
+                    }
+                }
+
+                const channelMetrics = getMetrics({
+                    period: period.label,
+                    periodBudget,
+                    spending: [{ spend: channelSpendings }],
+                    currentDate,
+                });
+
+                periodSpendings += channelMetrics.mtd_spent;
+
+                // carry over is 0 for the first period
+                if (isFirstPeriod) {
+                    channel.carry_over = 0;
+                } else {
+                    // carry over is the difference between previous period budget and previous period spent
+                    const previousPeriodBudget =
+                        allocationsCopy[previousPeriodId].budget;
+                    const previousPeriodSpent =
+                        allocationsCopy[previousPeriodId].mtd_spent;
+                    channel.carry_over =
+                        previousPeriodBudget - previousPeriodSpent;
+                }
+                setSpending(channel, channelMetrics);
+            }
+        }
+
+        allocationsCopy[period.id].mtd_spent = periodSpendings;
+        // set previous period id to current period id
+        previousPeriodId = period.id;
+    }
+
+    return {
+        periods,
+        allocations: allocationsCopy,
+    };
+}
+
 module.exports = {
     fetchAllBigQuerySpendingsForCampaign,
     getBigquerySpending,
@@ -195,4 +360,5 @@ module.exports = {
     calculateDaysInMonth,
     calculateDaysElapsedInMonth,
     calculateRemainingDaysInMonth,
+    computeAndStoreMetrics,
 };
