@@ -123,9 +123,7 @@ describe('calculateDaysInMonth', () => {
 describe('calculateDaysElapsedInMonth', () => {
     it('should return days elapsed in the current month', () => {
         const result = calculateDaysElapsedInMonth({
-            currentDate: new Date(
-                'Sat Jan 15 2023 20:00:00 GMT-0400 (Venezuela Time)'
-            ),
+            currentDate: new Date('Sat Jan 15 2023 20:00:00'),
             monthIndex: 0,
             year: 2023,
         });
@@ -134,9 +132,7 @@ describe('calculateDaysElapsedInMonth', () => {
 
     it('should return total days of the month if current date is in a subsequent month of the same year', () => {
         const result = calculateDaysElapsedInMonth({
-            currentDate: new Date(
-                'Wed Feb 01 2023 20:00:00 GMT-0400 (Venezuela Time)'
-            ),
+            currentDate: new Date('Wed Feb 01 2023 20:00:00'),
             monthIndex: 0,
             year: 2023,
         });
@@ -175,9 +171,7 @@ describe('calculateDaysElapsedInMonth', () => {
 describe('calculateRemainingDaysInMonth', () => {
     it('should return remaining days in the current month', () => {
         const result = calculateRemainingDaysInMonth({
-            currentDate: new Date(
-                'Sun Jan 15 2023 20:00:00 GMT-0400 (Venezuela Time)'
-            ),
+            currentDate: new Date('Sun Jan 15 2023 20:00:00'),
             monthIndex: 0,
             year: 2023,
         });
