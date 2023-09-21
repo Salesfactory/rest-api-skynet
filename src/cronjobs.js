@@ -27,6 +27,7 @@ const start = () => {
             try {
                 await checkAndInsertNewChannels();
             } catch (error) {
+                console.log(error);
                 logMessage('Error while checking for new channels: ' + error);
             }
         });
@@ -36,6 +37,7 @@ const start = () => {
             try {
                 await updateBudgetMetrics();
             } catch (error) {
+                console.log(error);
                 logMessage('Error while updating budget metrics: ' + error);
             }
         });
