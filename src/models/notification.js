@@ -2,7 +2,12 @@
 const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class Notification extends Model {
-        static associate(models) {}
+        static associate(models) {
+            Notification.belongsTo(models.User, {
+                foreignKey: 'user_id',
+                as: 'user',
+            });
+        }
     }
     Notification.init(
         {
@@ -10,6 +15,10 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
                 autoIncrement: true,
+            },
+            user_id: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
             },
             title: {
                 type: DataTypes.STRING,
@@ -27,10 +36,6 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.JSON,
                 allowNull: false,
             },
-            timestamp: {
-                type: DataTypes.DATE,
-                allowNull: false,
-            },
             type: {
                 type: DataTypes.STRING,
                 allowNull: false,
@@ -38,6 +43,7 @@ module.exports = (sequelize, DataTypes) => {
             status: {
                 type: DataTypes.STRING,
                 allowNull: false,
+                defaultValue: 'unread',
             },
             createdAt: {
                 allowNull: false,

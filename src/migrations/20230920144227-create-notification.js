@@ -9,6 +9,16 @@ module.exports = {
                 primaryKey: true,
                 type: Sequelize.INTEGER,
             },
+            user_id: {
+                type: Sequelize.INTEGER,
+                allowNull: false,
+                references: {
+                    model: 'users',
+                    key: 'id',
+                },
+                onUpdate: 'CASCADE',
+                onDelete: 'CASCADE',
+            },
             title: {
                 type: Sequelize.STRING,
                 allowNull: false,
@@ -23,10 +33,6 @@ module.exports = {
             },
             client_info: {
                 type: Sequelize.JSON,
-                allowNull: false,
-            },
-            timestamp: {
-                type: Sequelize.DATE,
                 allowNull: false,
             },
             type: {

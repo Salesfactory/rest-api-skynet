@@ -1,7 +1,58 @@
-const { Notification } = require('../models');
+const { Notification, User } = require('../models');
+const { getUser } = require('../utils');
+
 const getNotifications = async (req, res) => {
+    const user = await getUser(res);
+
     try {
-        const notifications = await Notification.findAll();
+        const notifications = await Notification.findAll({
+            where: { user_id: user.id, status: 'unread' },
+            attributes: [
+                'id',
+                'title',
+                'message',
+                'campaign_group_info',
+                'client_info',
+                'type',
+                'status',
+                ['updatedAt', 'timestamp'],
+            ],
+        });
+
+        return res.status(200).json({
+            data: notifications.sort((a, b) => {
+                return b.createdAt - a.createdAt;
+            }),
+            message: `Notifications retrieved successfully`,
+        });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+const getNotificationsByStatus = async (req, res) => {
+    const user = await getUser(res);
+
+    if (!['unread', 'read'].includes(req.params.status)) {
+        return res.status(400).json({
+            message: `Invalid notification status: ${req.params.status}`,
+        });
+    }
+
+    try {
+        const notifications = await Notification.findAll({
+            where: { user_id: user.id, status: req.params.status },
+            attributes: [
+                'id',
+                'title',
+                'message',
+                'campaign_group_info',
+                'client_info',
+                'type',
+                'status',
+                ['updatedAt', 'timestamp'],
+            ],
+        });
 
         return res.status(200).json({
             data: notifications.sort((a, b) => {
@@ -15,25 +66,34 @@ const getNotifications = async (req, res) => {
 };
 
 const createNotification = async (req, res) => {
-    const {
-        title,
-        message,
-        campaign_group_info,
-        client_info,
-        timestamp,
-        type,
-        status,
-    } = req.body;
+    const { title, message, campaign_group_info, client_info, status } =
+        req.body;
     try {
+        const requiredFields = [
+            'title',
+            'message',
+            'campaign_group_info',
+            'client_info',
+            'status',
+        ];
+        const missingFields = requiredFields.filter(field => !req.body[field]);
+
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                message: `Missing required fields: ${missingFields.join(', ')}`,
+            });
+        }
+        const user = await getUser(res);
+
         const notification = await Notification.create({
+            user_id: user.id,
             title,
             message,
             campaign_group_info,
             client_info,
-            timestamp,
-            type,
             status,
         });
+
         return res.status(201).json({
             data: notification,
             message: `Notification created successfully`,
@@ -45,15 +105,8 @@ const createNotification = async (req, res) => {
 
 const updateNotification = async (req, res) => {
     const id = req.params.id;
-    const {
-        title,
-        message,
-        campaign_group_info,
-        client_info,
-        timestamp,
-        type,
-        status,
-    } = req.body;
+    const { title, message, campaign_group_info, client_info, type, status } =
+        req.body;
     try {
         const notification = await Notification.findOne({
             where: { id: parseInt(id) },
@@ -68,7 +121,6 @@ const updateNotification = async (req, res) => {
                 message,
                 campaign_group_info,
                 client_info,
-                timestamp,
                 type,
                 status,
             },
@@ -85,8 +137,36 @@ const updateNotification = async (req, res) => {
     }
 };
 
+const markAsRead = async (req, res) => {
+    const id = req.params.id;
+
+    try {
+        const notification = await Notification.findOne({
+            where: { id: parseInt(id), status: 'unread' },
+        });
+        if (!notification)
+            return res.status(404).json({
+                message: `Notification not found or already marked as read`,
+            });
+        await Notification.update(
+            { status: 'read' },
+            { where: { id: parseInt(id) } }
+        );
+        return res.status(200).json({
+            data: await Notification.findOne({
+                where: { id: parseInt(id) },
+            }),
+            message: `Notification with id ${id} was marked as read`,
+        });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getNotifications,
     createNotification,
     updateNotification,
+    getNotificationsByStatus,
+    markAsRead,
 };
