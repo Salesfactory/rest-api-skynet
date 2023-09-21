@@ -36,7 +36,6 @@ const start = () => {
             try {
                 await updateBudgetMetrics();
             } catch (error) {
-                console.log(error);
                 logMessage('Error while updating budget metrics: ' + error);
             }
         });
