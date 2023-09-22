@@ -27,6 +27,7 @@ const start = () => {
             try {
                 await checkAndInsertNewChannels();
             } catch (error) {
+                console.log(error);
                 logMessage('Error while checking for new channels: ' + error);
             }
         });
@@ -105,11 +106,7 @@ async function fetchCampaignsWithBudgets() {
     );
 }
 
-async function updateOrInsertPacingMetrics({
-    campaign,
-    periods,
-    allocationsCopy,
-}) {
+async function updateOrInsertPacingMetrics({ campaign, periods, allocations }) {
     const campaignPacing = await Pacing.findOne({
         where: { campaign_group_id: campaign.id },
     });
@@ -118,7 +115,7 @@ async function updateOrInsertPacingMetrics({
         await Pacing.update(
             {
                 periods: periods,
-                allocations: allocationsCopy,
+                allocations,
             },
             {
                 where: { campaign_group_id: campaign.id },
@@ -128,7 +125,7 @@ async function updateOrInsertPacingMetrics({
         await Pacing.create({
             campaign_group_id: campaign.id,
             periods: periods,
-            allocations: allocationsCopy,
+            allocations,
         });
     }
 }
