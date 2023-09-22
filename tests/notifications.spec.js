@@ -10,9 +10,13 @@ jest.mock('../src/models', () => ({
         findOne: jest.fn(),
         findAll: jest.fn(),
     },
+    User: {
+        findOne: jest.fn(),
+    },
 }));
 
 jest.mock('../src/utils', () => ({
+    ...jest.requireActual('../src/utils'),
     getUser: jest.fn(),
 }));
 
