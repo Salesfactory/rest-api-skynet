@@ -5,6 +5,7 @@ const userRouter = require('./users');
 const channelRouter = require('./channels');
 const clientRouter = require('./clients');
 const campaigntRouter = require('./campaigns');
+const emailRouter = require('./emails');
 
 let cognitoExpress;
 if (process.env.NODE_ENV !== 'test') {
@@ -41,5 +42,8 @@ router.use('/users', validateToken, userRouter);
 router.use('/channels', validateToken, channelRouter);
 router.use('/clients', validateToken, clientRouter);
 router.use('/campaigns', validateToken, campaigntRouter);
+
+// this is a temp route to test email sending (must be deleted later)
+router.use('/emails', emailRouter);
 
 module.exports = router;
