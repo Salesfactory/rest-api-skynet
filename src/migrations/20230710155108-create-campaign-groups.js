@@ -22,6 +22,11 @@ module.exports = {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
+            linked: {
+                type: Sequelize.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
+            },
             goals: {
                 type: Sequelize.TEXT,
                 allowNull: true,

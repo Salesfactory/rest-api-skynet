@@ -234,6 +234,7 @@ const createMarketingCampaign = async (req, res) => {
         channels,
         allocations,
         comments,
+        status,
     } = req.body;
     try {
         const client = await Client.findOne({
@@ -324,6 +325,7 @@ const createMarketingCampaign = async (req, res) => {
                 net_budget,
                 channels,
                 comments,
+                status,
             })
         ).get({ plain: true });
 
