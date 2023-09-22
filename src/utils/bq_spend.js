@@ -25,19 +25,25 @@ const getBigquerySpending = ({ campaignId, adsetId, period }) => {
     return bigqueryClient.query(options);
 };
 
-const fetchAllBigQuerySpendingsForCampaign = ({ campaignId, period }) => {
-    let params = [campaignId];
-    let sqlQuery = `SELECT FORMAT_DATE('%B %Y', cs.date) as _date, cs.adset_id, SUM(cs.spend) as spend 
+const fetchAllBigQuerySpendingsForCampaign = async ({
+    bigqueryIds,
+    periods,
+}) => {
+    const periodLabels = periods.map(period => period.label);
+    const campaignIds = [
+        ...new Set(bigqueryIds.map(item => item.bigquery_campaign_id)),
+    ];
+    const adsetIds = [
+        ...new Set(bigqueryIds.map(item => item.bigquery_adset_ids).flat()),
+    ];
+
+    let params = [campaignIds, adsetIds, periodLabels];
+
+    let sqlQuery = `SELECT FORMAT_DATE('%B %Y', cs.date) as _date, cs.campaign_id, cs.adset_id, SUM(cs.spend) as spend 
         FROM \`agency_6133.cs_paid_ads__basic_performance\` as cs
-        WHERE cs.campaign_id = ? 
-        `;
-
-    if (period) {
-        sqlQuery += `AND FORMAT_DATE('%B %Y', cs.date) = ? `;
-        params.push(period);
-    }
-
-    sqlQuery += `GROUP BY cs.campaign_id, cs.adset_id, _date 
+        WHERE cs.campaign_id IN UNNEST(?) AND cs.adset_id IN UNNEST(?)
+        AND FORMAT_DATE('%B %Y', cs.date) IN UNNEST(?)
+        GROUP BY cs.campaign_id, cs.adset_id, _date 
         ORDER BY PARSE_DATE('%B %Y', _date) ASC
         `;
 
@@ -202,6 +208,41 @@ const setSpending = (allocation, metric) => {
     allocation.avg_daily_spent = metric.avg_daily_spent;
 };
 
+const getBigqueryIds = ({ periods, allocations }) => {
+    const bigquery_ids = [];
+
+    for (const [index, period] of periods.entries()) {
+        const periodAllocations = allocations[period.id];
+        for (const channel of periodAllocations.allocations) {
+            if (Array.isArray(channel.allocations)) {
+                for (const campaignType of channel.allocations) {
+                    if (Array.isArray(campaignType.allocations)) {
+                        for (const campaign of campaignType.allocations) {
+                            const { bigquery_campaign_id } = campaign;
+                            if (Array.isArray(campaign.allocations)) {
+                                if (bigquery_campaign_id) {
+                                    bigquery_ids.push({
+                                        period: period.id,
+                                        bigquery_campaign_id,
+                                        bigquery_adset_ids: campaign.allocations
+                                            .filter(
+                                                adset => adset.bigquery_adset_id
+                                            )
+                                            .map(
+                                                adset => adset.bigquery_adset_id
+                                            ),
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return bigquery_ids;
+};
+
 /**
  * Compute and store metrics for a campaign
  * @param { campaign, currentDate }
@@ -213,6 +254,23 @@ async function computeAndStoreMetrics({ campaign, currentDate }) {
 
     let allocationsCopy = cloneDeep(allocations);
     let previousPeriodId = null;
+
+    // get bigquery ids for the first period
+    const bigqueryIds = getBigqueryIds({
+        periods,
+        allocations,
+    });
+
+    // get spendings for all bigquery ids
+    let spendings = [];
+    if (bigqueryIds.length > 0) {
+        spendings = (
+            await fetchAllBigQuerySpendingsForCampaign({
+                bigqueryIds,
+                periods,
+            })
+        )[0];
+    }
 
     for (const [index, period] of periods.entries()) {
         // using the copy of allocations object
@@ -266,18 +324,20 @@ async function computeAndStoreMetrics({ campaign, currentDate }) {
                                         if (bigquery_adset_id) {
                                             // get spending by period
                                             const spending =
-                                                await getBigquerySpending({
-                                                    campaignId:
-                                                        bigquery_campaign_id,
-                                                    adsetId: bigquery_adset_id,
-                                                    period: period.label,
-                                                });
-                                            console.log('SPENDING', spending);
+                                                spendings.filter(
+                                                    item =>
+                                                        item.campaign_id ===
+                                                            bigquery_campaign_id &&
+                                                        item.adset_id ===
+                                                            bigquery_adset_id &&
+                                                        item._date ===
+                                                            period.label
+                                                ) || [];
 
                                             const adsetMetrics = getMetrics({
                                                 period: period.label,
                                                 periodBudget: campaignBudget,
-                                                spending: spending[0],
+                                                spending,
                                                 currentDate,
                                             });
 
