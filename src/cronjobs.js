@@ -42,7 +42,7 @@ const start = () => {
         });
 
         // check for unlinked campaigns every day at 9 hours 0 minutes
-        cron.schedule('* * * * *', async () => {
+        cron.schedule('* 9 * * *', async () => {
             try {
                 await checkForUnlinkedCampaigns();
             } catch (error) {
@@ -94,7 +94,7 @@ function checkBigQueryIdExists(obj) {
                         for (const campaign of campaignType.allocations) {
                             if (
                                 campaign.type === 'CAMPAIGN' &&
-                                !campaign.big_query_id
+                                !campaign.bigquery_campaign_id
                             ) {
                                 return false;
                             }
