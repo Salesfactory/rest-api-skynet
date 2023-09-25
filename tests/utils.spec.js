@@ -1,5 +1,11 @@
 const utils = require('../src/utils');
 
+jest.mock('../src/models', () => ({
+    User: {
+        findOne: jest.fn(),
+    },
+}));
+
 describe('utils', () => {
     it('Validate (valid) budget allocation', () => {
         const campaignGroup = {

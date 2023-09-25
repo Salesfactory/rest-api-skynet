@@ -7,11 +7,12 @@ const {
     CampaignGroup,
     Client,
     Pacing,
+    User,
 } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
-const ExcelJS = require('exceljs');
 const { validateObjectAllocations } = require('../utils');
+const { getUser } = require('../utils');
 
 //creacion de reporte excel
 const createReport = async (req, res) => {
@@ -236,6 +237,8 @@ const createMarketingCampaign = async (req, res) => {
         comments,
         status,
     } = req.body;
+    const user = await getUser(res);
+
     try {
         const client = await Client.findOne({
             where: { id: clientId },
@@ -314,6 +317,7 @@ const createMarketingCampaign = async (req, res) => {
 
         const campaignGroup = (
             await CampaignGroup.create({
+                user_id: user?.id,
                 client_id: client.id,
                 name,
                 company_name: client.name,

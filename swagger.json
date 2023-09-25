@@ -397,60 +397,47 @@
                         "in": "path",
                         "description": "Unique ID of the client to retrieve.",
                         "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
+                        "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Client retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Client retrieved successfully"
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/Client"
-                                        }
-                                    }
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "example": "Client retrieved successfully"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/Client"
                                 }
                             }
                         }
                     },
                     "404": {
                         "description": "Client not found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Client not found"
-                                        }
-                                    }
+
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "example": "Client not found"
                                 }
                             }
                         }
                     },
                     "500": {
                         "description": "Internal server error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "An unexpected error occurred"
-                                        }
-                                    }
+
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "example": "An unexpected error occurred"
                                 }
                             }
                         }
@@ -990,6 +977,161 @@
                     }
                 }
             }
+        },
+        "/notifications/": {
+            "get": {
+                "summary": "Get all notifications",
+                "tags": ["notifications"],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/Notification"
+                                    }
+                                },
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a new notification",
+                "tags": ["notifications"],
+                "parameters": [
+                    {
+                        "name": "notification",
+                        "in": "body",
+                        "description": "Notification object",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Notification"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Notification created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/Notification"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/notifications/status/{status}": {
+            "get": {
+                "summary": "Get notifications by status",
+                "tags": ["notifications"],
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "path",
+                        "description": "Notification status (unread or read)",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/Notification"
+                                    }
+                                },
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/notifications/{id}": {
+            "patch": {
+                "summary": "Update a notification by ID",
+                "tags": ["notifications"],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Notification ID",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notification updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/Notification"
+                        }
+                    },
+                    "404": {
+                        "description": "Notification not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/notifications/{id}/read": {
+            "patch": {
+                "summary": "Mark a notification as read by ID",
+                "tags": ["notifications"],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Notification ID",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notification marked as read successfully",
+                        "schema": {
+                            "$ref": "#/definitions/Notification"
+                        }
+                    },
+                    "404": {
+                        "description": "Notification not found or already marked as read"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1262,6 +1404,36 @@
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "Notification": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "campaign_group_info": {
+                    "type": "string"
+                },
+                "client_info": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "format": "date-time"
                 }
             }
         }
