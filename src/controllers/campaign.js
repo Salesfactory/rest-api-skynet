@@ -235,6 +235,7 @@ const createMarketingCampaign = async (req, res) => {
         channels,
         allocations,
         comments,
+        status,
     } = req.body;
     const user = await getUser(res);
 
@@ -328,6 +329,7 @@ const createMarketingCampaign = async (req, res) => {
                 net_budget,
                 channels,
                 comments,
+                status,
             })
         ).get({ plain: true });
 
