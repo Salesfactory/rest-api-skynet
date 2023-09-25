@@ -41,8 +41,72 @@ const start = () => {
                 logMessage('Error while updating budget metrics: ' + error);
             }
         });
+
+        // check for unlinked campaigns every day at 9 hours 0 minutes
+        cron.schedule('0 9 * * *', async () => {
+            try {
+                await checkForUnlinkedCampaigns();
+            } catch (error) {
+                logMessage(
+                    'Error while checking for unlinked campaigns: ' + error
+                );
+            }
+        });
     }
 };
+
+async function checkForUnlinkedCampaigns() {
+    logMessage('Starting daily check for unlinked campaigns');
+    const campaigngroups = await CampaignGroup.findAll({
+        include: [
+            {
+                model: Client,
+                as: 'client',
+                attributes: ['id', 'name'],
+            },
+            {
+                model: Budget,
+                as: 'budgets',
+                limit: 1,
+                order: [['updatedAt', 'DESC']],
+                attributes: ['id', 'periods', 'allocations'],
+            },
+        ],
+    });
+    for (campaign of campaigngroups) {
+        campaign = campaign.toJSON();
+        campaign.linked = checkBigQueryIdExists(
+            campaign.budgets[0].allocations
+        );
+        CampaignGroup.update(
+            { linked: campaign.linked },
+            { where: { id: campaign.id } }
+        );
+    }
+}
+
+function checkBigQueryIdExists(obj) {
+    for (const key in obj) {
+        const monthData = obj[key];
+        for (const allocation of monthData.allocations) {
+            if (allocation.type === 'CHANNEL') {
+                for (const campaignType of allocation.allocations) {
+                    if (campaignType.type === 'CAMPAIGN_TYPE') {
+                        for (const campaign of campaignType.allocations) {
+                            if (
+                                campaign.type === 'CAMPAIGN' &&
+                                !campaign.bigquery_campaign_id
+                            ) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return true;
+}
 
 async function checkAndInsertNewChannels() {
     logMessage('Starting daily check for new channels');

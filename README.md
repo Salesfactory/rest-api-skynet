@@ -8,62 +8,62 @@ To install and run the Rest API Skynet project, please follow these steps:
 
 1. Clone the repository to your local machine using the following command:
 
-   ```
-   git clone https://github.com/Salesfactory/rest-api-skynet.git
-   ```
+    ```
+    git clone https://github.com/Salesfactory/rest-api-skynet.git
+    ```
 
 2. Navigate to the project directory:
 
-   ```
-   cd rest-api-skynet
-   ```
+    ```
+    cd rest-api-skynet
+    ```
 
 3. Install the project dependencies by running the following command:
-   ```
-   npm install
-   ```
+    ```
+    npm install
+    ```
 
 ## Running the Project
 
 The project provides multiple scripts in the `package.json` file to facilitate running and testing the application. Choose the appropriate script based on your requirements.
 
-- **Starting the API in Development Mode:**
+-   **Starting the API in Development Mode:**
 
-  ```
-  npm run dev
-  ```
+    ```
+    npm run dev
+    ```
 
-  This command uses `nodemon` to run the application in development mode. It automatically restarts the server whenever a file is modified, making it convenient for development purposes.
+    This command uses `nodemon` to run the application in development mode. It automatically restarts the server whenever a file is modified, making it convenient for development purposes.
 
-- **Starting the API in Production Mode:**
+-   **Starting the API in Production Mode:**
 
-  ```
-  npm run prod
-  ```
+    ```
+    npm run prod
+    ```
 
-  This command starts the application in production mode using the compiled version of the code located in the `dist/` directory.
+    This command starts the application in production mode using the compiled version of the code located in the `dist/` directory.
 
-- **Building the Project:**
+-   **Building the Project:**
 
-  ```
-  npm run build
-  ```
+    ```
+    npm run build
+    ```
 
-  The build script uses Webpack to bundle and optimize the application code. It generates the compiled version of the code in the `dist/` directory, which can be used for production deployment.
+    The build script uses Webpack to bundle and optimize the application code. It generates the compiled version of the code in the `dist/` directory, which can be used for production deployment.
 
-- **Starting the API using Node.js:**
+-   **Starting the API using Node.js:**
 
-  ```
-  npm start
-  ```
+    ```
+    npm start
+    ```
 
-  This command starts the application using Node.js without any additional development features.
+    This command starts the application using Node.js without any additional development features.
 
-- **Running Tests:**
-  ```
-  npm test
-  ```
-  The test script executes the project's test suite using Jest. You can add your tests in the `__tests__/` directory or modify the configuration in the `jest.config.js` file.
+-   **Running Tests:**
+    ```
+    npm test
+    ```
+    The test script executes the project's test suite using Jest. You can add your tests in the `__tests__/` directory or modify the configuration in the `jest.config.js` file.
 
 ## Docker
 
@@ -75,33 +75,46 @@ To build and run the project using Docker, follow these steps:
 
 2. In the project directory, create a file named `Dockerfile` and copy the following content into it:
 
-   ```
-   FROM node:18
+    ```
+    FROM node:18
 
-   RUN mkdir -p /usr/src/app
-   WORKDIR /usr/src/app
+    RUN mkdir -p /usr/src/app
+    WORKDIR /usr/src/app
 
-   COPY dist/ ./dist/
+    COPY dist/ ./dist/
 
-   EXPOSE 5000
-   CMD ["node","dist/main.js"]
-   ```
+    EXPOSE 5000
+    CMD ["node","dist/main.js"]
+    ```
 
 3. Build the Docker image by running the following command:
 
-   ```
-   docker build -t rest-api-skynet .
-   ```
+    ```
+    docker build -t rest-api-skynet .
+    ```
 
-   This command builds the Docker image based on the `Dockerfile` in the current directory. The `-t` flag assigns a name to the image (`rest-api-skynet` in this case).
+    This command builds the Docker image based on the `Dockerfile` in the current directory. The `-t` flag assigns a name to the image (`rest-api-skynet` in this case).
 
 4. Once the image is built, you can run the containerized application using the following command:
-   ```
-   docker run -p 5000:5000 rest-api-skynet
-   ```
-   The `-p` flag maps the container's port 5000 to the host machine's port 5000, allowing access to the API.
+    ```
+    docker run -p 5000:5000 rest-api-skynet
+    ```
+    The `-p` flag maps the container's port 5000 to the host machine's port 5000, allowing access to the API.
 
 Congratulations! You now have the Rest API Skynet project installed, running, and containerized with Docker. Feel free to explore and modify the code to suit your needs. If you encounter any issues or have questions, please submit them on the GitHub repository's issue tracker: [https://github.com/Salesfactory/rest-api-skynet/issues](https://github.com/Salesfactory/rest-api-skynet/issues).
+
+## Email
+
+To send emails, you need to set up the environment variables in the .env file (there's an .env.example already created)
+
+EMAIL_USER=''
+EMAIL_PASS=''
+
+Are the credentials for the email account that will be used to send the emails.
+
+Please refer to the following link to know how to set up the email account to be used:
+
+[https://miracleio.me/snippets/use-gmail-with-nodemailer](https://miracleio.me/snippets/use-gmail-with-nodemailer)
 
 ## Database
 
@@ -116,7 +129,6 @@ npx sequelize-cli db:drop (to delete the DB)
 npx sequelize-cli db:migrate (to migrate the data into the DB)
 npx sequelize-cli db:migrate:undo:all (removes all entries and tables)
 npx sequelize-cli db:seed:all (applies all seeds)
-
 
 **don't forget to set up the environment variables in the .env file (there's an .env.example already created)**
 

@@ -10,6 +10,10 @@ module.exports = {
                 primaryKey: true,
                 type: Sequelize.INTEGER,
             },
+            user_id: {
+                type: Sequelize.INTEGER,
+                allowNull: true,
+            },
             client_id: {
                 type: Sequelize.INTEGER,
                 allowNull: false,
@@ -21,6 +25,11 @@ module.exports = {
             company_name: {
                 type: Sequelize.STRING,
                 allowNull: false,
+            },
+            linked: {
+                type: Sequelize.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
             },
             goals: {
                 type: Sequelize.TEXT,

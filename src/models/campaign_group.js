@@ -26,6 +26,10 @@ module.exports = (sequelize, DataTypes) => {
     }
     CampaignGroup.init(
         {
+            user_id: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+            },
             client_id: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
@@ -37,6 +41,11 @@ module.exports = (sequelize, DataTypes) => {
             company_name: {
                 type: DataTypes.STRING,
                 allowNull: false,
+            },
+            linked: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
             },
             goals: {
                 type: DataTypes.TEXT,
@@ -77,7 +86,7 @@ module.exports = (sequelize, DataTypes) => {
             status: {
                 type: DataTypes.STRING,
                 allowNull: false,
-                defaultValue: 'N/S',
+                defaultValue: 'Planning',
             },
         },
         {

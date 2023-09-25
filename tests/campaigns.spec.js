@@ -1,6 +1,7 @@
 const supertest = require('supertest');
 const makeApp = require('../src/app');
 const { Budget, Campaign, CampaignGroup, Client } = require('../src/models');
+const { getUser } = require('../src/utils');
 
 jest.mock('../src/models', () => ({
     User: {
@@ -41,6 +42,11 @@ jest.mock('../src/config/bigquery', () => ({
     bigqueryClient: {
         query: jest.fn(),
     },
+}));
+
+jest.mock('../src/utils', () => ({
+    ...jest.requireActual('../src/utils'),
+    getUser: jest.fn(),
 }));
 
 const app = makeApp();
@@ -225,6 +231,11 @@ describe('Campaign Endpoints Test', () => {
 
         it('404 client', async () => {
             Client.findOne.mockResolvedValue(null);
+            const user = {
+                id: 1,
+                username: '123',
+            };
+            getUser.mockResolvedValue(user);
             const response = await request.post(
                 `/api/clients/${clientId}/marketingcampaign`
             );
@@ -237,6 +248,11 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 name: 'Test Client 1',
             });
+            const user = {
+                id: 1,
+                username: '123',
+            };
+            getUser.mockResolvedValue(user);
             const response = await request.post(
                 `/api/clients/${clientId}/marketingcampaign`
             );
@@ -326,6 +342,11 @@ describe('Campaign Endpoints Test', () => {
                     ],
                 }),
             };
+            const user = {
+                id: 1,
+                username: '123',
+            };
+            getUser.mockResolvedValue(user);
 
             Client.findOne.mockResolvedValue({
                 id: 1,
@@ -337,6 +358,7 @@ describe('Campaign Endpoints Test', () => {
             const response = await request
                 .post(`/api/clients/${clientId}/marketingcampaign`)
                 .send(sendData);
+
             expect(response.status).toBe(201);
             expect(response.body.data).toEqual({
                 budgets: data.budget,
@@ -347,6 +369,11 @@ describe('Campaign Endpoints Test', () => {
         });
 
         it('500', async () => {
+            const user = {
+                id: 1,
+                username: '123',
+            };
+            getUser.mockResolvedValue(user);
             Client.findOne.mockRejectedValue(new Error('Error'));
             const response = await request.post(
                 `/api/clients/${clientId}/marketingcampaign`
