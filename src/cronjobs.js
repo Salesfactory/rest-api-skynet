@@ -1,7 +1,16 @@
 const cron = require('node-cron');
-const { Budget, CampaignGroup, Channel, Pacing, Client } = require('./models');
+const {
+    Budget,
+    CampaignGroup,
+    Notification,
+    Channel,
+    Pacing,
+    Client,
+    User,
+} = require('./models');
 const { channelController } = require('./controllers');
 const { computeAndStoreMetrics } = require('./utils/bq_spend');
+const { send } = require('./utils/email');
 
 const formattedTime = time => {
     return (
@@ -60,6 +69,11 @@ async function checkForUnlinkedCampaigns() {
     const campaigngroups = await CampaignGroup.findAll({
         include: [
             {
+                model: User,
+                as: 'user',
+                attributes: ['id', 'email'],
+            },
+            {
                 model: Client,
                 as: 'client',
                 attributes: ['id', 'name'],
@@ -82,6 +96,27 @@ async function checkForUnlinkedCampaigns() {
             { linked: campaign.linked },
             { where: { id: campaign.id } }
         );
+        if (!campaign.linked) {
+            send(
+                campaign.user.email,
+                'Unlinked campaign',
+                `The campaign ${campaign.name} from client ${campaign.client.name} is unlinked.`
+            );
+            await Notification.create({
+                user_id: campaign.user.id,
+                title: 'Unlinked campaign',
+                message: `The campaign ${campaign.name} from client ${campaign.client.name} is unlinked.`,
+                campaign_group_info: {
+                    id: campaign.id,
+                    name: campaign.name,
+                },
+                client_info: {
+                    id: campaign.client.id,
+                    name: campaign.client.name,
+                },
+                status: 'unread',
+            });
+        }
     }
 }
 
