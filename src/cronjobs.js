@@ -1,6 +1,6 @@
 const cron = require('node-cron');
-const { Budget, CampaignGroup, Channel, Pacing } = require('./models');
-const { channelController } = require('./controllers');
+const { Budget, CampaignGroup, Channel, Client, Pacing } = require('./models');
+const { channelController, clientController } = require('./controllers');
 const { computeAndStoreMetrics } = require('./utils/bq_spend');
 
 const formattedTime = time => {
@@ -46,7 +46,12 @@ const start = () => {
 
 async function checkAndInsertNewChannels() {
     logMessage('Starting daily check for new channels');
+    // get channels and clients from bigquery
     const bqChannels = await channelController.getProtectedBigqueryChannels();
+    const bqClients =
+        await clientController.getProtectedBigqueryClientsByChannel({
+            datasources: bqChannels.map(channel => channel.channel),
+        });
 
     for (const bqChannel of bqChannels) {
         const channelExists = await Channel.findOne({
@@ -60,6 +65,44 @@ async function checkAndInsertNewChannels() {
             await Channel.create({
                 name: bqChannel.channel,
             });
+        }
+
+        // get clients from the database, we do that here in case a new channel was inserted in the previous iteration
+        const clients = await Client.findAll();
+
+        const bqClientsForChannel = bqClients.filter(
+            client => client.datasource === bqChannel.channel
+        );
+
+        for (const bqClient of bqClientsForChannel) {
+            // check if client exists in the database and has an alias for the channel
+            const filteredClient = clients.find(client =>
+                client?.aliases?.includes(bqClient.advertiser_name)
+            );
+            if (filteredClient) {
+                // check if client has the advertiser_id for the channel
+                if (
+                    Array.isArray(filteredClient.advertiser_ids) &&
+                    !filteredClient.advertiser_ids.includes(
+                        bqClient.advertiser_id
+                    )
+                ) {
+                    logMessage(
+                        `Client ${bqClient.advertiser_name} does not have advertiser_id ${bqClient.advertiser_id} in the database. Inserting it now.`
+                    );
+                    await Client.update(
+                        {
+                            advertiser_ids: [
+                                ...filteredClient.advertiser_ids,
+                                bqClient.advertiser_id,
+                            ],
+                        },
+                        {
+                            where: { id: filteredClient.id },
+                        }
+                    );
+                }
+            }
         }
     }
     logMessage('Finished daily check for new channels');
