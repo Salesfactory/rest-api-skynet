@@ -32,7 +32,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     active: {
       type: DataTypes.BOOLEAN,
-    }
+    },
+    role: {
+      type: DataTypes.STRING,
+      defaultValue: 'DM',
+    },
   }, {
     sequelize,
     modelName: 'User',
