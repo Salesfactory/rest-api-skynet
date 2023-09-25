@@ -6,6 +6,10 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class CampaignGroup extends Model {
         static associate(models) {
+            CampaignGroup.belongsTo(models.User, {
+                foreignKey: 'user_id',
+                as: 'user',
+            });
             CampaignGroup.belongsTo(models.Client, {
                 foreignKey: 'client_id',
                 as: 'client',
