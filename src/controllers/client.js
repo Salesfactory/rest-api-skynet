@@ -1,4 +1,27 @@
+const { bigqueryClient } = require('../config/bigquery');
 const { Client } = require('../models');
+
+const getProtectedBigqueryClientsByChannel = async ({ datasources }) => {
+    try {
+        const sqlQuery = `
+            SELECT datasource, advertiser_name, advertiser_id FROM \`agency_6133.cs_paid_ads__basic_performance\` as cs
+            WHERE cs.datasource IN UNNEST(?) 
+            GROUP BY 1,2,3
+        `;
+
+        const options = {
+            query: sqlQuery,
+            params: [datasources],
+        };
+
+        const response = await bigqueryClient.query(options);
+
+        const clients = response[0];
+        return clients;
+    } catch (error) {
+        return [];
+    }
+};
 
 const getClients = async (req, res) => {
     try {
@@ -34,4 +57,5 @@ const getClient = async (req, res) => {
 module.exports = {
     getClients,
     getClient,
+    getProtectedBigqueryClientsByChannel,
 };
