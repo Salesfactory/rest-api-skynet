@@ -146,6 +146,7 @@ const getMarketingCampaignsByClient = async (req, res) => {
 
         const campaigns = await CampaignGroup.findAll({
             where: searchParams,
+            order: [['updatedAt', 'DESC']],
             include: [
                 {
                     model: Client,
