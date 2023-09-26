@@ -175,12 +175,13 @@ async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
 
         // check if campaign has a user just in case (it should always have a user)
         if (campaign.user) {
-            const { periods, allocations } = campaign.budgets[0];
+            const { periods } = campaign.budgets[0];
             const { label: firstPeriodLabel } = periods[0];
             const { label: lastPeriodLabel } = periods[periods.length - 1];
 
             const startPeriod = new Date(firstPeriodLabel);
             const endPeriod = new Date(lastPeriodLabel);
+            const currentDate = new Date();
 
             let subject = '';
             let message = '';
@@ -191,13 +192,13 @@ async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
                     subject: offPaceSubject,
                     message: offPaceMessage,
                     hasOffPaceCampaigns,
-                } = checkIfCampaignIsOffPace({ campaign });
+                } = checkIfCampaignIsOffPace({ campaign, currentDate });
 
                 const {
                     subject: unlinkedSubject,
                     message: unlinkedMessage,
                     hasUnlinkedCampaigns,
-                } = checkIfCampaignIsUnlinked({ campaign, allocations });
+                } = checkIfCampaignIsUnlinked({ campaign });
 
                 if (hasOffPaceCampaigns && hasUnlinkedCampaigns) {
                     subject = `Campaign: ${campaign.name} - ${offPaceSubject} and ${unlinkedSubject}`;
@@ -231,14 +232,14 @@ async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
 /**
  * Checks if a campaign is off pace
  */
-function checkIfCampaignIsOffPace({ campaign }) {
+function checkIfCampaignIsOffPace({ campaign, currentDate }) {
     const pacing = campaign.pacings[0];
     let hasOffPaceCampaigns = false;
     let subject = '';
     let message = '';
 
     let offPaceMessage = `The campaign ${campaign.name} from client ${campaign.client.name} is off pace for channel`;
-    const offPaceObjects = checkPacingOffPace(pacing);
+    const offPaceObjects = checkPacingOffPace({ pacing, currentDate });
     const offPaceMessages = offPaceObjects.map(allocation => allocation.name);
 
     if (offPaceMessages.length > 1) {
@@ -262,9 +263,10 @@ function checkIfCampaignIsOffPace({ campaign }) {
 /**
  *  Checks if a campaign is unlinked
  */
-function checkIfCampaignIsUnlinked({ campaign, allocations }) {
+function checkIfCampaignIsUnlinked({ campaign }) {
+    const { allocations } = campaign.budgets[0];
     // check if campaign does not have a bigquery_campaign_id
-    campaign.linked = checkBigQueryIdExists(allocations);
+    campaign.linked = checkBigQueryIdExists({ allocations });
     // update campaign linked status in the database
     CampaignGroup.update(
         { linked: campaign.linked },
@@ -313,18 +315,20 @@ async function sendNotification({ campaign, subject, message, type }) {
 /**
  * Checks if at least a campaigns from a list of campaigns does not have a bigquery_campaign_id
  */
-function checkBigQueryIdExists(obj) {
-    for (const key in obj) {
-        const monthData = obj[key];
-        for (const allocation of monthData.allocations) {
+function checkBigQueryIdExists({ allocations }) {
+    for (const key in allocations) {
+        const period = allocations[key];
+        for (const channel of period.allocations) {
             if (
-                allocation.type === 'CHANNEL' &&
-                Array.isArray(allocation.allocations)
+                channel.type === 'CHANNEL' &&
+                Array.isArray(channel.allocations) &&
+                channel.allocations.length > 0
             ) {
-                for (const campaignType of allocation.allocations) {
+                for (const campaignType of channel.allocations) {
                     if (
                         campaignType.type === 'CAMPAIGN_TYPE' &&
-                        Array.isArray(campaignType.allocations)
+                        Array.isArray(campaignType.allocations) &&
+                        campaignType.allocations.length > 0
                     ) {
                         for (const campaign of campaignType.allocations) {
                             if (
@@ -349,10 +353,10 @@ function checkBigQueryIdExists(obj) {
 /**
  * Checks if a pacing object is off pace
  */
-function checkPacingOffPace(pacing) {
+function checkPacingOffPace({ pacing, currentDate }) {
     if (pacing) {
+        // this threshold needs to be configurable
         const threshold = 0.05;
-        const currentDate = new Date();
         const month = currentDate
             .toLocaleString('default', { month: 'long' })
             .toLowerCase();
@@ -364,12 +368,12 @@ function checkPacingOffPace(pacing) {
             allocation => {
                 // an off pace object is an object that has a adb_current value that is less than the adb value by more than 5%
                 const { adb, adb_current } = allocation;
-                const adb_current_plus_threshold =
-                    parseFloat(adb_current) * (1 + threshold);
-                // check if adb_current plus threshold is less than adb or if adb_current plus threshold is more than adb
+                const adb_plus_threshold = parseFloat(adb) * (1 + threshold);
+                const adb_less_threshold = parseFloat(adb) * (1 - threshold);
+                // check if adb_current less than adb or more than adb by more or less than 5%
                 if (
-                    adb_current_plus_threshold < parseFloat(adb) ||
-                    adb_current_plus_threshold > parseFloat(adb)
+                    adb_current < parseFloat(adb_less_threshold) ||
+                    adb_current > parseFloat(adb_plus_threshold)
                 ) {
                     return true;
                 }
@@ -466,4 +470,9 @@ async function updateOrInsertPacingMetrics({ campaign, periods, allocations }) {
     }
 }
 
-module.exports = { start };
+module.exports = {
+    start,
+    checkIfCampaignIsOffPace,
+    checkBigQueryIdExists,
+    checkPacingOffPace,
+};
