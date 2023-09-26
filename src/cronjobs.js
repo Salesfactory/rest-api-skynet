@@ -52,7 +52,7 @@ const start = () => {
         });
 
         // check for unlinked campaigns every day at 9 hours 0 minutes
-        cron.schedule('* * * * *', async () => {
+        cron.schedule('0 9 * * *', async () => {
             try {
                 await checkForUnlinkedCampaigns();
             } catch (error) {
