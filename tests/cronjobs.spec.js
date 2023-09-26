@@ -2,7 +2,11 @@ const {
     checkIfCampaignIsOffPace,
     checkBigQueryIdExists,
     checkPacingOffPace,
-} = require('../src/cronjobs');
+} = require('../src/utils/cronjobs');
+
+jest.mock('../src/utils/cronjobs', () => ({
+    ...jest.requireActual('../src/utils/cronjobs'),
+}));
 
 describe('Cronjobs', () => {
     const currentDate = new Date('September 2023');
