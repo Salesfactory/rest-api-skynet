@@ -6,6 +6,54 @@ const {
 
 jest.mock('../src/utils/cronjobs', () => ({
     ...jest.requireActual('../src/utils/cronjobs'),
+    sendNotification: jest.fn(),
+    checkIfCampaignIsUnlinked: jest.fn(),
+    fetchCampaignsWithBudgets: jest.fn(),
+    fetchCampaignsWithPacings: jest.fn(),
+    updateOrInsertPacingMetrics: jest.fn(),
+}));
+
+jest.mock('../src/models', () => ({
+    Notification: {
+        create: jest.fn(),
+    },
+    Pacing: {
+        create: jest.fn(),
+        update: jest.fn(),
+        findOne: jest.fn(),
+    },
+    User: {
+        create: jest.fn(),
+        update: jest.fn(),
+        findOne: jest.fn(),
+        findAll: jest.fn(),
+        destroy: jest.fn(),
+    },
+    Budget: {
+        create: jest.fn(),
+        update: jest.fn(),
+        findOne: jest.fn(),
+        findAll: jest.fn(),
+        destroy: jest.fn(),
+    },
+    Client: {
+        findOne: jest.fn(),
+        findAll: jest.fn(),
+    },
+    Campaign: {
+        create: jest.fn(),
+        update: jest.fn(),
+        findOne: jest.fn(),
+        findAll: jest.fn(),
+        destroy: jest.fn(),
+    },
+    CampaignGroup: {
+        create: jest.fn(),
+        update: jest.fn(),
+        findOne: jest.fn(),
+        findAll: jest.fn(),
+        destroy: jest.fn(),
+    },
 }));
 
 describe('Cronjobs', () => {
