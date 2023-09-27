@@ -112,8 +112,10 @@ const getCampaignGroupPacing = async (req, res) => {
 // Marketing campaign list for client
 const getMarketingCampaignsByClient = async (req, res) => {
     const { id: clientId } = req.params;
-    const { channel, campaignName } = req.query;
+    const { search, filter } = req.query;
+    //TODO: add pagination
     try {
+        const searchLower = search ? search.toLowerCase() : null;
         const client = await Client.findOne({
             where: { id: clientId },
         });
@@ -125,27 +127,57 @@ const getMarketingCampaignsByClient = async (req, res) => {
         } else {
             req.query.clientName = client.name;
         }
-
-        const searchParams = {
-            client_id: client.id,
-            ...(channel
-                ? {
-                      channels: {
-                          [Op.like]: `%${channel}%`,
-                      },
-                  }
-                : {}),
-            ...(campaignName
-                ? {
-                      name: {
-                          [Op.like]: `%${campaignName}%`,
-                      },
-                  }
-                : {}),
-        };
-
         const campaigns = await CampaignGroup.findAll({
-            where: searchParams,
+            where: {
+                ...(filter
+                    ? {
+                          status: filter,
+                      }
+                    : {}),
+                ...(searchLower
+                    ? {
+                          [Op.or]: [
+                              {
+                                  '$CampaignGroup.name$': sequelize.where(
+                                      sequelize.fn(
+                                          'LOWER',
+                                          sequelize.col('CampaignGroup.name')
+                                      ),
+                                      'LIKE',
+                                      `%${searchLower}%`
+                                  ),
+                              },
+                              {
+                                  company_name: sequelize.where(
+                                      sequelize.fn(
+                                          'LOWER',
+                                          sequelize.col(
+                                              'CampaignGroup.company_name'
+                                          )
+                                      ),
+                                      'LIKE',
+                                      `%${searchLower}%`
+                                  ),
+                              },
+                              {
+                                  createdAt: sequelize.where(
+                                      sequelize.fn(
+                                          'TO_CHAR',
+                                          sequelize.col(
+                                              'CampaignGroup.createdAt'
+                                          ),
+                                          'month'
+                                      ),
+                                      'LIKE',
+                                      sequelize.literal(
+                                          `LOWER('%${searchLower}%')`
+                                      )
+                                  ),
+                              },
+                          ],
+                      }
+                    : {}),
+            },
             order: [['updatedAt', 'DESC']],
             include: [
                 {
