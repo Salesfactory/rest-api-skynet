@@ -18,7 +18,11 @@ function checkIfCampaignIsOffPace({ campaign, currentDate }) {
     let message = '';
 
     let offPaceMessage = `The campaign ${campaign.name} from client ${campaign.client.name} is off pace for channel`;
-    const offPaceObjects = checkPacingOffPace({ pacing, currentDate });
+    const { overPaceObjects, underPaceObjects } = checkPacingOffPace({
+        pacing,
+        currentDate,
+    });
+    const offPaceObjects = [...overPaceObjects, ...underPaceObjects];
     const offPaceMessages = offPaceObjects.map(allocation => allocation.name);
 
     if (offPaceMessages.length > 1) {
@@ -121,25 +125,41 @@ function checkPacingOffPace({ pacing, currentDate }) {
         const formattedDate = `${month}_${year}`;
         const { allocations } = pacing;
         const currentPeriod = allocations[formattedDate];
-        const offPaceObjects = currentPeriod?.allocations?.filter(
+        // offpace objects are over and under pacing objects
+        const overPaceObjects = currentPeriod?.allocations?.filter(
             allocation => {
-                // an off pace object is an object that has a adb_current value that is less than the adb value by more than 5%
+                // an over pace object is an object that has a adb_current value that is more than the adb value by more than 5%
                 const { adb, adb_current } = allocation;
                 const adb_plus_threshold = parseFloat(adb) * (1 + threshold);
-                const adb_less_threshold = parseFloat(adb) * (1 - threshold);
-                // check if adb_current less than adb or more than adb by more or less than 5%
-                if (
-                    adb_current < parseFloat(adb_less_threshold) ||
-                    adb_current > parseFloat(adb_plus_threshold)
-                ) {
+                // check if adb_current more than adb by more than 5%
+                if (adb_current > parseFloat(adb_plus_threshold)) {
                     return true;
                 }
                 return false;
             }
         );
-        return offPaceObjects;
+        const underPaceObjects = currentPeriod?.allocations?.filter(
+            allocation => {
+                // an under pace object is an object that has a adb_current value that is less than the adb value by more than 5%
+                const { adb, adb_current } = allocation;
+                const adb_less_threshold = parseFloat(adb) * (1 - threshold);
+                // check if adb_current less than adb by more than 5%
+                if (adb_current < parseFloat(adb_less_threshold)) {
+                    return true;
+                }
+                return false;
+            }
+        );
+
+        return {
+            overPaceObjects,
+            underPaceObjects,
+        };
     } else {
-        return [];
+        return {
+            overPaceObjects: [],
+            underPaceObjects: [],
+        };
     }
 }
 

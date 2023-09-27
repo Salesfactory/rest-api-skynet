@@ -84,13 +84,21 @@ describe('Cronjobs', () => {
                     },
                 },
             };
-            const result = checkPacingOffPace({ pacing, currentDate });
-            expect(result).toHaveLength(2);
+            const { overPaceObjects, underPaceObjects } = checkPacingOffPace({
+                pacing,
+                currentDate,
+            });
+            const offPaceCampaigns = [...overPaceObjects, ...underPaceObjects];
+            expect(offPaceCampaigns).toHaveLength(2);
         });
         it('should return an array with length = 0 if pacing is null', () => {
             const pacing = null;
-            const result = checkPacingOffPace({ pacing, currentDate });
-            expect(result).toHaveLength(0);
+            const { overPaceObjects, underPaceObjects } = checkPacingOffPace({
+                pacing,
+                currentDate,
+            });
+            const offPaceCampaigns = [...overPaceObjects, ...underPaceObjects];
+            expect(offPaceCampaigns).toHaveLength(0);
         });
         it('should return an array with length = 0 if pacing is on pace', () => {
             const pacing = {
@@ -110,8 +118,12 @@ describe('Cronjobs', () => {
                     },
                 },
             };
-            const result = checkPacingOffPace({ pacing, currentDate });
-            expect(result).toHaveLength(0);
+            const { overPaceObjects, underPaceObjects } = checkPacingOffPace({
+                pacing,
+                currentDate,
+            });
+            const offPaceCampaigns = [...overPaceObjects, ...underPaceObjects];
+            expect(offPaceCampaigns).toHaveLength(0);
         });
     });
 
