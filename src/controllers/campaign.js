@@ -129,6 +129,7 @@ const getMarketingCampaignsByClient = async (req, res) => {
         }
         const campaigns = await CampaignGroup.findAll({
             where: {
+                client_id: client.id,
                 ...(filter
                     ? {
                           status: filter,
