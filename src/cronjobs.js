@@ -181,8 +181,6 @@ async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
 
     // check if is in flight
     // in flight campaign means: A campaign with a start date in the past and an end date in the future
-    const currentDate = new Date();
-
     for (campaign of campaigngroups) {
         campaign = campaign.toJSON();
 
