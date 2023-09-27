@@ -196,6 +196,18 @@ const getMarketingCampaignsByClient = async (req, res) => {
             ],
         });
 
+        // Check if campaign is in flight
+        const currentDate = new Date();
+        for (const campaign of campaigns) {
+            const startPeriod = new Date(campaign.flight_time_start);
+            const endPeriod = new Date(campaign.flight_time_end);
+            if (currentDate >= startPeriod && currentDate <= endPeriod) {
+                campaign.dataValues.inFlight = true;
+            } else {
+                campaign.dataValues.inFlight = false;
+            }
+        }
+
         res.status(200).json({
             message: 'Marketing campaigns retrieved successfully',
             data: campaigns,
@@ -222,7 +234,7 @@ const getMarketingCampaignsById = async (req, res) => {
         }
 
         const campaign = await CampaignGroup.findOne({
-            where: { id: campaignId },
+            where: { id: campaignId, client_id: clientId },
             include: [
                 {
                     model: Client,
@@ -243,6 +255,16 @@ const getMarketingCampaignsById = async (req, res) => {
             return res.status(404).json({
                 message: `Marketing campaign not found`,
             });
+        }
+
+        // Check if campaign is in flight
+        const currentDate = new Date();
+        const startPeriod = new Date(campaign.flight_time_start);
+        const endPeriod = new Date(campaign.flight_time_end);
+        if (currentDate >= startPeriod && currentDate <= endPeriod) {
+            campaign.dataValues.inFlight = true;
+        } else {
+            campaign.dataValues.inFlight = false;
         }
 
         res.status(200).json({
