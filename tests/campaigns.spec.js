@@ -125,6 +125,7 @@ describe('Campaign Endpoints Test', () => {
                     channels: 'a,b,c',
                     createdAt: '2023-07-07 18:13:23.552748-04',
                     updatedAt: '2023-07-07 18:13:23.552748-04',
+                    dataValues: {},
                 },
             ];
 
@@ -137,6 +138,7 @@ describe('Campaign Endpoints Test', () => {
             const response = await request.get(
                 `/api/clients/${clientId}/marketingcampaign`
             );
+
             expect(response.status).toBe(200);
             expect(response.body.data).toEqual(data);
             expect(response.body.message).toBe(
@@ -196,6 +198,7 @@ describe('Campaign Endpoints Test', () => {
                 channels: 'a,b,c',
                 createdAt: '2023-07-07 18:13:23.552748-04',
                 updatedAt: '2023-07-07 18:13:23.552748-04',
+                dataValues: {},
             };
 
             Client.findOne.mockResolvedValue({
