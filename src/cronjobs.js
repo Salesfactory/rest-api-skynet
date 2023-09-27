@@ -1,16 +1,15 @@
 const cron = require('node-cron');
-const {
-    Budget,
-    CampaignGroup,
-    Notification,
-    Channel,
-    Pacing,
-    Client,
-    User,
-} = require('./models');
+const { Channel, Client } = require('./models');
 const { channelController } = require('./controllers');
 const { computeAndStoreMetrics } = require('./utils/bq_spend');
-const { send } = require('./utils/email');
+const {
+    checkIfCampaignIsOffPace,
+    checkIfCampaignIsUnlinked,
+    sendNotification,
+    fetchCampaignsWithBudgets,
+    fetchCampaignsWithPacings,
+    updateOrInsertPacingMetrics,
+} = require('./utils/cronjobs');
 
 const formattedTime = time => {
     return (
@@ -54,8 +53,9 @@ const start = () => {
         // check for unlinked campaigns every day at 9 hours 0 minutes
         cron.schedule('0 9 * * *', async () => {
             try {
-                await checkForUnlinkedCampaigns();
+                await checkAndNotifyUnlinkedOrOffPaceCampaigns();
             } catch (error) {
+                console.log(error);
                 logMessage(
                     'Error while checking for unlinked campaigns: ' + error
                 );
@@ -64,85 +64,10 @@ const start = () => {
     }
 };
 
-async function checkForUnlinkedCampaigns() {
-    logMessage('Starting daily check for unlinked campaigns');
-    const campaigngroups = await CampaignGroup.findAll({
-        include: [
-            {
-                model: User,
-                as: 'user',
-                attributes: ['id', 'email'],
-            },
-            {
-                model: Client,
-                as: 'client',
-                attributes: ['id', 'name'],
-            },
-            {
-                model: Budget,
-                as: 'budgets',
-                limit: 1,
-                order: [['updatedAt', 'DESC']],
-                attributes: ['id', 'periods', 'allocations'],
-            },
-        ],
-    });
-    for (campaign of campaigngroups) {
-        campaign = campaign.toJSON();
-        campaign.linked = checkBigQueryIdExists(
-            campaign.budgets[0].allocations
-        );
-        CampaignGroup.update(
-            { linked: campaign.linked },
-            { where: { id: campaign.id } }
-        );
-        if (!campaign.linked) {
-            send(
-                campaign.user.email,
-                'Unlinked campaign',
-                `The campaign ${campaign.name} from client ${campaign.client.name} is unlinked.`
-            );
-            await Notification.create({
-                user_id: campaign.user.id,
-                title: 'Unlinked campaign',
-                message: `The campaign ${campaign.name} from client ${campaign.client.name} is unlinked.`,
-                campaign_group_info: {
-                    id: campaign.id,
-                    name: campaign.name,
-                },
-                client_info: {
-                    id: campaign.client.id,
-                    name: campaign.client.name,
-                },
-                status: 'unread',
-            });
-        }
-    }
-}
-
-function checkBigQueryIdExists(obj) {
-    for (const key in obj) {
-        const monthData = obj[key];
-        for (const allocation of monthData.allocations) {
-            if (allocation.type === 'CHANNEL') {
-                for (const campaignType of allocation.allocations) {
-                    if (campaignType.type === 'CAMPAIGN_TYPE') {
-                        for (const campaign of campaignType.allocations) {
-                            if (
-                                campaign.type === 'CAMPAIGN' &&
-                                !campaign.bigquery_campaign_id
-                            ) {
-                                return false;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return true;
-}
-
+/**
+ * Checks if there are new channels in bigquery and inserts them in the database
+ * Also checks if there are new advertisers for the channels and inserts them in the database
+ */
 async function checkAndInsertNewChannels() {
     logMessage('Starting daily check for new channels');
     // get channels and clients from bigquery
@@ -207,6 +132,9 @@ async function checkAndInsertNewChannels() {
     logMessage('Finished daily check for new channels');
 }
 
+/**
+ * Updates all budget metrics for all campaigns in the database
+ */
 async function updateBudgetMetrics() {
     logMessage('Starting daily budget metrics update');
 
@@ -230,46 +158,74 @@ async function updateBudgetMetrics() {
     logMessage('Finished daily budget metrics update');
 }
 
-async function fetchCampaignsWithBudgets() {
-    return CampaignGroup.findAll(
-        {
-            where: { deleted: false },
-            include: [
-                {
-                    model: Budget,
-                    as: 'budgets',
-                    limit: 1,
-                    order: [['updatedAt', 'DESC']],
-                    attributes: ['periods', 'allocations'],
-                },
-            ],
-        },
-        { raw: true, plain: true }
-    );
-}
+/**
+ * Checks if there are unlinked or off pace campaigns and notifies the user
+ */
+async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
+    logMessage('Starting daily check for unlinked or off pace campaigns');
+    const campaigngroups = await fetchCampaignsWithPacings();
 
-async function updateOrInsertPacingMetrics({ campaign, periods, allocations }) {
-    const campaignPacing = await Pacing.findOne({
-        where: { campaign_group_id: campaign.id },
-    });
+    // check if is in flight
+    // in flight campaign means: A campaign with a start date in the past and an end date in the future
+    const currentDate = new Date();
 
-    if (campaignPacing) {
-        await Pacing.update(
-            {
-                periods: periods,
-                allocations,
-            },
-            {
-                where: { campaign_group_id: campaign.id },
+    for (campaign of campaigngroups) {
+        campaign = campaign.toJSON();
+
+        // check if campaign has a user just in case (it should always have a user)
+        if (campaign.user) {
+            const { periods } = campaign.budgets[0];
+            const { label: firstPeriodLabel } = periods[0];
+            const { label: lastPeriodLabel } = periods[periods.length - 1];
+
+            const startPeriod = new Date(firstPeriodLabel);
+            const endPeriod = new Date(lastPeriodLabel);
+            const currentDate = new Date();
+
+            let subject = '';
+            let message = '';
+
+            // check if campaign is in flight
+            if (startPeriod <= currentDate && endPeriod >= currentDate) {
+                const {
+                    subject: offPaceSubject,
+                    message: offPaceMessage,
+                    hasOffPaceCampaigns,
+                } = checkIfCampaignIsOffPace({ campaign, currentDate });
+
+                const {
+                    subject: unlinkedSubject,
+                    message: unlinkedMessage,
+                    hasUnlinkedCampaigns,
+                } = checkIfCampaignIsUnlinked({ campaign });
+
+                if (hasOffPaceCampaigns && hasUnlinkedCampaigns) {
+                    subject = `Campaign: ${campaign.name} - ${offPaceSubject} and ${unlinkedSubject}`;
+                    message = `${offPaceMessage} and it is unlinked.`;
+                } else if (hasOffPaceCampaigns) {
+                    subject = `Campaign: ${campaign.name} - ${offPaceSubject}`;
+                    message = offPaceMessage;
+                } else if (hasUnlinkedCampaigns) {
+                    subject = `Campaign: ${campaign.name} - ${unlinkedSubject}`;
+                    message = unlinkedMessage;
+                }
+
+                if (
+                    (hasUnlinkedCampaigns || hasOffPaceCampaigns) &&
+                    subject !== '' &&
+                    message !== ''
+                ) {
+                    await sendNotification({
+                        campaign,
+                        subject,
+                        message,
+                        type: 'email',
+                    });
+                }
             }
-        );
-    } else {
-        await Pacing.create({
-            campaign_group_id: campaign.id,
-            periods: periods,
-            allocations,
-        });
+        }
     }
+    logMessage('Finished daily check for unlinked or off pace campaigns');
 }
 
 module.exports = { start };
