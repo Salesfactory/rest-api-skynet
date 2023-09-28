@@ -60,7 +60,7 @@ describe('Cronjobs', () => {
     const currentDate = new Date('September 2023');
 
     describe('Check pacing off pace', () => {
-        it('should return an array with length ==  if a campaign is underpace', () => {
+        it('should return an array with length == 1 if a campaign is underpace', () => {
             const pacing = {
                 periods: [],
                 allocations: {

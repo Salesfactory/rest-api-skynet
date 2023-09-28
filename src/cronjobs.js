@@ -280,7 +280,7 @@ async function updateCampaignGroupsStatuses() {
                         currentDate,
                     });
                 if (overPaceObjects.length > 0 && underPaceObjects.length > 0) {
-                    status = 'Offpace';
+                    status = 'Off pace';
                 } else if (overPaceObjects.length > 0) {
                     status = 'Overpaced';
                 } else if (underPaceObjects.length > 0) {
