@@ -4,7 +4,7 @@ const { Agency, Budget, CampaignGroup, Client, Pacing } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
 const { validateObjectAllocations } = require('../utils');
-const { getUser } = require('../utils');
+const { getUser, checkInFlight } = require('../utils');
 const { computeAndStoreMetrics } = require('../utils/bq_spend');
 const {
     fetchCampaignsWithBudgets,
@@ -104,19 +104,6 @@ const getCampaignGroupPacing = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-};
-
-// this function is used to check if a campaign is in flight based on the flight time start and end
-const checkInFlight = ({ currentDate, campaign }) => {
-    const startPeriod = new Date(campaign.flight_time_start);
-    const endPeriod = new Date(campaign.flight_time_end);
-    // Set the endPeriod to the last day of the month
-    endPeriod.setMonth(endPeriod.getMonth() + 1);
-    endPeriod.setDate(0);
-
-    return currentDate >= startPeriod && currentDate <= endPeriod
-        ? true
-        : false;
 };
 
 // Marketing campaign list for client

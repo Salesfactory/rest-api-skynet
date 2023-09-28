@@ -12,6 +12,7 @@ const {
     checkBigQueryIdExists,
     checkPacingOffPace,
 } = require('./utils/cronjobs');
+const { checkInFlight } = require('./utils');
 
 const formattedTime = time => {
     return (
@@ -186,19 +187,13 @@ async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
 
         // check if campaign has a user just in case (it should always have a user)
         if (campaign.user) {
-            const { periods } = campaign.budgets[0];
-            const { label: firstPeriodLabel } = periods[0];
-            const { label: lastPeriodLabel } = periods[periods.length - 1];
-
-            const startPeriod = new Date(firstPeriodLabel);
-            const endPeriod = new Date(lastPeriodLabel);
             const currentDate = new Date();
 
             let subject = '';
             let message = '';
 
             // check if campaign is in flight
-            if (startPeriod <= currentDate && endPeriod >= currentDate) {
+            if (checkInFlight({ currentDate, campaign })) {
                 const {
                     subject: offPaceSubject,
                     message: offPaceMessage,
@@ -261,15 +256,10 @@ async function updateCampaignGroupsStatuses() {
 
         // check if campaign is in flight
         const currentDate = new Date();
-        const startPeriod = new Date(campaign.flight_time_start);
-        const endPeriod = new Date(campaign.flight_time_end);
-        // Set the endPeriod to the last day of the month
-        endPeriod.setMonth(endPeriod.getMonth() + 1);
-        endPeriod.setDate(0);
 
         const linked = checkBigQueryIdExists({ allocations });
 
-        if (currentDate >= startPeriod && currentDate <= endPeriod) {
+        if (checkInFlight({ currentDate, campaign })) {
             const pacing = campaign.pacings[0];
 
             // campaign is in flight check if campaign is linked
