@@ -60,7 +60,55 @@ describe('Cronjobs', () => {
     const currentDate = new Date('September 2023');
 
     describe('Check pacing off pace', () => {
-        it('should return an array with length > 0', () => {
+        it('should return an array with length ==  if a campaign is underpace', () => {
+            const pacing = {
+                periods: [],
+                allocations: {
+                    september_2023: {
+                        allocations: [
+                            {
+                                name: 'Amazon Advertising',
+                                budget: 851.1560000000001,
+                                allocations: [],
+                                adb: 56.74373333333334,
+                                adb_current: 0.4624,
+                            },
+                        ],
+                    },
+                },
+            };
+            const { overPaceObjects, underPaceObjects } = checkPacingOffPace({
+                pacing,
+                currentDate,
+            });
+            const offPaceCampaigns = [...overPaceObjects, ...underPaceObjects];
+            expect(offPaceCampaigns).toHaveLength(1);
+        });
+        it('should return an array with length == 1 if a campaign is overpaced', () => {
+            const pacing = {
+                periods: [],
+                allocations: {
+                    september_2023: {
+                        allocations: [
+                            {
+                                name: 'Amazon Advertising',
+                                budget: 851.1560000000001,
+                                allocations: [],
+                                adb: 56.74373333333334,
+                                adb_current: 0.4624,
+                            },
+                        ],
+                    },
+                },
+            };
+            const { overPaceObjects, underPaceObjects } = checkPacingOffPace({
+                pacing,
+                currentDate,
+            });
+            const offPaceCampaigns = [...overPaceObjects, ...underPaceObjects];
+            expect(offPaceCampaigns).toHaveLength(1);
+        });
+        it('should return an array with length == 2 if a campaign is offpace', () => {
             const pacing = {
                 periods: [],
                 allocations: {
