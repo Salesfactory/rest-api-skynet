@@ -110,6 +110,9 @@ const getCampaignGroupPacing = async (req, res) => {
 const checkInFlight = ({ currentDate, campaign }) => {
     const startPeriod = new Date(campaign.flight_time_start);
     const endPeriod = new Date(campaign.flight_time_end);
+    // Set the endPeriod to the last day of the month
+    endPeriod.setMonth(endPeriod.getMonth() + 1);
+    endPeriod.setDate(0);
 
     return currentDate >= startPeriod && currentDate <= endPeriod
         ? true
