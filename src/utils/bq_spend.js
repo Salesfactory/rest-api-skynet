@@ -39,11 +39,11 @@ const fetchAllBigQuerySpendingsForCampaign = async ({
 
     let params = [campaignIds, adsetIds, periodLabels];
 
-    let sqlQuery = `SELECT FORMAT_DATE('%B %Y', cs.date) as _date, cs.campaign_id, cs.adset_id, SUM(cs.spend) as spend 
+    let sqlQuery = `SELECT FORMAT_DATE('%B %Y', cs.date) as _date, cs.campaign_id, cs.adset_id, cs.campaign_name, cs.adset_name, SUM(cs.spend) as spend 
         FROM \`agency_6133.cs_paid_ads__basic_performance\` as cs
         WHERE cs.campaign_id IN UNNEST(?) AND cs.adset_id IN UNNEST(?)
         AND FORMAT_DATE('%B %Y', cs.date) IN UNNEST(?)
-        GROUP BY cs.campaign_id, cs.adset_id, _date 
+        GROUP BY cs.campaign_id, cs.adset_id, _date, cs.campaign_name, cs.adset_name
         ORDER BY PARSE_DATE('%B %Y', _date) ASC
         `;
 
@@ -153,7 +153,13 @@ const calculateDaysElapsedInMonth = ({ currentDate, monthIndex, year }) => {
     return 0;
 };
 
-const getMetrics = ({ period, periodBudget, spending, currentDate }) => {
+const getMetrics = ({
+    period,
+    periodBudget,
+    spending,
+    carryOver,
+    currentDate,
+}) => {
     // to avoid division by zero
     if (periodBudget === 0) periodBudget = NaN;
     const { monthIndex, year } = parseMonthYearToIndexAndYear(period);
@@ -161,8 +167,8 @@ const getMetrics = ({ period, periodBudget, spending, currentDate }) => {
     //     return -1;
     // }
     const MTDSpend = spending.length > 0 ? spending[0].spend : 0;
-    const remainingBudget = periodBudget - MTDSpend;
-    const percentageBudgetSpent = (remainingBudget / periodBudget) * 100;
+    const remainingBudget = periodBudget + carryOver - MTDSpend;
+    const percentageBudgetSpent = (MTDSpend / (periodBudget + carryOver)) * 100;
     const percentageMonthElapsed = calculatePercentageMonthElapsed({
         currentDate,
         monthIndex,
@@ -177,15 +183,15 @@ const getMetrics = ({ period, periodBudget, spending, currentDate }) => {
         monthIndex,
         year,
     });
-    const adb = periodBudget / monthDays;
-    const currentAdb =
-        remainingDays > 0 ? remainingBudget / remainingDays : 'N/A';
+    const adb = (periodBudget + carryOver) / monthDays;
     const elapsedDays = calculateDaysElapsedInMonth({
         currentDate,
         monthIndex,
         year,
     });
-    const avgDailySpent = elapsedDays > 0 ? MTDSpend / elapsedDays : 'N/A';
+    const currentAdb = elapsedDays > 0 ? MTDSpend / elapsedDays : 'N/A';
+    const avgDailySpent =
+        remainingDays > 0 ? remainingBudget / remainingDays : 'N/A';
 
     return {
         mtd_spent: MTDSpend,
@@ -195,6 +201,7 @@ const getMetrics = ({ period, periodBudget, spending, currentDate }) => {
         adb: adb,
         adb_current: currentAdb,
         avg_daily_spent: avgDailySpent,
+        carry_over: carryOver,
     };
 };
 
@@ -206,6 +213,7 @@ const setSpending = (allocation, metric) => {
     allocation.adb = metric.adb;
     allocation.adb_current = metric.adb_current;
     allocation.avg_daily_spent = metric.avg_daily_spent;
+    allocation.carry_over = metric.carry_over;
 };
 
 const getBigqueryIds = ({ periods, allocations }) => {
@@ -253,7 +261,7 @@ async function computeAndStoreMetrics({ campaign, currentDate }) {
     const { periods, allocations } = budget || { periods: [], allocations: {} };
 
     let allocationsCopy = cloneDeep(allocations);
-    let previousPeriodId = null;
+    let carryOverMap = new Map();
 
     // get bigquery ids for the first period
     const bigqueryIds = getBigqueryIds({
@@ -275,8 +283,6 @@ async function computeAndStoreMetrics({ campaign, currentDate }) {
     for (const [index, period] of periods.entries()) {
         // using the copy of allocations object
         const periodAllocations = allocationsCopy[period.id];
-        const { budget: periodBudget } = periodAllocations;
-        const isFirstPeriod = index === 0;
         let periodSpendings = 0;
 
         // channels
@@ -319,7 +325,10 @@ async function computeAndStoreMetrics({ campaign, currentDate }) {
 
                                     // adsets
                                     for (const adset of campaign.allocations) {
-                                        const { bigquery_adset_id } = adset;
+                                        const {
+                                            bigquery_adset_id,
+                                            budget: adsetBudget,
+                                        } = adset;
 
                                         if (bigquery_adset_id) {
                                             // get spending by period
@@ -334,10 +343,14 @@ async function computeAndStoreMetrics({ campaign, currentDate }) {
                                                             period.label
                                                 ) || [];
 
+                                            const adsetCarryOver =
+                                                carryOverMap.get(adset.id) || 0;
+
                                             const adsetMetrics = getMetrics({
                                                 period: period.label,
-                                                periodBudget: campaignBudget,
+                                                periodBudget: adsetBudget,
                                                 spending,
+                                                carryOver: adsetCarryOver,
                                                 currentDate,
                                             });
 
@@ -345,64 +358,76 @@ async function computeAndStoreMetrics({ campaign, currentDate }) {
                                                 adsetMetrics.mtd_spent;
 
                                             setSpending(adset, adsetMetrics);
+
+                                            carryOverMap.set(
+                                                adset.id,
+                                                adsetMetrics.budget_remaining
+                                            );
                                         }
                                     }
                                 }
 
+                                const campaignCarryOver =
+                                    carryOverMap.get(campaign.id) || 0;
+
                                 const campaignMetrics = getMetrics({
                                     period: period.label,
-                                    periodBudget: typeBudget,
+                                    periodBudget: campaignBudget,
                                     spending: [{ spend: campaignSpendings }],
+                                    carryOver: campaignCarryOver,
                                     currentDate,
                                 });
 
                                 typeSpendings += campaignMetrics.mtd_spent;
 
                                 setSpending(campaign, campaignMetrics);
+                                carryOverMap.set(
+                                    campaign.id,
+                                    campaignMetrics.budget_remaining
+                                );
                             }
                         }
 
+                        const typeCarryOver =
+                            carryOverMap.get(campaignType.id) || 0;
+
                         const typeMetrics = getMetrics({
                             period: period.label,
-                            periodBudget: channelBudget,
+                            periodBudget: typeBudget,
                             spending: [{ spend: typeSpendings }],
+                            carryOver: typeCarryOver,
                             currentDate,
                         });
 
                         channelSpendings += typeMetrics.mtd_spent;
 
                         setSpending(campaignType, typeMetrics);
+
+                        carryOverMap.set(
+                            campaignType.id,
+                            typeMetrics.budget_remaining
+                        );
                     }
                 }
 
+                const channelCarryOver = carryOverMap.get(channel.id) || 0;
+
                 const channelMetrics = getMetrics({
                     period: period.label,
-                    periodBudget,
+                    periodBudget: channelBudget,
                     spending: [{ spend: channelSpendings }],
+                    carryOver: channelCarryOver,
                     currentDate,
                 });
 
                 periodSpendings += channelMetrics.mtd_spent;
 
-                // carry over is 0 for the first period
-                if (isFirstPeriod) {
-                    channel.carry_over = 0;
-                } else {
-                    // carry over is the difference between previous period budget and previous period spent
-                    const previousPeriodBudget =
-                        allocationsCopy[previousPeriodId].budget;
-                    const previousPeriodSpent =
-                        allocationsCopy[previousPeriodId].mtd_spent;
-                    channel.carry_over =
-                        previousPeriodBudget - previousPeriodSpent;
-                }
                 setSpending(channel, channelMetrics);
+                carryOverMap.set(channel.id, channelMetrics.budget_remaining);
             }
         }
 
         allocationsCopy[period.id].mtd_spent = periodSpendings;
-        // set previous period id to current period id
-        previousPeriodId = period.id;
     }
 
     return {
