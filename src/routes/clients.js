@@ -35,29 +35,6 @@ router.delete(
     '/:id/marketingcampaign/:cid',
     campaignController.deleteMarketingCampaign
 );
-// marketing campaigns advertisements routes
-router.get(
-    '/:id/marketingcampaign/:cid/campaigns',
-    campaignController.getCampaignsByGroup
-);
-router.get(
-    '/:id/marketingcampaign/:cid/campaigns/:caid',
-    campaignController.getCampaignsById
-);
-router.put(
-    '/:id/marketingcampaign/:cid/campaigns/:caid/goals',
-    campaignController.updateCampaignGoals
-);
-// pause campaign from group
-router.put(
-    '/:id/marketingcampaign/:cid/campaigns/:caid/pause',
-    campaignController.pauseCampaign
-);
-// delete campaign from group
-router.delete(
-    '/:id/marketingcampaign/:cid/campaigns/:caid',
-    campaignController.deleteCampaign
-);
 // get campaigngroup monthly budget spreadsheet
 router.get(
     '/:id/marketingcampaign/:cid/generate-spreadsheet',
