@@ -9,6 +9,8 @@ const {
     fetchCampaignsWithBudgets,
     fetchCampaignsWithPacings,
     updateOrInsertPacingMetrics,
+    checkBigQueryIdExists,
+    checkPacingOffPace,
 } = require('./utils/cronjobs');
 
 const formattedTime = time => {
@@ -58,6 +60,18 @@ const start = () => {
                 console.log(error);
                 logMessage(
                     'Error while checking for unlinked campaigns: ' + error
+                );
+            }
+        });
+
+        // check campaign groups and update its statuses every hour after 10 minutes
+        cron.schedule('10 * * * *', async () => {
+            try {
+                await updateCampaignGroupsStatuses();
+            } catch (error) {
+                console.log(error);
+                logMessage(
+                    'Error while updating campaign group statuses: ' + error
                 );
             }
         });
@@ -167,8 +181,6 @@ async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
 
     // check if is in flight
     // in flight campaign means: A campaign with a start date in the past and an end date in the future
-    const currentDate = new Date();
-
     for (campaign of campaigngroups) {
         campaign = campaign.toJSON();
 
@@ -226,6 +238,73 @@ async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
         }
     }
     logMessage('Finished daily check for unlinked or off pace campaigns');
+}
+
+async function updateCampaignGroupsStatuses() {
+    logMessage('Starting hourly campaign group status update');
+
+    const campaigns = await fetchCampaignsWithPacings();
+
+    /*  Planning: Gray (missing links, not in-flight)
+        Planned: Blue (not missing links. not in-flight)
+        Not tracking: Orange (missing links. in-flight)
+        On pace: (not missing links. in-flight) Green
+        Under-paced: (not missing links. in-flight) red
+        Over-paced: (not missing links. in-flight) red
+        under pace < 5%
+        over pace > 5%
+        on pace -5% <> 5%
+    */
+    for (const campaign of campaigns) {
+        const { periods, allocations } = campaign.budgets[0];
+        let status = null;
+
+        // check if campaign is in flight
+        const { label: firstPeriodLabel } = periods[0];
+        const { label: lastPeriodLabel } = periods[periods.length - 1];
+
+        const startPeriod = new Date(firstPeriodLabel);
+        const endPeriod = new Date(lastPeriodLabel);
+        const currentDate = new Date();
+
+        const linked = checkBigQueryIdExists({ allocations });
+
+        if (currentDate >= startPeriod && currentDate <= endPeriod) {
+            const pacing = campaign.pacings[0];
+
+            // campaign is in flight check if campaign is linked
+            if (linked) {
+                const { overPaceObjects, underPaceObjects } =
+                    checkPacingOffPace({
+                        pacing,
+                        currentDate,
+                    });
+                if (overPaceObjects.length > 0 && underPaceObjects.length > 0) {
+                    status = 'Off pace';
+                } else if (overPaceObjects.length > 0) {
+                    status = 'Overpaced';
+                } else if (underPaceObjects.length > 0) {
+                    status = 'Underpaced';
+                } else {
+                    status = 'On pace';
+                }
+            } else {
+                status = 'Not tracking';
+            }
+        } else {
+            // campaign is not in flight
+            if (linked) {
+                status = 'Planned';
+            } else {
+                status = 'Planning';
+            }
+        }
+
+        campaign.status = status;
+        await campaign.save();
+    }
+
+    logMessage('Finished hourly campaign group status update');
 }
 
 module.exports = { start };
