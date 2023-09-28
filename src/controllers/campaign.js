@@ -110,8 +110,7 @@ const getCampaignGroupPacing = async (req, res) => {
 };
 
 // this function is used to check if a campaign is in flight based on the flight time start and end
-const checkInFlight = ({ campaign }) => {
-    const currentDate = new Date();
+const checkInFlight = ({ currentDate, campaign }) => {
     const startPeriod = new Date(campaign.flight_time_start);
     const endPeriod = new Date(campaign.flight_time_end);
 
@@ -208,8 +207,12 @@ const getMarketingCampaignsByClient = async (req, res) => {
         });
 
         // Check if campaign is in flight
+        const currentDate = new Date();
         for (const campaign of campaigns) {
-            campaign.dataValues.inFlight = checkInFlight({ campaign });
+            campaign.dataValues.inFlight = checkInFlight({
+                currentDate,
+                campaign,
+            });
         }
 
         res.status(200).json({
@@ -262,7 +265,11 @@ const getMarketingCampaignsById = async (req, res) => {
         }
 
         // Check if campaign is in flight
-        campaign.dataValues.inFlight = checkInFlight({ campaign });
+        const currentDate = new Date();
+        campaign.dataValues.inFlight = checkInFlight({
+            currentDate,
+            campaign,
+        });
 
         res.status(200).json({
             message: 'Marketing campaign retrieved successfully',
