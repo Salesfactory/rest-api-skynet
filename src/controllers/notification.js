@@ -6,7 +6,7 @@ const getNotifications = async (req, res) => {
 
     try {
         const notifications = await Notification.findAll({
-            where: { user_id: user.id, status: 'unread' },
+            where: { user_id: user.id },
             attributes: [
                 'id',
                 'title',
