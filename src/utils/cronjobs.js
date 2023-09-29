@@ -126,10 +126,6 @@ function checkIfCampaignIsUnlinked({ campaign }) {
         allocations,
     });
 
-    // update campaign linked status in the database
-    campaign.linked = !hasUnlinkedCampaigns;
-    campaign.save();
-
     const unlinkedCampaigns = campaigns.map(item => ({
         ...item,
         status: 'Unlinked',

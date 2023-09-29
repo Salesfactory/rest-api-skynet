@@ -42,11 +42,6 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-            linked: {
-                type: DataTypes.BOOLEAN,
-                allowNull: false,
-                defaultValue: false,
-            },
             goals: {
                 type: DataTypes.TEXT,
                 allowNull: true,
