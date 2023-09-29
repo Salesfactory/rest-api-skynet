@@ -293,13 +293,15 @@ async function updateCampaignGroupsStatuses() {
         // check if campaign is in flight
         const currentDate = new Date();
 
-        const linked = checkBigQueryIdExists({ allocations });
+        const { hasUnlinkedCampaigns } = checkBigQueryIdExists({
+            allocations,
+        });
 
         if (checkInFlight({ currentDate, campaign })) {
             const pacing = campaign.pacings[0];
 
             // campaign is in flight check if campaign is linked
-            if (linked) {
+            if (!hasUnlinkedCampaigns) {
                 const { overPaceCampaigns, underPaceCampaigns } =
                     checkPacingOffPace({
                         pacing,
@@ -322,7 +324,7 @@ async function updateCampaignGroupsStatuses() {
             }
         } else {
             // campaign is not in flight
-            if (linked) {
+            if (!hasUnlinkedCampaigns) {
                 status = 'Planned';
             } else {
                 status = 'Planning';
