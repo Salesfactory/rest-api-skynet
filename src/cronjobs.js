@@ -12,12 +12,9 @@ const {
     checkBigQueryIdExists,
     checkPacingOffPace,
 } = require('./utils/cronjobs');
-<<<<<<< Updated upstream
-=======
 const { checkInFlight } = require('./utils');
 const { emailTemplate } = require('./templates/email');
 const { send } = require('./utils/email');
->>>>>>> Stashed changes
 
 const formattedTime = time => {
     return (
@@ -193,50 +190,11 @@ async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
     for (campaign of campaigngroups) {
         // check if campaign has a user just in case (it should always have a user)
         if (campaign.user) {
-            const { periods } = campaign.budgets[0];
-            const { label: firstPeriodLabel } = periods[0];
-            const { label: lastPeriodLabel } = periods[periods.length - 1];
-
-            const startPeriod = new Date(firstPeriodLabel);
-            const endPeriod = new Date(lastPeriodLabel);
             const currentDate = new Date();
             // check if campaign is in flight
-<<<<<<< Updated upstream
-            if (startPeriod <= currentDate && endPeriod >= currentDate) {
-                const {
-                    subject: offPaceSubject,
-                    message: offPaceMessage,
-                    hasOffPaceCampaigns,
-                } = checkIfCampaignIsOffPace({ campaign, currentDate });
-
-                const {
-                    subject: unlinkedSubject,
-                    message: unlinkedMessage,
-                    hasUnlinkedCampaigns,
-                } = checkIfCampaignIsUnlinked({ campaign });
-
-                if (hasOffPaceCampaigns && hasUnlinkedCampaigns) {
-                    subject = `Campaign: ${campaign.name} - ${offPaceSubject} and ${unlinkedSubject}`;
-                    message = `${offPaceMessage} and it is unlinked.`;
-                } else if (hasOffPaceCampaigns) {
-                    subject = `Campaign: ${campaign.name} - ${offPaceSubject}`;
-                    message = offPaceMessage;
-                } else if (hasUnlinkedCampaigns) {
-                    subject = `Campaign: ${campaign.name} - ${unlinkedSubject}`;
-                    message = unlinkedMessage;
-                }
-
-                if (
-                    (hasUnlinkedCampaigns || hasOffPaceCampaigns) &&
-                    subject !== '' &&
-                    message !== ''
-                ) {
-                    await sendNotification({
-=======
             if (checkInFlight({ currentDate, campaign })) {
                 const { offPaceCampaigns, hasOffPaceCampaigns } =
                     checkIfCampaignIsOffPace({
->>>>>>> Stashed changes
                         campaign,
                         currentDate,
                     });
