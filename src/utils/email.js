@@ -37,7 +37,7 @@ const send = ({ to, subject, message, html = null }) => {
         try {
             transporter.verify(function (error, success) {
                 if (error) {
-                    return reject(err);
+                    return reject(error);
                 } else {
                     transporter.sendMail(emailOption, (err, info) => {
                         if (!err) {
