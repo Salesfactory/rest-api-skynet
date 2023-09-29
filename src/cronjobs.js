@@ -287,20 +287,15 @@ async function updateCampaignGroupsStatuses() {
         on pace -5% <> 5%
     */
     for (const campaign of campaigns) {
-        const { periods, allocations } = campaign.budgets[0];
+        const { allocations } = campaign.budgets[0];
         let status = null;
 
         // check if campaign is in flight
-        const { label: firstPeriodLabel } = periods[0];
-        const { label: lastPeriodLabel } = periods[periods.length - 1];
-
-        const startPeriod = new Date(firstPeriodLabel);
-        const endPeriod = new Date(lastPeriodLabel);
         const currentDate = new Date();
 
         const linked = checkBigQueryIdExists({ allocations });
 
-        if (currentDate >= startPeriod && currentDate <= endPeriod) {
+        if (checkInFlight({ currentDate, campaign })) {
             const pacing = campaign.pacings[0];
 
             // campaign is in flight check if campaign is linked

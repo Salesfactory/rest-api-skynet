@@ -1,18 +1,15 @@
 const { bigqueryClient } = require('../config/bigquery');
 const { createSheet } = require('../utils/reports');
-const {
-    Agency,
-    Budget,
-    Campaign,
-    CampaignGroup,
-    Client,
-    Pacing,
-    User,
-} = require('../models');
+const { Agency, Budget, CampaignGroup, Client, Pacing } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
 const { validateObjectAllocations } = require('../utils');
-const { getUser } = require('../utils');
+const { getUser, checkInFlight } = require('../utils');
+const { computeAndStoreMetrics } = require('../utils/bq_spend');
+const {
+    fetchCampaignsWithBudgets,
+    updateOrInsertPacingMetrics,
+} = require('../utils/cronjobs');
 
 //creacion de reporte excel
 const createReport = async (req, res) => {
@@ -107,16 +104,6 @@ const getCampaignGroupPacing = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-};
-
-// this function is used to check if a campaign is in flight based on the flight time start and end
-const checkInFlight = ({ currentDate, campaign }) => {
-    const startPeriod = new Date(campaign.flight_time_start);
-    const endPeriod = new Date(campaign.flight_time_end);
-
-    return currentDate >= startPeriod && currentDate <= endPeriod
-        ? true
-        : false;
 };
 
 // Marketing campaign list for client
@@ -891,292 +878,26 @@ const getRecentCampaigns = async (req, res) => {
     }
 };
 
-const getCampaignsByGroup = async (req, res) => {
-    const { id: clientId, cid: marketingCampaignId } = req.params;
-    const { channel, campaignType } = req.query;
+const refreshMetrics = async (req, res) => {
     try {
-        const client = await Client.findOne({
-            where: { id: clientId },
-        });
+        const campaigns = await fetchCampaignsWithBudgets();
+        const currentDate = new Date();
 
-        if (!client) {
-            return res.status(404).json({
-                message: `Client not found`,
+        for (const campaign of campaigns) {
+            const { periods, allocations } = await computeAndStoreMetrics({
+                campaign,
+                currentDate,
             });
-        }
 
-        const marketingCampaign = await CampaignGroup.findOne({
-            where: {
-                id: marketingCampaignId,
-            },
-        });
-
-        if (!marketingCampaign) {
-            return res.status(404).json({
-                message: `Marketing campaign not found`,
-            });
-        }
-
-        const filteredCampaigns = await Campaign.findAll({
-            where: {
-                campaign_group_id: marketingCampaignId,
-                channel: sequelize.where(
-                    sequelize.fn('LOWER', sequelize.col('channel')),
-                    'LIKE',
-                    `%${channel}%`
-                ),
-                campaign_type: sequelize.where(
-                    sequelize.fn('LOWER', sequelize.col('campaign_type')),
-                    'LIKE',
-                    `%${campaignType}%`
-                ),
-            },
-            include: [
-                {
-                    model: CampaignGroup,
-                    as: 'campaign_group',
-                },
-            ],
-        });
-
-        if (filteredCampaigns.length === 0) {
-            return res.status(404).json({
-                message: `Campaigns not found`,
-            });
-        }
-
-        filteredCampaigns.forEach(campaign => {
-            campaign.clientId = clientId;
-        });
-
-        res.status(200).json({
-            message: 'Campaigns retrieved successfully',
-            data: filteredCampaigns,
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-const getCampaignsById = async (req, res) => {
-    const {
-        id: clientId,
-        cid: marketingCampaignId,
-        caid: campaignId,
-    } = req.params;
-
-    try {
-        const client = await Client.findOne({
-            where: { id: clientId },
-        });
-
-        if (!client) {
-            return res.status(404).json({
-                message: `Client not found`,
-            });
-        }
-
-        const marketingCampaign = await CampaignGroup.findOne({
-            where: {
-                id: marketingCampaignId,
-            },
-        });
-
-        if (!marketingCampaign) {
-            return res.status(404).json({
-                message: `Marketing campaign not found`,
-            });
-        }
-
-        let filteredCampaigns = await Campaign.findAll({
-            where: {
-                campaign_group_id: marketingCampaignId,
-            },
-            include: [
-                {
-                    model: CampaignGroup,
-                    as: 'campaign_group',
-                },
-            ],
-        });
-
-        if (filteredCampaigns.length === 0) {
-            return res.status(404).json({
-                message: `Campaign not found`,
+            await updateOrInsertPacingMetrics({
+                campaign,
+                periods,
+                allocations,
             });
         }
 
         res.status(200).json({
-            message: 'Campaign retrieved successfully',
-            data: filteredCampaigns,
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-const updateCampaignGoals = async (req, res) => {
-    const {
-        id: clientId,
-        cid: marketingCampaignId,
-        caid: campaignId,
-    } = req.params;
-    const { goals } = req.body;
-
-    try {
-        if (!goals) {
-            return res.status(400).json({
-                message: `Missing required fields: goals`,
-            });
-        }
-
-        const client = await Client.findOne({
-            where: { id: clientId },
-        });
-
-        if (!client) {
-            return res.status(404).json({
-                message: `Client not found`,
-            });
-        }
-
-        const marketingCampaign = await CampaignGroup.findOne({
-            where: { id: marketingCampaignId },
-        });
-
-        if (!marketingCampaign) {
-            return res.status(404).json({
-                message: `Marketing campaign not found`,
-            });
-        }
-
-        const campaign = await Campaign.findOne({
-            where: { id: campaignId },
-        });
-
-        if (!campaign) {
-            return res.status(404).json({
-                message: `Campaign not found`,
-            });
-        }
-
-        const updatedCampaign = await Campaign.update(
-            {
-                goal: goals,
-            },
-            {
-                where: { id: campaignId },
-                returning: true,
-                plain: true,
-            }
-        );
-
-        res.status(200).json({
-            message: 'Campaign goals updated successfully',
-            data: updatedCampaign[1],
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-const pauseCampaign = async (req, res) => {
-    const { id: clientId, cid: campaignGroupId, caid: campaignId } = req.params;
-    const { pause, reason } = req.body;
-
-    try {
-        if (typeof pause !== 'boolean') {
-            return res.status(400).json({
-                message: `Missing required fields: pause or pause is not a boolean`,
-            });
-        }
-
-        const campaignGroup = await CampaignGroup.findOne({
-            where: { id: campaignGroupId, client_id: clientId },
-        });
-
-        if (!campaignGroup) {
-            return res.status(404).json({
-                message: `Campaign group not found`,
-            });
-        }
-
-        const campaign = await Campaign.findOne({
-            where: { id: campaignId, campaign_group_id: campaignGroupId },
-        });
-
-        if (!campaign) {
-            return res.status(404).json({
-                message: `Campaign not found`,
-            });
-        }
-
-        const updatedCampaign = await Campaign.update(
-            {
-                paused: pause,
-                pause_reason: reason,
-            },
-            {
-                where: { id: campaignId },
-                returning: true,
-                plain: true,
-            }
-        );
-
-        res.status(200).json({
-            message: 'Campaign paused status updated successfully',
-            data: updatedCampaign[1],
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-const deleteCampaign = async (req, res) => {
-    const { id: clientId, cid: campaignGroupId, caid: campaignId } = req.params;
-
-    const { reason } = req.body;
-
-    try {
-        const campaignGroup = await CampaignGroup.findOne({
-            where: { id: campaignGroupId, client_id: clientId },
-        });
-
-        if (!campaignGroup) {
-            return res.status(404).json({
-                message: `Campaign group not found`,
-            });
-        }
-
-        const campaign = await Campaign.findOne({
-            where: { id: campaignId, campaign_group_id: campaignGroupId },
-        });
-
-        if (!campaign) {
-            return res.status(404).json({
-                message: `Campaign not found`,
-            });
-        }
-
-        const updatedCampaign = await Campaign.update(
-            {
-                deleted: true,
-                deleted_at: new Date()
-                    .toISOString()
-                    .slice(0, 19)
-                    .replace('T', ' '),
-                delete_reason: reason,
-            },
-            {
-                where: { id: campaignId },
-                returning: true,
-                plain: true,
-            }
-        );
-
-        res.status(200).json({
-            message: 'Campaign deleted successfully',
-            data: updatedCampaign[1],
+            message: 'Campaigns metrics refreshed successfully',
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -1192,11 +913,7 @@ module.exports = {
     getClientBigqueryCampaigns,
     getClientBigqueryAdsets,
     getRecentCampaigns,
-    getCampaignsByGroup,
-    getCampaignsById,
-    updateCampaignGoals,
-    pauseCampaign,
-    deleteCampaign,
     createReport,
     getCampaignGroupPacing,
+    refreshMetrics,
 };

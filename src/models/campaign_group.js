@@ -18,10 +18,6 @@ module.exports = (sequelize, DataTypes) => {
                 foreignKey: 'campaign_group_id',
                 as: 'budgets',
             });
-            CampaignGroup.hasMany(models.Campaign, {
-                foreignKey: 'campaign_group_id',
-                as: 'campaigns',
-            });
             CampaignGroup.hasMany(models.Pacing, {
                 foreignKey: 'campaign_group_id',
                 as: 'pacings',

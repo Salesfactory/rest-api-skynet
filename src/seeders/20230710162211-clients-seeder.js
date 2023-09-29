@@ -26,7 +26,7 @@ module.exports = {
                     aliases: '["Channellock", "Channellock (US)"]',
                     sub_advertiser_aliases: '["CHANNELLOCK"]',
                     advertiser_ids:
-                        '["2432101105871223","5456360509","act_569377181360420","509457721"]',
+                        '["2432101105871223","5456360509","act_569377181360420","509457721","7084338459929739265"]',
                     sub_advertiser_ids: '["19579"]',
                     agency_id: 1,
                 },
