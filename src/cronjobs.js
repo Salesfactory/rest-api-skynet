@@ -300,16 +300,19 @@ async function updateCampaignGroupsStatuses() {
 
             // campaign is in flight check if campaign is linked
             if (linked) {
-                const { overPaceObjects, underPaceObjects } =
+                const { overPaceCampaigns, underPaceCampaigns } =
                     checkPacingOffPace({
                         pacing,
                         currentDate,
                     });
-                if (overPaceObjects.length > 0 && underPaceObjects.length > 0) {
+                if (
+                    overPaceCampaigns.length > 0 &&
+                    underPaceCampaigns.length > 0
+                ) {
                     status = 'Off pace';
-                } else if (overPaceObjects.length > 0) {
+                } else if (overPaceCampaigns.length > 0) {
                     status = 'Overpaced';
-                } else if (underPaceObjects.length > 0) {
+                } else if (underPaceCampaigns.length > 0) {
                     status = 'Underpaced';
                 } else {
                     status = 'On pace';
