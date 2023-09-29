@@ -13,6 +13,8 @@ const {
     checkPacingOffPace,
 } = require('./utils/cronjobs');
 const { checkInFlight } = require('./utils');
+const { emailTemplate } = require('./templates/email');
+const { send } = require('./utils/email');
 
 const formattedTime = time => {
     return (
@@ -180,58 +182,92 @@ async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
     logMessage('Starting daily check for unlinked or off pace campaigns');
     const campaigngroups = await fetchCampaignsWithPacings();
 
+    let usersToNotify = {};
+    let usernames = new Map();
+
     // check if is in flight
     // in flight campaign means: A campaign with a start date in the past and an end date in the future
     for (campaign of campaigngroups) {
-        campaign = campaign.toJSON();
-
         // check if campaign has a user just in case (it should always have a user)
         if (campaign.user) {
             const currentDate = new Date();
-
-            let subject = '';
-            let message = '';
-
             // check if campaign is in flight
             if (checkInFlight({ currentDate, campaign })) {
-                const {
-                    subject: offPaceSubject,
-                    message: offPaceMessage,
-                    hasOffPaceCampaigns,
-                } = checkIfCampaignIsOffPace({ campaign, currentDate });
-
-                const {
-                    subject: unlinkedSubject,
-                    message: unlinkedMessage,
-                    hasUnlinkedCampaigns,
-                } = checkIfCampaignIsUnlinked({ campaign });
-
-                if (hasOffPaceCampaigns && hasUnlinkedCampaigns) {
-                    subject = `Campaign: ${campaign.name} - ${offPaceSubject} and ${unlinkedSubject}`;
-                    message = `${offPaceMessage} and it is unlinked.`;
-                } else if (hasOffPaceCampaigns) {
-                    subject = `Campaign: ${campaign.name} - ${offPaceSubject}`;
-                    message = offPaceMessage;
-                } else if (hasUnlinkedCampaigns) {
-                    subject = `Campaign: ${campaign.name} - ${unlinkedSubject}`;
-                    message = unlinkedMessage;
-                }
-
-                if (
-                    (hasUnlinkedCampaigns || hasOffPaceCampaigns) &&
-                    subject !== '' &&
-                    message !== ''
-                ) {
-                    await sendNotification({
+                const { offPaceCampaigns, hasOffPaceCampaigns } =
+                    checkIfCampaignIsOffPace({
                         campaign,
-                        subject,
-                        message,
-                        type: 'email',
+                        currentDate,
+                    });
+
+                const { unlinkedCampaigns, hasUnlinkedCampaigns } =
+                    checkIfCampaignIsUnlinked({
+                        campaign,
+                    });
+
+                // if campaign is off pace or unlinked, add it to the list of campaigns to notify the user
+                if (hasOffPaceCampaigns || hasUnlinkedCampaigns) {
+                    if (!usersToNotify[campaign.user.id]) {
+                        usersToNotify[campaign.user.id] = [];
+                        usernames[campaign.user.id] = {
+                            name: campaign.user.name,
+                            email: campaign.user.email,
+                        };
+                    }
+
+                    usersToNotify[campaign.user.id].push({
+                        id: campaign.id,
+                        name: campaign.name,
+                        user: {
+                            id: campaign.user.id,
+                            name: campaign.user.name,
+                        },
+                        client: {
+                            id: campaign.client.id,
+                            name: campaign.client.name,
+                        },
+                        offpace: offPaceCampaigns,
+                        unlinked: unlinkedCampaigns,
                     });
                 }
             }
         }
     }
+
+    // send email to users
+    for (const id in usersToNotify) {
+        const user = usernames[id];
+        const campaigns = usersToNotify[id];
+
+        logMessage('Sending email to user: ' + user.name);
+        const html = emailTemplate({
+            user: user.name,
+            campaigns,
+            baseUrl: process.env.WEB_URL,
+        });
+
+        // send notification to user in web
+        await Promise.all(
+            campaigns.map(campaign =>
+                sendNotification({
+                    campaign,
+                    subject: 'You have unlinked or off pace campaigns',
+                    message: campaign.name + ' is unlinked or off pace',
+                    type: 'email',
+                })
+            )
+        );
+
+        // send email to user
+        await send({
+            to: user.email,
+            subject: 'You have unlinked or off pace campaigns',
+            message: 'You have unlinked or off pace campaigns',
+            html,
+            type: 'email',
+        });
+        logMessage('Sending email to user: ' + user.name);
+    }
+
     logMessage('Finished daily check for unlinked or off pace campaigns');
 }
 

@@ -7,7 +7,7 @@ const config = {
     EMAIL_PASS: process.env.EMAIL_PASS,
 };
 
-const send = ({ to, subject, message }) => {
+const send = ({ to, subject, message, html = null }) => {
     return new Promise((resolve, reject) => {
         if (!to || !subject || !message) {
             return reject(
@@ -31,6 +31,7 @@ const send = ({ to, subject, message }) => {
             to: to,
             subject: subject,
             text: message,
+            html,
         };
 
         try {

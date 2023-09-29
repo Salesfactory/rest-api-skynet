@@ -6,109 +6,60 @@ const {
     Client,
     User,
 } = require('../models');
-const { send } = require('./email');
 
 /**
  * Checks if a campaign is off pace
  */
 function checkIfCampaignIsOffPace({ campaign, currentDate }) {
     const pacing = campaign.pacings[0];
-    let hasOffPaceCampaigns = false;
-    let subject = '';
-    let message = '';
 
-    let offPaceMessage = `The campaign ${campaign.name} from client ${campaign.client.name} is off pace for channel`;
-    const { overPaceObjects, underPaceObjects } = checkPacingOffPace({
+    const { overPaceCampains, underPaceCampaigns } = checkPacingOffPace({
         pacing,
         currentDate,
     });
-    const offPaceObjects = [...overPaceObjects, ...underPaceObjects];
-    const offPaceMessages = offPaceObjects.map(allocation => allocation.name);
-
-    if (offPaceMessages.length > 1) {
-        offPaceMessage += 's';
-    }
-
-    if (offPaceMessages.length > 0) {
-        offPaceMessage += `: ${offPaceMessages.join(', ')}.`;
-        subject = 'Off pace';
-        message = offPaceMessage;
-        hasOffPaceCampaigns = true;
-    }
+    const offPaceCampaigns = [
+        ...overPaceCampains.map(item => ({
+            ...item,
+            pace: 'Over',
+        })),
+        ...underPaceCampaigns.map(item => ({
+            ...item,
+            pace: 'Under',
+        })),
+    ];
 
     return {
-        subject,
-        message,
-        hasOffPaceCampaigns,
+        hasOffPaceCampaigns: offPaceCampaigns.length > 0 ? true : false,
+        offPaceCampaigns,
     };
 }
 
 /**
- *  Checks if a campaign is unlinked
+ * get all campaigns flat
  */
-function checkIfCampaignIsUnlinked({ campaign }) {
-    const { allocations } = campaign.budgets[0];
-    // check if campaign does not have a bigquery_campaign_id
-    campaign.linked = checkBigQueryIdExists({ allocations });
-    // update campaign linked status in the database
-    CampaignGroup.update(
-        { linked: campaign.linked },
-        { where: { id: campaign.id } }
-    );
-
-    let hasUnlinkedCampaigns = false;
-    let subject = '';
-    let message = '';
-
-    if (!campaign.linked) {
-        hasUnlinkedCampaigns = true;
-        message = `The campaign ${campaign.name} from client ${campaign.client.name} is unlinked for channel`;
-        subject = 'Unlinked';
-    }
-
-    return {
-        subject,
-        message,
-        hasUnlinkedCampaigns,
-    };
-}
-
-/**
- * Checks if at least a campaigns from a list of campaigns does not have a bigquery_campaign_id
- */
-function checkBigQueryIdExists({ allocations }) {
-    for (const key in allocations) {
-        const period = allocations[key];
-        for (const channel of period.allocations) {
-            if (
-                channel.type === 'CHANNEL' &&
-                Array.isArray(channel.allocations) &&
-                channel.allocations.length > 0
-            ) {
-                for (const campaignType of channel.allocations) {
-                    if (
-                        campaignType.type === 'CAMPAIGN_TYPE' &&
-                        Array.isArray(campaignType.allocations) &&
-                        campaignType.allocations.length > 0
-                    ) {
-                        for (const campaign of campaignType.allocations) {
-                            if (
-                                campaign.type === 'CAMPAIGN' &&
-                                !campaign.bigquery_campaign_id
-                            ) {
-                                return false;
-                            }
-                        }
-                    } else {
-                        return false;
+function getCampaignsFlat({ allocations }) {
+    let campaignsFlat = [];
+    for (const channel of allocations) {
+        if (
+            channel.type === 'CHANNEL' &&
+            Array.isArray(channel.allocations) &&
+            channel.allocations.length > 0
+        ) {
+            for (const campaignType of channel.allocations) {
+                if (
+                    campaignType.type === 'CAMPAIGN_TYPE' &&
+                    Array.isArray(campaignType.allocations) &&
+                    campaignType.allocations.length > 0
+                ) {
+                    for (const campaign of campaignType.allocations) {
+                        campaign.channel = channel.name;
+                        campaignsFlat.push(campaign);
                     }
                 }
-            } else {
-                return false;
             }
         }
     }
-    return true;
+    return campaignsFlat;
 }
 
 /**
@@ -124,50 +75,118 @@ function checkPacingOffPace({ pacing, currentDate }) {
         const year = currentDate.getFullYear();
         const formattedDate = `${month}_${year}`;
         const { allocations } = pacing;
-        const currentPeriod = allocations[formattedDate];
+        const currentPeriod = allocations[formattedDate] || { allocations: [] };
+
+        // get all campaigns from the current period in a flat array
+        const campaignsFlat = getCampaignsFlat({
+            allocations: currentPeriod.allocations,
+        });
+
         // offpace objects are over and under pacing objects
-        const overPaceObjects = currentPeriod?.allocations?.filter(
-            allocation => {
-                // an over pace object is an object that has a adb_current value that is more than the adb value by more than 5%
-                const { adb, adb_current } = allocation;
-                const adb_plus_threshold = parseFloat(adb) * (1 + threshold);
-                // check if adb_current more than adb by more than 5%
-                if (adb_current > parseFloat(adb_plus_threshold)) {
-                    return true;
-                }
-                return false;
+        const overPaceCampains = campaignsFlat?.filter(campaign => {
+            // an over pace object is an object that has a adb_current value that is more than the adb value by more than 5%
+            const { adb, adb_current } = campaign;
+            const adb_plus_threshold = parseFloat(adb) * (1 + threshold);
+            // check if adb_current more than adb by more than 5%
+            if (adb_current > parseFloat(adb_plus_threshold)) {
+                return true;
             }
-        );
-        const underPaceObjects = currentPeriod?.allocations?.filter(
-            allocation => {
-                // an under pace object is an object that has a adb_current value that is less than the adb value by more than 5%
-                const { adb, adb_current } = allocation;
-                const adb_less_threshold = parseFloat(adb) * (1 - threshold);
-                // check if adb_current less than adb by more than 5%
-                if (adb_current < parseFloat(adb_less_threshold)) {
-                    return true;
-                }
-                return false;
+            return false;
+        });
+        const underPaceCampaigns = campaignsFlat?.filter(campaign => {
+            // an under pace object is an object that has a adb_current value that is less than the adb value by more than 5%
+            const { adb, adb_current } = campaign;
+            const adb_less_threshold = parseFloat(adb) * (1 - threshold);
+            // check if adb_current less than adb by more than 5%
+            if (adb_current < parseFloat(adb_less_threshold)) {
+                return true;
             }
-        );
+            return false;
+        });
 
         return {
-            overPaceObjects,
-            underPaceObjects,
+            overPaceCampains,
+            underPaceCampaigns,
         };
     } else {
         return {
-            overPaceObjects: [],
-            underPaceObjects: [],
+            overPaceCampains: [],
+            underPaceCampaigns: [],
         };
     }
 }
 
 /**
- * Sends a notification to the user via email and inserts a notification in the database
+ *  Checks if a campaign is unlinked
+ */
+function checkIfCampaignIsUnlinked({ campaign }) {
+    const { allocations } = campaign.budgets[0];
+    // check if campaign does not have a bigquery_campaign_id
+    const { hasUnlinkedCampaigns, campaigns } = checkBigQueryIdExists({
+        allocations,
+    });
+
+    // update campaign linked status in the database
+    campaign.linked = !hasUnlinkedCampaigns;
+    campaign.save();
+
+    const unlinkedCampaigns = campaigns.map(item => ({
+        ...item,
+        status: 'Unlinked',
+    }));
+
+    return {
+        hasUnlinkedCampaigns,
+        unlinkedCampaigns,
+    };
+}
+
+/**
+ * Checks if at least a campaigns from a list of campaigns does not have a bigquery_campaign_id
+ */
+function checkBigQueryIdExists({ allocations }) {
+    let campaignsUnlinked = [];
+    for (const [index, key] of Object.keys(allocations).entries()) {
+        // since every period has the same structure, we only need to check the first period
+        if (index === 0) {
+            const period = allocations[key];
+            for (const channel of period.allocations) {
+                if (
+                    channel.type === 'CHANNEL' &&
+                    Array.isArray(channel.allocations) &&
+                    channel.allocations.length > 0
+                ) {
+                    for (const campaignType of channel.allocations) {
+                        if (
+                            campaignType.type === 'CAMPAIGN_TYPE' &&
+                            Array.isArray(campaignType.allocations) &&
+                            campaignType.allocations.length > 0
+                        ) {
+                            for (const campaign of campaignType.allocations) {
+                                if (
+                                    campaign.type === 'CAMPAIGN' &&
+                                    !campaign.bigquery_campaign_id
+                                ) {
+                                    campaign.channel = channel.name;
+                                    campaignsUnlinked.push(campaign);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return {
+        hasUnlinkedCampaigns: campaignsUnlinked.length > 0,
+        campaigns: campaignsUnlinked,
+    };
+}
+
+/**
+ * Sends a notification to the user inserted in the database
  */
 async function sendNotification({ campaign, subject, message, type }) {
-    await send({ to: campaign.user.email, subject, message });
     await Notification.create({
         user_id: campaign.user.id,
         title: subject,
@@ -218,7 +237,7 @@ async function fetchCampaignsWithPacings() {
             {
                 model: User,
                 as: 'user',
-                attributes: ['id', 'email'],
+                attributes: ['id', 'name', 'email'],
             },
             {
                 model: Client,
