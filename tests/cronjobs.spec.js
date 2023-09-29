@@ -69,19 +69,43 @@ describe('Cronjobs', () => {
                             {
                                 name: 'Amazon Advertising',
                                 budget: 851.1560000000001,
-                                allocations: [],
+                                allocations: [
+                                    {
+                                        name: 'Campaign Type',
+                                        budget: 851.1560000000001,
+                                        allocations: [
+                                            {
+                                                name: 'Campaign',
+                                                budget: 851.1560000000001,
+                                                allocations: [],
+                                                adb: 56.74373333333334,
+                                                adb_current: 0.4624,
+                                                type: 'CAMPAIGN',
+                                            },
+                                        ],
+                                        adb: 56.74373333333334,
+                                        adb_current: 0.4624,
+                                        type: 'CAMPAIGN_TYPE',
+                                    },
+                                ],
                                 adb: 56.74373333333334,
                                 adb_current: 0.4624,
+                                type: 'CHANNEL',
                             },
                         ],
                     },
                 },
             };
-            const { overPaceObjects, underPaceObjects } = checkPacingOffPace({
-                pacing,
-                currentDate,
-            });
-            const offPaceCampaigns = [...overPaceObjects, ...underPaceObjects];
+            const { overPaceCampains, underPaceCampaigns } = checkPacingOffPace(
+                {
+                    pacing,
+                    currentDate,
+                }
+            );
+            const offPaceCampaigns = [
+                ...overPaceCampains,
+                ...underPaceCampaigns,
+            ];
             expect(offPaceCampaigns).toHaveLength(1);
         });
         it('should return an array with length == 1 if a campaign is overpaced', () => {
@@ -93,19 +117,43 @@ describe('Cronjobs', () => {
                             {
                                 name: 'Amazon Advertising',
                                 budget: 851.1560000000001,
-                                allocations: [],
+                                allocations: [
+                                    {
+                                        name: 'Campaign Type',
+                                        budget: 851.1560000000001,
+                                        allocations: [
+                                            {
+                                                name: 'Campaign',
+                                                budget: 851.1560000000001,
+                                                allocations: [],
+                                                adb: 56.74373333333334,
+                                                adb_current: 0.4624,
+                                                type: 'CAMPAIGN',
+                                            },
+                                        ],
+                                        adb: 56.74373333333334,
+                                        adb_current: 0.4624,
+                                        type: 'CAMPAIGN_TYPE',
+                                    },
+                                ],
                                 adb: 56.74373333333334,
                                 adb_current: 0.4624,
+                                type: 'CHANNEL',
                             },
                         ],
                     },
                 },
             };
-            const { overPaceObjects, underPaceObjects } = checkPacingOffPace({
-                pacing,
-                currentDate,
-            });
-            const offPaceCampaigns = [...overPaceObjects, ...underPaceObjects];
+            const { overPaceCampains, underPaceCampaigns } = checkPacingOffPace(
+                {
+                    pacing,
+                    currentDate,
+                }
+            );
+            const offPaceCampaigns = [
+                ...overPaceCampains,
+                ...underPaceCampaigns,
+            ];
             expect(offPaceCampaigns).toHaveLength(1);
         });
         it('should return an array with length == 2 if a campaign is offpace', () => {
@@ -117,35 +165,83 @@ describe('Cronjobs', () => {
                             {
                                 name: 'Google Ads',
                                 budget: 851.1560000000001,
-                                allocations: [],
+                                allocations: [
+                                    {
+                                        name: 'Campaign Type',
+                                        budget: 851.1560000000001,
+                                        allocations: [
+                                            {
+                                                name: 'Campaign',
+                                                budget: 851.1560000000001,
+                                                allocations: [],
+                                                adb: 56.74373333333334,
+                                                adb_current: 340.4624,
+                                                type: 'CAMPAIGN',
+                                            },
+                                        ],
+                                        adb: 56.74373333333334,
+                                        adb_current: 340.4624,
+                                        type: 'CAMPAIGN_TYPE',
+                                    },
+                                ],
                                 adb: 56.74373333333334,
                                 adb_current: 340.4624,
+                                type: 'CHANNEL',
                             },
                             {
                                 name: 'Amazon Advertising',
                                 budget: 851.1560000000001,
-                                allocations: [],
+                                allocations: [
+                                    {
+                                        name: 'Campaign Type',
+                                        budget: 851.1560000000001,
+                                        allocations: [
+                                            {
+                                                name: 'Campaign',
+                                                budget: 851.1560000000001,
+                                                allocations: [],
+                                                adb: 56.74373333333334,
+                                                adb_current: 0.4624,
+                                                type: 'CAMPAIGN',
+                                            },
+                                        ],
+                                        adb: 56.74373333333334,
+                                        adb_current: 0.4624,
+                                        type: 'CAMPAIGN_TYPE',
+                                    },
+                                ],
                                 adb: 56.74373333333334,
                                 adb_current: 0.4624,
+                                type: 'CHANNEL',
                             },
                         ],
                     },
                 },
             };
-            const { overPaceObjects, underPaceObjects } = checkPacingOffPace({
-                pacing,
-                currentDate,
-            });
-            const offPaceCampaigns = [...overPaceObjects, ...underPaceObjects];
+            const { overPaceCampains, underPaceCampaigns } = checkPacingOffPace(
+                {
+                    pacing,
+                    currentDate,
+                }
+            );
+            const offPaceCampaigns = [
+                ...overPaceCampains,
+                ...underPaceCampaigns,
+            ];
             expect(offPaceCampaigns).toHaveLength(2);
         });
         it('should return an array with length = 0 if pacing is null', () => {
             const pacing = null;
-            const { overPaceObjects, underPaceObjects } = checkPacingOffPace({
-                pacing,
-                currentDate,
-            });
-            const offPaceCampaigns = [...overPaceObjects, ...underPaceObjects];
+            const { overPaceCampains, underPaceCampaigns } = checkPacingOffPace(
+                {
+                    pacing,
+                    currentDate,
+                }
+            );
+            const offPaceCampaigns = [
+                ...overPaceCampains,
+                ...underPaceCampaigns,
+            ];
             expect(offPaceCampaigns).toHaveLength(0);
         });
         it('should return an array with length = 0 if pacing is on pace', () => {
@@ -166,11 +262,16 @@ describe('Cronjobs', () => {
                     },
                 },
             };
-            const { overPaceObjects, underPaceObjects } = checkPacingOffPace({
-                pacing,
-                currentDate,
-            });
-            const offPaceCampaigns = [...overPaceObjects, ...underPaceObjects];
+            const { overPaceCampains, underPaceCampaigns } = checkPacingOffPace(
+                {
+                    pacing,
+                    currentDate,
+                }
+            );
+            const offPaceCampaigns = [
+                ...overPaceCampains,
+                ...underPaceCampaigns,
+            ];
             expect(offPaceCampaigns).toHaveLength(0);
         });
     });
@@ -191,16 +292,54 @@ describe('Cronjobs', () => {
                                     {
                                         name: 'Google Ads',
                                         budget: 851.1560000000001,
-                                        allocations: [],
+                                        allocations: [
+                                            {
+                                                name: 'Campaign Type',
+                                                budget: 851.1560000000001,
+                                                allocations: [
+                                                    {
+                                                        name: 'Campaign',
+                                                        budget: 851.1560000000001,
+                                                        allocations: [],
+                                                        adb: 56.74373333333334,
+                                                        adb_current: 340.4624,
+                                                        type: 'CAMPAIGN',
+                                                    },
+                                                ],
+                                                adb: 56.74373333333334,
+                                                adb_current: 340.4624,
+                                                type: 'CAMPAIGN_TYPE',
+                                            },
+                                        ],
                                         adb: 56.74373333333334,
                                         adb_current: 340.4624,
+                                        type: 'CHANNEL',
                                     },
                                     {
                                         name: 'Amazon Advertising',
                                         budget: 851.1560000000001,
-                                        allocations: [],
+                                        allocations: [
+                                            {
+                                                name: 'Campaign Type',
+                                                budget: 851.1560000000001,
+                                                allocations: [
+                                                    {
+                                                        name: 'Campaign',
+                                                        budget: 851.1560000000001,
+                                                        allocations: [],
+                                                        adb: 56.74373333333334,
+                                                        adb_current: 0.4624,
+                                                        type: 'CAMPAIGN',
+                                                    },
+                                                ],
+                                                adb: 56.74373333333334,
+                                                adb_current: 0.4624,
+                                                type: 'CAMPAIGN_TYPE',
+                                            },
+                                        ],
                                         adb: 56.74373333333334,
                                         adb_current: 0.4624,
+                                        type: 'CHANNEL',
                                     },
                                 ],
                             },
@@ -230,7 +369,25 @@ describe('Cronjobs', () => {
                                         name: 'Google Ads',
                                         budget: 851.1560000000001,
                                         type: 'CHANNEL',
-                                        allocations: [],
+                                        allocations: [
+                                            {
+                                                name: 'Campaign Type',
+                                                budget: 851.1560000000001,
+                                                type: 'CAMPAIGN_TYPE',
+                                                allocations: [
+                                                    {
+                                                        name: 'Campaign',
+                                                        budget: 851.1560000000001,
+                                                        type: 'CAMPAIGN',
+                                                        allocations: [],
+                                                        adb: 56.74373333333334,
+                                                        adb_current: 56,
+                                                    },
+                                                ],
+                                                adb: 56.74373333333334,
+                                                adb_current: 56,
+                                            },
+                                        ],
                                         adb: 56.74373333333334,
                                         adb_current: 56,
                                     },
@@ -284,10 +441,10 @@ describe('Cronjobs', () => {
                 },
             };
 
-            const result = checkBigQueryIdExists({
+            const { hasUnlinkedCampaigns } = checkBigQueryIdExists({
                 allocations,
             });
-            expect(result).toBeTruthy();
+            expect(!hasUnlinkedCampaigns).toBeTruthy();
         });
 
         it("should return false if bigquery_campaign_id doesn't exist", () => {
@@ -324,10 +481,10 @@ describe('Cronjobs', () => {
                 },
             };
 
-            const result = checkBigQueryIdExists({
+            const { hasUnlinkedCampaigns } = checkBigQueryIdExists({
                 allocations,
             });
-            expect(result).toBeFalsy();
+            expect(!hasUnlinkedCampaigns).toBeFalsy();
         });
 
         it('should return false if there are no allocations at campaign level', () => {
@@ -346,10 +503,10 @@ describe('Cronjobs', () => {
                 },
             };
 
-            const result = checkBigQueryIdExists({
+            const { hasUnlinkedCampaigns } = checkBigQueryIdExists({
                 allocations,
             });
-            expect(result).toBeFalsy();
+            expect(!hasUnlinkedCampaigns).toBeTruthy();
         });
     });
 });
