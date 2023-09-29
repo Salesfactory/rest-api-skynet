@@ -13,12 +13,12 @@ const {
 function checkIfCampaignIsOffPace({ campaign, currentDate }) {
     const pacing = campaign.pacings[0];
 
-    const { overPaceCampains, underPaceCampaigns } = checkPacingOffPace({
+    const { overPaceCampaigns, underPaceCampaigns } = checkPacingOffPace({
         pacing,
         currentDate,
     });
     const offPaceCampaigns = [
-        ...overPaceCampains.map(item => ({
+        ...overPaceCampaigns.map(item => ({
             ...item,
             pace: 'Over',
         })),
@@ -83,7 +83,7 @@ function checkPacingOffPace({ pacing, currentDate }) {
         });
 
         // offpace objects are over and under pacing objects
-        const overPaceCampains = campaignsFlat?.filter(campaign => {
+        const overPaceCampaigns = campaignsFlat?.filter(campaign => {
             // an over pace object is an object that has a adb_current value that is more than the adb value by more than 5%
             const { adb, adb_current } = campaign;
             const adb_plus_threshold = parseFloat(adb) * (1 + threshold);
@@ -105,12 +105,12 @@ function checkPacingOffPace({ pacing, currentDate }) {
         });
 
         return {
-            overPaceCampains,
+            overPaceCampaigns,
             underPaceCampaigns,
         };
     } else {
         return {
-            overPaceCampains: [],
+            overPaceCampaigns: [],
             underPaceCampaigns: [],
         };
     }

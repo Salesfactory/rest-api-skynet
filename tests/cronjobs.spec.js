@@ -96,14 +96,13 @@ describe('Cronjobs', () => {
                     },
                 },
             };
-            const { overPaceCampains, underPaceCampaigns } = checkPacingOffPace(
-                {
+            const { overPaceCampaigns, underPaceCampaigns } =
+                checkPacingOffPace({
                     pacing,
                     currentDate,
-                }
-            );
+                });
             const offPaceCampaigns = [
-                ...overPaceCampains,
+                ...overPaceCampaigns,
                 ...underPaceCampaigns,
             ];
             expect(offPaceCampaigns).toHaveLength(1);
@@ -144,14 +143,13 @@ describe('Cronjobs', () => {
                     },
                 },
             };
-            const { overPaceCampains, underPaceCampaigns } = checkPacingOffPace(
-                {
+            const { overPaceCampaigns, underPaceCampaigns } =
+                checkPacingOffPace({
                     pacing,
                     currentDate,
-                }
-            );
+                });
             const offPaceCampaigns = [
-                ...overPaceCampains,
+                ...overPaceCampaigns,
                 ...underPaceCampaigns,
             ];
             expect(offPaceCampaigns).toHaveLength(1);
@@ -218,28 +216,26 @@ describe('Cronjobs', () => {
                     },
                 },
             };
-            const { overPaceCampains, underPaceCampaigns } = checkPacingOffPace(
-                {
+            const { overPaceCampaigns, underPaceCampaigns } =
+                checkPacingOffPace({
                     pacing,
                     currentDate,
-                }
-            );
+                });
             const offPaceCampaigns = [
-                ...overPaceCampains,
+                ...overPaceCampaigns,
                 ...underPaceCampaigns,
             ];
             expect(offPaceCampaigns).toHaveLength(2);
         });
         it('should return an array with length = 0 if pacing is null', () => {
             const pacing = null;
-            const { overPaceCampains, underPaceCampaigns } = checkPacingOffPace(
-                {
+            const { overPaceCampaigns, underPaceCampaigns } =
+                checkPacingOffPace({
                     pacing,
                     currentDate,
-                }
-            );
+                });
             const offPaceCampaigns = [
-                ...overPaceCampains,
+                ...overPaceCampaigns,
                 ...underPaceCampaigns,
             ];
             expect(offPaceCampaigns).toHaveLength(0);
@@ -262,14 +258,13 @@ describe('Cronjobs', () => {
                     },
                 },
             };
-            const { overPaceCampains, underPaceCampaigns } = checkPacingOffPace(
-                {
+            const { overPaceCampaigns, underPaceCampaigns } =
+                checkPacingOffPace({
                     pacing,
                     currentDate,
-                }
-            );
+                });
             const offPaceCampaigns = [
-                ...overPaceCampains,
+                ...overPaceCampaigns,
                 ...underPaceCampaigns,
             ];
             expect(offPaceCampaigns).toHaveLength(0);
