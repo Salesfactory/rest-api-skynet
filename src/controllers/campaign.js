@@ -9,6 +9,7 @@ const { computeAndStoreMetrics } = require('../utils/bq_spend');
 const {
     fetchCampaignsWithBudgets,
     updateOrInsertPacingMetrics,
+    checkBigQueryIdExists,
 } = require('../utils/cronjobs');
 
 //creacion de reporte excel
@@ -193,13 +194,18 @@ const getMarketingCampaignsByClient = async (req, res) => {
             ],
         });
 
-        // Check if campaign is in flight
         const currentDate = new Date();
         for (const campaign of campaigns) {
+            // Check if campaign is in flight
             campaign.dataValues.inFlight = checkInFlight({
                 currentDate,
                 campaign,
             });
+
+            // Check campaign link status
+            campaign.dataValues.linked = !checkBigQueryIdExists({
+                allocations: campaign.budgets[0].allocations,
+            }).hasUnlinkedCampaigns;
         }
 
         res.status(200).json({
@@ -257,6 +263,11 @@ const getMarketingCampaignsById = async (req, res) => {
             currentDate,
             campaign,
         });
+
+        // Check campaign link status
+        campaign.dataValues.linked = !checkBigQueryIdExists({
+            allocations: campaign.budgets[0].allocations,
+        }).hasUnlinkedCampaigns;
 
         res.status(200).json({
             message: 'Marketing campaign retrieved successfully',
@@ -814,7 +825,14 @@ const getRecentCampaigns = async (req, res) => {
         const campaigns = await CampaignGroup.findAll({
             limit: 10,
             order: [['createdAt', 'DESC']],
-            attributes: ['id', 'name', 'company_name', 'createdAt'],
+            attributes: [
+                'id',
+                'name',
+                'company_name',
+                'flight_time_start',
+                'flight_time_end',
+                'createdAt',
+            ],
             where: {
                 ...(searchLower
                     ? {
@@ -866,8 +884,31 @@ const getRecentCampaigns = async (req, res) => {
                     as: 'client',
                     attributes: ['id', 'name'],
                 },
+                {
+                    model: Budget,
+                    as: 'budgets',
+                    limit: 1,
+                    order: [['updatedAt', 'DESC']],
+                    attributes: ['periods', 'allocations'],
+                },
             ],
         });
+
+        const currentDate = new Date();
+        for (const campaign of campaigns) {
+            // Check if campaign is in flight
+            campaign.dataValues.inFlight = checkInFlight({
+                currentDate,
+                campaign,
+            });
+
+            // Check campaign link status
+            campaign.dataValues.linked = !checkBigQueryIdExists({
+                allocations: campaign.budgets[0].allocations,
+            }).hasUnlinkedCampaigns;
+
+            delete campaign.dataValues.budgets;
+        }
 
         res.status(200).json({
             message: 'Recent campaigns groups retrieved successfully',

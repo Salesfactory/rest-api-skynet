@@ -4199,9 +4199,6 @@ describe('computeAndStoreMetrics', () => {
             campaign,
             currentDate,
         });
-        console.log(
-            util.inspect(allocations, false, null, true /* enable colors */)
-        );
 
         expect(periods).toEqual(campaign.budgets[0].periods);
         expect(allocations).toEqual(expectedAllocations);
