@@ -6,6 +6,7 @@ const {
     Client,
     User,
 } = require('../models');
+const { Op } = require('sequelize');
 
 /**
  * Checks if a campaign is off pace
@@ -13,12 +14,12 @@ const {
 function checkIfCampaignIsOffPace({ campaign, currentDate }) {
     const pacing = campaign.pacings[0];
 
-    const { overPaceCampains, underPaceCampaigns } = checkPacingOffPace({
+    const { overPaceCampaigns, underPaceCampaigns } = checkPacingOffPace({
         pacing,
         currentDate,
     });
     const offPaceCampaigns = [
-        ...overPaceCampains.map(item => ({
+        ...overPaceCampaigns.map(item => ({
             ...item,
             pace: 'Over',
         })),
@@ -75,7 +76,12 @@ function checkPacingOffPace({ pacing, currentDate }) {
         const year = currentDate.getFullYear();
         const formattedDate = `${month}_${year}`;
         const { allocations } = pacing;
-        const currentPeriod = allocations[formattedDate] || { allocations: [] };
+        const currentPeriod = allocations[formattedDate];
+
+        // If for some reason the current period does not exist in the budget period, return null
+        if (!currentPeriod) {
+            return { overPaceCampaigns: null, underPaceCampaigns: null };
+        }
 
         // get all campaigns from the current period in a flat array
         const campaignsFlat = getCampaignsFlat({
@@ -83,7 +89,7 @@ function checkPacingOffPace({ pacing, currentDate }) {
         });
 
         // offpace objects are over and under pacing objects
-        const overPaceCampains = campaignsFlat?.filter(campaign => {
+        const overPaceCampaigns = campaignsFlat?.filter(campaign => {
             // an over pace object is an object that has a adb_current value that is more than the adb value by more than 5%
             const { adb, adb_current } = campaign;
             const adb_plus_threshold = parseFloat(adb) * (1 + threshold);
@@ -105,12 +111,12 @@ function checkPacingOffPace({ pacing, currentDate }) {
         });
 
         return {
-            overPaceCampains,
+            overPaceCampaigns,
             underPaceCampaigns,
         };
     } else {
         return {
-            overPaceCampains: [],
+            overPaceCampaigns: [],
             underPaceCampaigns: [],
         };
     }
@@ -125,10 +131,6 @@ function checkIfCampaignIsUnlinked({ campaign }) {
     const { hasUnlinkedCampaigns, campaigns } = checkBigQueryIdExists({
         allocations,
     });
-
-    // update campaign linked status in the database
-    campaign.linked = !hasUnlinkedCampaigns;
-    campaign.save();
 
     const unlinkedCampaigns = campaigns.map(item => ({
         ...item,
@@ -210,7 +212,10 @@ async function sendNotification({ campaign, subject, message, type }) {
 async function fetchCampaignsWithBudgets() {
     return CampaignGroup.findAll(
         {
-            where: { deleted: false },
+            where: {
+                deleted: false,
+                status: { [Op.not]: 'Ended' },
+            },
             include: [
                 {
                     model: Budget,
@@ -232,6 +237,7 @@ async function fetchCampaignsWithPacings() {
     return CampaignGroup.findAll({
         where: {
             deleted: false,
+            status: { [Op.not]: 'Ended' },
         },
         include: [
             {

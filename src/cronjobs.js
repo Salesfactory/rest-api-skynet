@@ -192,7 +192,8 @@ async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
         if (campaign.user) {
             const currentDate = new Date();
             // check if campaign is in flight
-            if (checkInFlight({ currentDate, campaign })) {
+            const { inFlight } = checkInFlight({ currentDate, campaign });
+            if (inFlight) {
                 const { offPaceCampaigns, hasOffPaceCampaigns } =
                     checkIfCampaignIsOffPace({
                         campaign,
@@ -293,37 +294,53 @@ async function updateCampaignGroupsStatuses() {
         // check if campaign is in flight
         const currentDate = new Date();
 
-        const linked = checkBigQueryIdExists({ allocations });
+        const { hasUnlinkedCampaigns } = checkBigQueryIdExists({
+            allocations,
+        });
 
-        if (checkInFlight({ currentDate, campaign })) {
+        const { inFlight, hasEnded } = checkInFlight({ currentDate, campaign });
+
+        if (inFlight && !hasEnded) {
             const pacing = campaign.pacings[0];
 
             // campaign is in flight check if campaign is linked
-            if (linked) {
-                const { overPaceObjects, underPaceObjects } =
+            if (!hasUnlinkedCampaigns) {
+                const { overPaceCampaigns, underPaceCampaigns } =
                     checkPacingOffPace({
                         pacing,
                         currentDate,
                     });
-                if (overPaceObjects.length > 0 && underPaceObjects.length > 0) {
-                    status = 'Off pace';
-                } else if (overPaceObjects.length > 0) {
-                    status = 'Overpaced';
-                } else if (underPaceObjects.length > 0) {
-                    status = 'Underpaced';
+                if (
+                    Array.isArray(overPaceCampaigns) &&
+                    Array.isArray(underPaceCampaigns)
+                ) {
+                    if (
+                        overPaceCampaigns.length > 0 &&
+                        underPaceCampaigns.length > 0
+                    ) {
+                        status = 'Off pace';
+                    } else if (overPaceCampaigns.length > 0) {
+                        status = 'Overpaced';
+                    } else if (underPaceCampaigns.length > 0) {
+                        status = 'Underpaced';
+                    } else {
+                        status = 'On pace';
+                    }
                 } else {
-                    status = 'On pace';
+                    status = 'Error';
                 }
             } else {
                 status = 'Not tracking';
             }
-        } else {
-            // campaign is not in flight
-            if (linked) {
+        } else if (!inFlight && !hasEnded) {
+            // campaign is not in flight and has not ended
+            if (!hasUnlinkedCampaigns) {
                 status = 'Planned';
             } else {
                 status = 'Planning';
             }
+        } else {
+            status = 'Ended';
         }
 
         campaign.status = status;

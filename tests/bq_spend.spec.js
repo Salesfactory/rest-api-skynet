@@ -5,6 +5,7 @@ const {
     calculateDaysElapsedInMonth,
     calculateRemainingDaysInMonth,
     computeAndStoreMetrics,
+    extractCampaignAndAdsetIds,
 } = require('../src/utils/bq_spend');
 
 const util = require('util');
@@ -4199,11 +4200,149 @@ describe('computeAndStoreMetrics', () => {
             campaign,
             currentDate,
         });
-        console.log(
-            util.inspect(allocations, false, null, true /* enable colors */)
-        );
 
         expect(periods).toEqual(campaign.budgets[0].periods);
         expect(allocations).toEqual(expectedAllocations);
+    });
+});
+describe('extractCampaignAndAdsetIds', () => {
+    it('should extract bigquery_campaign_id and associated bigquery_adset_ids for each period', () => {
+        const mockData = {
+            periods: [{ id: 'period1' }],
+            allocations: {
+                period1: {
+                    allocations: [
+                        {
+                            allocations: [
+                                {
+                                    allocations: [
+                                        {
+                                            bigquery_campaign_id: 'campaign1',
+                                            allocations: [
+                                                { bigquery_adset_id: 'adset1' },
+                                                { bigquery_adset_id: 'adset2' },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            },
+        };
+
+        const result = extractCampaignAndAdsetIds(mockData);
+
+        const expected = [
+            {
+                period: 'period1',
+                bigquery_campaign_id: 'campaign1',
+                bigquery_adset_ids: ['adset1', 'adset2'],
+            },
+        ];
+
+        expect(result).toEqual(expected);
+    });
+
+    it('should handle multiple periods', () => {
+        const mockData = {
+            periods: [{ id: 'period1' }, { id: 'period2' }],
+            allocations: {
+                period1: {
+                    allocations: [
+                        {
+                            allocations: [
+                                {
+                                    allocations: [
+                                        {
+                                            bigquery_campaign_id: 'campaign1',
+                                            allocations: [
+                                                { bigquery_adset_id: 'adset1' },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+                period2: {
+                    allocations: [
+                        {
+                            allocations: [
+                                {
+                                    allocations: [
+                                        {
+                                            bigquery_campaign_id: 'campaign2',
+                                            allocations: [
+                                                { bigquery_adset_id: 'adset2' },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            },
+        };
+
+        const result = extractCampaignAndAdsetIds(mockData);
+
+        const expected = [
+            {
+                period: 'period1',
+                bigquery_campaign_id: 'campaign1',
+                bigquery_adset_ids: ['adset1'],
+            },
+            {
+                period: 'period2',
+                bigquery_campaign_id: 'campaign2',
+                bigquery_adset_ids: ['adset2'],
+            },
+        ];
+
+        expect(result).toEqual(expected);
+    });
+    it('should handle missing IDs', () => {
+        const mockData = {
+            periods: [{ id: 'period1' }],
+            allocations: {
+                period1: {
+                    allocations: [
+                        {
+                            allocations: [
+                                {
+                                    allocations: [
+                                        {
+                                            allocations: [
+                                                { bigquery_adset_id: 'adset1' },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            },
+        };
+
+        const result = extractCampaignAndAdsetIds(mockData);
+
+        expect(result).toEqual([]); // Should return an empty array as there's no bigquery_campaign_id
+    });
+    it('should handle empty allocations', () => {
+        const mockData = {
+            periods: [{ id: 'period1' }],
+            allocations: {
+                period1: {},
+            },
+        };
+
+        const result = extractCampaignAndAdsetIds(mockData);
+
+        expect(result).toEqual([]); // Should return an empty array as there's no allocations to process
     });
 });
