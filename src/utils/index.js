@@ -158,9 +158,13 @@ const checkInFlight = ({ currentDate, campaign }) => {
     endPeriod.setMonth(endPeriod.getMonth() + 1);
     endPeriod.setDate(0);
 
-    return currentDate >= startPeriod && currentDate <= endPeriod
-        ? true
-        : false;
+    return {
+        inFlight:
+            currentDate >= startPeriod && currentDate <= endPeriod
+                ? true
+                : false,
+        hasEnded: currentDate > endPeriod ? true : false,
+    };
 };
 
 module.exports = {
