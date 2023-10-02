@@ -42,6 +42,7 @@ const getNotificationsByStatus = async (req, res) => {
     try {
         const notifications = await Notification.findAll({
             where: { user_id: user.id, status: req.params.status },
+            order: [['createdAt', 'DESC']],
             attributes: [
                 'id',
                 'title',
@@ -50,14 +51,13 @@ const getNotificationsByStatus = async (req, res) => {
                 'client_info',
                 'type',
                 'status',
+                'createdAt',
                 ['updatedAt', 'timestamp'],
             ],
         });
 
         return res.status(200).json({
-            data: notifications.sort((a, b) => {
-                return b.createdAt - a.createdAt;
-            }),
+            data: notifications,
             message: `Notifications retrieved successfully`,
         });
     } catch (error) {
