@@ -212,7 +212,7 @@ describe('Client Endpoints Test', () => {
             Client.findOne.mockResolvedValue(null);
 
             const response = await request.get(
-                `/api/clients/${clientId}/non-orchestrated/adsets?campaignId=123&adsetName=Test%20Adset`
+                `/api/clients/${clientId}/non-orchestrated/adsets?campaignId=123`
             );
             expect(response.status).toBe(404);
             expect(response.body.message).toBe('Client not found');
@@ -226,11 +226,11 @@ describe('Client Endpoints Test', () => {
             Client.findOne.mockResolvedValue(client);
 
             const response = await request.get(
-                `/api/clients/${clientId}/non-orchestrated/adsets?`
+                `/api/clients/${clientId}/non-orchestrated/adsets`
             );
             expect(response.status).toBe(400);
             expect(response.body.message).toBe(
-                'Missing required fields: campaignId, adsetName'
+                'Missing required fields: campaignId'
             );
         });
 
@@ -261,7 +261,7 @@ describe('Client Endpoints Test', () => {
 
             bigqueryClient.query.mockResolvedValue(data);
             const response = await request.get(
-                `/api/clients/${clientId}/non-orchestrated/adsets?campaignId=123&adsetName=Test%20Adset`
+                `/api/clients/${clientId}/non-orchestrated/adsets?campaignId=123`
             );
             expect(response.status).toBe(200);
             expect(response.body.data).toEqual(data[0]);
@@ -302,7 +302,7 @@ describe('Client Endpoints Test', () => {
 
             bigqueryClient.query.mockResolvedValue(data);
             const response = await request.get(
-                `/api/clients/${clientId}/non-orchestrated/adsets?campaignId=123&adsetName=Test%20Adset`
+                `/api/clients/${clientId}/non-orchestrated/adsets?campaignId=123`
             );
             expect(response.status).toBe(200);
             expect(response.body.data).toEqual(data[0]);
@@ -320,7 +320,7 @@ describe('Client Endpoints Test', () => {
             bigqueryClient.query.mockRejectedValue(new Error('Error'));
 
             const response = await request.get(
-                `/api/clients/${clientId}/non-orchestrated/adsets?campaignId=123&adsetName=Test%20Adset`
+                `/api/clients/${clientId}/non-orchestrated/adsets?campaignId=123`
             );
             expect(response.status).toBe(500);
             expect(response.body.message).toBe('Error');
