@@ -10,6 +10,10 @@ module.exports = {
                 primaryKey: true,
                 type: Sequelize.INTEGER,
             },
+            user_id: {
+                type: Sequelize.INTEGER,
+                allowNull: true,
+            },
             client_id: {
                 type: Sequelize.INTEGER,
                 allowNull: false,
@@ -62,6 +66,11 @@ module.exports = {
             change_reason_log: {
                 type: Sequelize.TEXT,
                 allowNull: true,
+            },
+            status: {
+                type: Sequelize.STRING,
+                allowNull: false,
+                defaultValue: 'N/S',
             },
             createdAt: {
                 allowNull: false,

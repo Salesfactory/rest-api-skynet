@@ -6,6 +6,10 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class CampaignGroup extends Model {
         static associate(models) {
+            CampaignGroup.belongsTo(models.User, {
+                foreignKey: 'user_id',
+                as: 'user',
+            });
             CampaignGroup.belongsTo(models.Client, {
                 foreignKey: 'client_id',
                 as: 'client',
@@ -13,10 +17,6 @@ module.exports = (sequelize, DataTypes) => {
             CampaignGroup.hasMany(models.Budget, {
                 foreignKey: 'campaign_group_id',
                 as: 'budgets',
-            });
-            CampaignGroup.hasMany(models.Campaign, {
-                foreignKey: 'campaign_group_id',
-                as: 'campaigns',
             });
             CampaignGroup.hasMany(models.Pacing, {
                 foreignKey: 'campaign_group_id',
@@ -26,6 +26,10 @@ module.exports = (sequelize, DataTypes) => {
     }
     CampaignGroup.init(
         {
+            user_id: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+            },
             client_id: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
@@ -73,6 +77,11 @@ module.exports = (sequelize, DataTypes) => {
             change_reason_log: {
                 type: DataTypes.TEXT,
                 allowNull: true,
+            },
+            status: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                defaultValue: 'Planning',
             },
         },
         {

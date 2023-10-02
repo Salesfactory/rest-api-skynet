@@ -1,9 +1,15 @@
 const debug = process.env.NODE_ENV === 'development';
+const { User } = require('../models');
 
 const validateUUID = uuid => {
     const regexExp =
         /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
     return regexExp.test(uuid);
+};
+
+const getUser = async res => {
+    const { username: uid } = res.locals.user;
+    return await Promise.resolve(User.findOne({ where: { uid } }));
 };
 
 function validateObjectAllocations(obj, periods) {
@@ -144,7 +150,26 @@ function validateAllocations(allocations, level = 0) {
     };
 }
 
+// this function is used to check if a campaign is in flight based on the flight time start and end
+const checkInFlight = ({ currentDate, campaign }) => {
+    const startPeriod = new Date(campaign.flight_time_start);
+    const endPeriod = new Date(campaign.flight_time_end);
+    // Set the endPeriod to the last day of the month
+    endPeriod.setMonth(endPeriod.getMonth() + 1);
+    endPeriod.setDate(0);
+
+    return {
+        inFlight:
+            currentDate >= startPeriod && currentDate <= endPeriod
+                ? true
+                : false,
+        hasEnded: currentDate > endPeriod ? true : false,
+    };
+};
+
 module.exports = {
     validateUUID,
+    getUser,
     validateObjectAllocations,
+    checkInFlight,
 };
