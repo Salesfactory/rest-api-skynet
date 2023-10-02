@@ -206,7 +206,10 @@ async function sendNotification({ campaign, subject, message, type }) {
 async function fetchCampaignsWithBudgets() {
     return CampaignGroup.findAll(
         {
-            where: { deleted: false },
+            where: {
+                deleted: false,
+                status: { $ne: 'Ended' },
+            },
             include: [
                 {
                     model: Budget,
@@ -228,6 +231,7 @@ async function fetchCampaignsWithPacings() {
     return CampaignGroup.findAll({
         where: {
             deleted: false,
+            status: { $ne: 'Ended' },
         },
         include: [
             {

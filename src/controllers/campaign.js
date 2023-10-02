@@ -197,10 +197,12 @@ const getMarketingCampaignsByClient = async (req, res) => {
         const currentDate = new Date();
         for (const campaign of campaigns) {
             // Check if campaign is in flight
-            campaign.dataValues.inFlight = checkInFlight({
+            const { inFlight } = checkInFlight({
                 currentDate,
                 campaign,
             });
+
+            campaign.dataValues.inFlight = inFlight;
 
             // Check campaign link status
             campaign.dataValues.linked = !checkBigQueryIdExists({
@@ -259,10 +261,11 @@ const getMarketingCampaignsById = async (req, res) => {
 
         // Check if campaign is in flight
         const currentDate = new Date();
-        campaign.dataValues.inFlight = checkInFlight({
+        const { inFlight } = checkInFlight({
             currentDate,
             campaign,
         });
+        campaign.dataValues.inFlight = inFlight;
 
         // Check campaign link status
         campaign.dataValues.linked = !checkBigQueryIdExists({
@@ -897,10 +900,11 @@ const getRecentCampaigns = async (req, res) => {
         const currentDate = new Date();
         for (const campaign of campaigns) {
             // Check if campaign is in flight
-            campaign.dataValues.inFlight = checkInFlight({
+            const { inFlight } = checkInFlight({
                 currentDate,
                 campaign,
             });
+            campaign.dataValues.inFlight = inFlight;
 
             // Check campaign link status
             campaign.dataValues.linked = !checkBigQueryIdExists({

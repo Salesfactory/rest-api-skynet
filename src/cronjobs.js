@@ -192,7 +192,8 @@ async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
         if (campaign.user) {
             const currentDate = new Date();
             // check if campaign is in flight
-            if (checkInFlight({ currentDate, campaign })) {
+            const { inFlight } = checkInFlight({ currentDate, campaign });
+            if (inFlight) {
                 const { offPaceCampaigns, hasOffPaceCampaigns } =
                     checkIfCampaignIsOffPace({
                         campaign,
@@ -297,7 +298,9 @@ async function updateCampaignGroupsStatuses() {
             allocations,
         });
 
-        if (checkInFlight({ currentDate, campaign })) {
+        const { inFlight, hasEnded } = checkInFlight({ currentDate, campaign });
+
+        if (inFlight && !hasEnded) {
             const pacing = campaign.pacings[0];
 
             // campaign is in flight check if campaign is linked
@@ -322,13 +325,15 @@ async function updateCampaignGroupsStatuses() {
             } else {
                 status = 'Not tracking';
             }
-        } else {
-            // campaign is not in flight
+        } else if (!inFlight && !hasEnded) {
+            // campaign is not in flight and has not ended
             if (!hasUnlinkedCampaigns) {
                 status = 'Planned';
             } else {
                 status = 'Planning';
             }
+        } else {
+            status = 'Ended';
         }
 
         campaign.status = status;
