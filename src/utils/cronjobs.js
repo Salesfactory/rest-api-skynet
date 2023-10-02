@@ -6,6 +6,7 @@ const {
     Client,
     User,
 } = require('../models');
+const { Op } = require('sequelize');
 
 /**
  * Checks if a campaign is off pace
@@ -208,7 +209,7 @@ async function fetchCampaignsWithBudgets() {
         {
             where: {
                 deleted: false,
-                status: { $ne: 'Ended' },
+                status: { [Op.not]: 'Ended' },
             },
             include: [
                 {
@@ -231,7 +232,7 @@ async function fetchCampaignsWithPacings() {
     return CampaignGroup.findAll({
         where: {
             deleted: false,
-            status: { $ne: 'Ended' },
+            status: { [Op.not]: 'Ended' },
         },
         include: [
             {
