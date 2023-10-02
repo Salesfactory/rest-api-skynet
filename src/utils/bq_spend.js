@@ -216,39 +216,48 @@ const setSpending = (allocation, metric) => {
     allocation.carry_over = metric.carry_over;
 };
 
-const getBigqueryIds = ({ periods, allocations }) => {
-    const bigquery_ids = [];
+const extractCampaignAndAdsetIds = ({ periods, allocations }) => {
+    const bigQueryIds = [];
 
     for (const [index, period] of periods.entries()) {
         const periodAllocations = allocations[period.id];
+
+        if (!Array.isArray(periodAllocations.allocations)) continue;
+
         for (const channel of periodAllocations.allocations) {
-            if (Array.isArray(channel.allocations)) {
-                for (const campaignType of channel.allocations) {
-                    if (Array.isArray(campaignType.allocations)) {
-                        for (const campaign of campaignType.allocations) {
-                            const { bigquery_campaign_id } = campaign;
-                            if (Array.isArray(campaign.allocations)) {
-                                if (bigquery_campaign_id) {
-                                    bigquery_ids.push({
-                                        period: period.id,
-                                        bigquery_campaign_id,
-                                        bigquery_adset_ids: campaign.allocations
-                                            .filter(
-                                                adset => adset.bigquery_adset_id
-                                            )
-                                            .map(
-                                                adset => adset.bigquery_adset_id
-                                            ),
-                                    });
-                                }
+            if (!Array.isArray(channel.allocations)) continue;
+
+            for (const campaignType of channel.allocations) {
+                if (!Array.isArray(campaignType.allocations)) continue;
+
+                for (const {
+                    bigquery_campaign_id,
+                    allocations: campaignAllocations,
+                } of campaignType.allocations) {
+                    if (!Array.isArray(campaignAllocations)) continue;
+
+                    const bigqueryAdsetIds = campaignAllocations.reduce(
+                        (acc, adset) => {
+                            if (adset.bigquery_adset_id) {
+                                acc.push(adset.bigquery_adset_id);
                             }
-                        }
+                            return acc;
+                        },
+                        []
+                    );
+
+                    if (bigquery_campaign_id && bigqueryAdsetIds.length) {
+                        bigQueryIds.push({
+                            period: period.id,
+                            bigquery_campaign_id,
+                            bigquery_adset_ids: bigqueryAdsetIds,
+                        });
                     }
                 }
             }
         }
     }
-    return bigquery_ids;
+    return bigQueryIds;
 };
 
 /**
@@ -264,7 +273,7 @@ async function computeAndStoreMetrics({ campaign, currentDate }) {
     let carryOverMap = new Map();
 
     // get bigquery ids for the first period
-    const bigqueryIds = getBigqueryIds({
+    const bigqueryIds = extractCampaignAndAdsetIds({
         periods,
         allocations,
     });
@@ -446,4 +455,5 @@ module.exports = {
     calculateDaysElapsedInMonth,
     calculateRemainingDaysInMonth,
     computeAndStoreMetrics,
+    extractCampaignAndAdsetIds,
 };
