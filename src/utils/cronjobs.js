@@ -76,7 +76,12 @@ function checkPacingOffPace({ pacing, currentDate }) {
         const year = currentDate.getFullYear();
         const formattedDate = `${month}_${year}`;
         const { allocations } = pacing;
-        const currentPeriod = allocations[formattedDate] || { allocations: [] };
+        const currentPeriod = allocations[formattedDate];
+
+        // If for some reason the current period does not exist in the budget period, return null
+        if (!currentPeriod) {
+            return { overPaceCampaigns: null, underPaceCampaigns: null };
+        }
 
         // get all campaigns from the current period in a flat array
         const campaignsFlat = getCampaignsFlat({

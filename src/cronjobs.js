@@ -311,16 +311,23 @@ async function updateCampaignGroupsStatuses() {
                         currentDate,
                     });
                 if (
-                    overPaceCampaigns.length > 0 &&
-                    underPaceCampaigns.length > 0
+                    Array.isArray(overPaceCampaigns) &&
+                    Array.isArray(underPaceCampaigns)
                 ) {
-                    status = 'Off pace';
-                } else if (overPaceCampaigns.length > 0) {
-                    status = 'Overpaced';
-                } else if (underPaceCampaigns.length > 0) {
-                    status = 'Underpaced';
+                    if (
+                        overPaceCampaigns.length > 0 &&
+                        underPaceCampaigns.length > 0
+                    ) {
+                        status = 'Off pace';
+                    } else if (overPaceCampaigns.length > 0) {
+                        status = 'Overpaced';
+                    } else if (underPaceCampaigns.length > 0) {
+                        status = 'Underpaced';
+                    } else {
+                        status = 'On pace';
+                    }
                 } else {
-                    status = 'On pace';
+                    status = 'Error';
                 }
             } else {
                 status = 'Not tracking';
