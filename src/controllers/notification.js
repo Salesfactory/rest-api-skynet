@@ -16,8 +16,7 @@ const getNotifications = async (req, res) => {
                 'client_info',
                 'type',
                 'status',
-                'createdAt',
-                ['updatedAt', 'timestamp'],
+                ['createdAt', 'timestamp'],
             ],
         });
 
@@ -51,8 +50,7 @@ const getNotificationsByStatus = async (req, res) => {
                 'client_info',
                 'type',
                 'status',
-                'createdAt',
-                ['updatedAt', 'timestamp'],
+                ['createdAt', 'timestamp'],
             ],
         });
 
