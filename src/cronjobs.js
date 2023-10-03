@@ -36,48 +36,66 @@ const start = () => {
         console.log('Starting cron jobs');
 
         // every day at 0 hours 0 minutes check if there are new channels to be inserted in the database
-        cron.schedule('0 0 * * *', async () => {
-            try {
-                await checkAndInsertNewChannels();
-            } catch (error) {
-                console.log(error);
-                logMessage('Error while checking for new channels: ' + error);
-            }
-        });
+        cron.schedule(
+            '0 0 * * *',
+            async () => {
+                try {
+                    await checkAndInsertNewChannels();
+                } catch (error) {
+                    console.log(error);
+                    logMessage(
+                        'Error while checking for new channels: ' + error
+                    );
+                }
+            },
+            { timezone: 'America/New_York' }
+        );
 
         // update all budget metrics every day at 2 hours 0 minutes
-        cron.schedule('0 2 * * *', async () => {
-            try {
-                await updateBudgetMetrics();
-            } catch (error) {
-                console.log(error);
-                logMessage('Error while updating budget metrics: ' + error);
-            }
-        });
+        cron.schedule(
+            '0 2 * * *',
+            async () => {
+                try {
+                    await updateBudgetMetrics();
+                } catch (error) {
+                    console.log(error);
+                    logMessage('Error while updating budget metrics: ' + error);
+                }
+            },
+            { timezone: 'America/New_York' }
+        );
 
         // check for unlinked campaigns every day at 9 hours 0 minutes
-        cron.schedule('0 9 * * *', async () => {
-            try {
-                await checkAndNotifyUnlinkedOrOffPaceCampaigns();
-            } catch (error) {
-                console.log(error);
-                logMessage(
-                    'Error while checking for unlinked campaigns: ' + error
-                );
-            }
-        });
+        cron.schedule(
+            '0 9 * * *',
+            async () => {
+                try {
+                    await checkAndNotifyUnlinkedOrOffPaceCampaigns();
+                } catch (error) {
+                    console.log(error);
+                    logMessage(
+                        'Error while checking for unlinked campaigns: ' + error
+                    );
+                }
+            },
+            { timezone: 'America/New_York' }
+        );
 
         // check campaign groups and update its statuses every hour after 10 minutes
-        cron.schedule('10 * * * *', async () => {
-            try {
-                await updateCampaignGroupsStatuses();
-            } catch (error) {
-                console.log(error);
-                logMessage(
-                    'Error while updating campaign group statuses: ' + error
-                );
-            }
-        });
+        cron.schedule(
+            '10 * * * *',
+            async () => {
+                try {
+                    await updateCampaignGroupsStatuses();
+                } catch (error) {
+                    console.log(error);
+                    logMessage(
+                        'Error while updating campaign group statuses: ' + error
+                    );
+                }
+            },
+            { timezone: 'America/New_York' }
+        );
     }
 };
 
