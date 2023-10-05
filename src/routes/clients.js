@@ -40,6 +40,11 @@ router.get(
     '/:id/marketingcampaign/:cid/generate-spreadsheet',
     campaignController.createReport
 );
+// get campaigngroup pacing spreadsheet
+router.get(
+    '/:id/marketingcampaign/:cid/generate-pacings-spreadsheet',
+    campaignController.generatePacingReport
+);
 // get campaigngrop pacing
 router.get(
     '/:id/marketingcampaign/:cid/spending',

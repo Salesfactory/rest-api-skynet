@@ -254,7 +254,127 @@ const createSheet = ({ timePeriod, allocations, margin, type }) =>
         resolve(wb);
     });
 
+const getPacingRows = ({ items, rows }) => {
+    for (const item of items) {
+        rows.push({
+            name: item.name,
+            carry_over: item.carry_over,
+            budget: item.budget,
+            adb: item.adb,
+            adb_current: item.adb_current,
+            mtd_spent: item.mtd_spent,
+            budget_remaining: item.budget_remaining,
+            budget_spent: item.budget_spent,
+            month_elapsed: item.month_elapsed,
+            avg_daily_spent: item.avg_daily_spent,
+        });
+        if (Array.isArray(item.allocations) && item.allocations.length > 0) {
+            getPacingRows({ items: item.allocations, rows });
+        }
+    }
+};
+
+const createPacingsSheet = ({ timePeriods, periodAllocations }) =>
+    new Promise(resolve => {
+        const wb = new xl.Workbook({
+            dateFormat: 'dd/mm/yyyy',
+        });
+        const cellTitleStyle = wb.createStyle({
+            font: {
+                bold: true,
+                underline: true,
+            },
+            alignment: {
+                horizontal: 'center',
+                vertical: 'center',
+                wrapText: true,
+            },
+        });
+        const cellStyle = wb.createStyle({
+            alignment: { horizontal: 'center' },
+            numberFormat: '$#,##0.00; ($#,##0.00); -',
+        });
+
+        timePeriods.forEach((timePeriod, col) => {
+            const periodLabel = timePeriod.label;
+            const channelAllocations =
+                periodAllocations[timePeriod.id].allocations;
+
+            const ws = wb.addWorksheet(periodLabel);
+            ws.column(2).setWidth(30);
+            ws.column(3).setWidth(50);
+            ws.column(4).setWidth(30);
+            ws.column(5).setWidth(30);
+            ws.column(6).setWidth(30);
+            ws.column(7).setWidth(30);
+            ws.column(8).setWidth(30);
+            ws.column(9).setWidth(30);
+            ws.column(10).setWidth(30);
+
+            // Add a title's row
+            ws.cell(1, 2).string('Carry over').style(cellTitleStyle);
+            ws.cell(1, 3).string('Budget (Net)').style(cellTitleStyle);
+            ws.cell(1, 4).string('ADB').style(cellTitleStyle);
+            ws.cell(1, 5).string('ADB Current').style(cellTitleStyle);
+            ws.cell(1, 6).string('MTD Spent (Net)').style(cellTitleStyle);
+            ws.cell(1, 7)
+                .string('Budget remaining (Net)')
+                .style(cellTitleStyle);
+            ws.cell(1, 8).string('Budget spent (%)').style(cellTitleStyle);
+            ws.cell(1, 9).string('Month elapsed (%)').style(cellTitleStyle);
+            ws.cell(1, 10)
+                .string('Avg. Daily spend to reach goal')
+                .style(cellTitleStyle);
+
+            const rows = [];
+
+            if (
+                Array.isArray(channelAllocations) &&
+                channelAllocations.length > 0
+            ) {
+                getPacingRows({ items: channelAllocations, rows });
+            }
+
+            rows.forEach((row, index) => {
+                ws.cell(2 + index, 1)
+                    .string(row.name)
+                    .style(cellStyle);
+                ws.cell(2 + index, 2)
+                    .number(parseFloat(row.carry_over) || 0)
+                    .style(cellStyle);
+                ws.cell(2 + index, 3)
+                    .number(parseFloat(row.budget) || 0)
+                    .style(cellStyle);
+                ws.cell(2 + index, 4)
+                    .number(parseFloat(row.adb) || 0)
+                    .style(cellStyle);
+                ws.cell(2 + index, 5)
+                    .number(parseFloat(row.adb_current) || 0)
+                    .style(cellStyle);
+                ws.cell(2 + index, 6)
+                    .number(parseFloat(row.mtd_spent) || 0)
+                    .style(cellStyle);
+                ws.cell(2 + index, 7)
+                    .number(parseFloat(row.budget_remaining) || 0)
+                    .style(cellStyle);
+                ws.cell(2 + index, 8)
+                    .number(parseFloat(row.budget_spent) || 0)
+                    .style(cellStyle);
+                ws.cell(2 + index, 9)
+                    .number(parseFloat(row.month_elapsed) || 0)
+                    .style(cellStyle);
+                ws.cell(2 + index, 10)
+                    .number(parseFloat(row.avg_daily_spent) || 0)
+                    .style(cellStyle);
+            });
+        });
+
+        resolve(wb);
+    });
+
 module.exports = {
+    createPacingsSheet: async ({ timePeriods, periodAllocations }) =>
+        createPacingsSheet({ timePeriods, periodAllocations }),
     createSheet: async ({ timePeriod, allocations, margin, type }) =>
         createSheet({ timePeriod, allocations, margin, type }),
 };
