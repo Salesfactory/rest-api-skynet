@@ -15,6 +15,7 @@ const {
 //creacion de reporte excel
 const createReport = async (req, res) => {
     const { id: clientId, cid: campaignGroupId } = req.params;
+    const { type = 'net' } = req.query;
 
     try {
         const client = await Client.findOne({
@@ -50,7 +51,12 @@ const createReport = async (req, res) => {
         const { periods: timePeriod, allocations } =
             campaignGroupBudget.dataValues;
 
-        await createSheet(timePeriod, allocations)
+        await createSheet({
+            timePeriod,
+            allocations,
+            margin: campaignGroup.margin,
+            type: type.toLowerCase(),
+        })
             .then(file => {
                 x = file.write('file.xlsx', res);
                 return res;
