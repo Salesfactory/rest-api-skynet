@@ -105,7 +105,7 @@ const ordercategories = (timePeriod, allocations) => {
     return { campaingInfo, budgetInfo };
 };
 
-const createSheet = (timePeriod, allocations) =>
+const createSheet = ({ timePeriod, allocations, margin, type }) =>
     new Promise(resolve => {
         const wb = new xl.Workbook({
             dateFormat: 'dd/mm/yyyy',
@@ -182,12 +182,17 @@ const createSheet = (timePeriod, allocations) =>
                     .style(cellStyle);
                 budgetInfo.forEach(budget => {
                     if (budget.index == i) {
+                        let currentBudget = budget.budget;
+                        if (type === 'gross') {
+                            // calculates back the gross budget from the net budget
+                            currentBudget = budget.budget / (1 - margin);
+                        }
                         ws.cell(2 + i, 6 + months[budget.month].col)
-                            .number(budget.budget)
+                            .number(currentBudget)
                             .style({ numberFormat: '$###,##0.00;' });
                         ws.cell(2 + i, 7 + months[budget.month].col)
                             .number(
-                                budget.budget / (months[budget.month].days ?? 1)
+                                currentBudget / (months[budget.month].days ?? 1)
                             )
                             .style({ numberFormat: '$###,##0.00;' });
                     }
@@ -368,8 +373,8 @@ const createPacingsSheet = ({ timePeriods, periodAllocations }) =>
     });
 
 module.exports = {
-    createSheet: async (timePeriod, allocations) =>
-        createSheet(timePeriod, allocations),
     createPacingsSheet: async ({ timePeriods, periodAllocations }) =>
         createPacingsSheet({ timePeriods, periodAllocations }),
+    createSheet: async ({ timePeriod, allocations, margin, type }) =>
+        createSheet({ timePeriod, allocations, margin, type }),
 };
