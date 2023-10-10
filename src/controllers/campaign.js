@@ -1,5 +1,5 @@
 const { bigqueryClient } = require('../config/bigquery');
-const { createSheet } = require('../utils/reports');
+const { createSheet, createPacingsSheet } = require('../utils/reports');
 const { Agency, Budget, CampaignGroup, Client, Pacing } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
@@ -15,6 +15,7 @@ const {
 //creacion de reporte excel
 const createReport = async (req, res) => {
     const { id: clientId, cid: campaignGroupId } = req.params;
+    const { type = 'net' } = req.query;
 
     try {
         const client = await Client.findOne({
@@ -50,7 +51,12 @@ const createReport = async (req, res) => {
         const { periods: timePeriod, allocations } =
             campaignGroupBudget.dataValues;
 
-        await createSheet(timePeriod, allocations)
+        await createSheet({
+            timePeriod,
+            allocations,
+            margin: campaignGroup.margin,
+            type: type.toLowerCase(),
+        })
             .then(file => {
                 x = file.write('file.xlsx', res);
                 return res;
@@ -102,6 +108,56 @@ const getCampaignGroupPacing = async (req, res) => {
             message: 'Campaign group pacing retrieved successfully',
             data: pacing,
         });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const generatePacingReport = async (req, res) => {
+    const { id: clientId, cid: campaignGroupId } = req.params;
+
+    try {
+        const client = await Client.findOne({
+            where: { id: clientId },
+        });
+
+        if (!client) {
+            return res.status(404).json({
+                message: `Client not found`,
+            });
+        }
+
+        const campaignGroup = await CampaignGroup.findOne({
+            where: { id: campaignGroupId, client_id: clientId },
+            include: [
+                {
+                    model: Pacing,
+                    as: 'pacings',
+                    limit: 1,
+                    order: [['updatedAt', 'DESC']],
+                    attributes: ['periods', 'allocations'],
+                },
+            ],
+        });
+
+        if (!campaignGroup) {
+            return res.status(404).json({
+                message: `Campaign group not found`,
+            });
+        }
+
+        const campaignGroupBudget = campaignGroup.pacings[0];
+        const { periods: timePeriods, allocations: periodAllocations } =
+            campaignGroupBudget.dataValues;
+
+        await createPacingsSheet({ timePeriods, periodAllocations })
+            .then(file => {
+                x = file.write('file.xlsx', res);
+                return res;
+            })
+            .catch(error => {
+                return res.status(500).json({ message: error.message });
+            });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -707,7 +763,7 @@ const getClientBigqueryCampaigns = async (req, res) => {
 
 const getClientBigqueryAdsets = async (req, res) => {
     const { id: clientId } = req.params;
-    const { keywords, campaignId, adsetName } = req.query;
+    const { campaignId } = req.query;
     try {
         const client = await Client.findOne({
             where: { id: clientId },
@@ -727,7 +783,7 @@ const getClientBigqueryAdsets = async (req, res) => {
             req.query.clientId = client.id;
         }
 
-        const requiredFields = ['clientId', 'campaignId', 'adsetName'];
+        const requiredFields = ['clientId', 'campaignId'];
         const missingFields = requiredFields.filter(field => !req.query[field]);
         if (missingFields.length > 0) {
             return res.status(400).json({
@@ -735,29 +791,18 @@ const getClientBigqueryAdsets = async (req, res) => {
             });
         }
 
-        const splittedKeywords = keywords ? keywords.split(',') : [];
-        const hasKeywords = splittedKeywords?.length > 0;
-
         let params = [];
         let sqlQuery = `SELECT cs.campaign_id, cs.campaign_name, cs.campaign_type, cs.adset_id, cs.adset_name  
         FROM \`agency_6133.cs_paid_ads__basic_performance\` as cs
         `;
 
         const agency = client.agency;
-        const lowerAdsetName = adsetName
-            .replace(/[^a-zA-Z0-9 ]/g, ' ')
-            .toLowerCase();
 
         if (!agency) {
             const advertiserAliases = client.aliases;
             const advertiserIds = client.advertiser_ids;
 
-            params = [
-                advertiserAliases,
-                advertiserIds,
-                campaignId,
-                `%${lowerAdsetName}%`,
-            ];
+            params = [advertiserAliases, advertiserIds, campaignId];
 
             sqlQuery += `WHERE cs.advertiser_name IN UNNEST(?) AND cs.advertiser_id IN UNNEST(?) AND cs.campaign_id = ? `;
         } else {
@@ -775,7 +820,6 @@ const getClientBigqueryAdsets = async (req, res) => {
                 advertiserAliases,
                 subAdvertiserAliases,
                 campaignId,
-                `%${lowerAdsetName}%`,
             ];
 
             sqlQuery += `LEFT JOIN \`agency_6133.${agencyTableName}\` as atn
@@ -784,20 +828,6 @@ const getClientBigqueryAdsets = async (req, res) => {
             AND (cs.advertiser_name IN UNNEST(?) OR atn.${advertiserNameField} IN UNNEST(?))
             AND cs.campaign_id = ? 
             `;
-        }
-
-        if (hasKeywords) {
-            sqlQuery += `AND (LOWER(REGEXP_REPLACE(cs.adset_name, r'[^a-zA-Z0-9 ]', ' ')) LIKE ? `;
-            splittedKeywords.forEach(keyword => {
-                const lowerKeyword = keyword
-                    .replace(/[^a-zA-Z0-9 ]/g, ' ')
-                    .toLowerCase();
-                sqlQuery += `OR LOWER(REGEXP_REPLACE(cs.adset_name, r'[^a-zA-Z0-9 ]', ' ')) LIKE ? `;
-                params.push(`%${lowerKeyword}%`);
-            });
-            sqlQuery += `) `;
-        } else {
-            sqlQuery += `AND LOWER(REGEXP_REPLACE(cs.adset_name, r'[^a-zA-Z0-9 ]', ' ')) LIKE ? `;
         }
 
         // look between range of dates
@@ -960,5 +990,6 @@ module.exports = {
     getRecentCampaigns,
     createReport,
     getCampaignGroupPacing,
+    generatePacingReport,
     refreshMetrics,
 };

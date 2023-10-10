@@ -698,24 +698,10 @@
                     "type": "string"
                 },
                 {
-                    "name": "adsetName",
-                    "in": "query",
-                    "description": "The name of the campaign set",
-                    "required": true,
-                    "type": "string"
-                },
-                {
                     "name": "campaignId",
                     "in": "query",
                     "description": "The id of the campaign",
                     "required": true,
-                    "type": "string"
-                },
-                {
-                    "name": "keywords",
-                    "in": "query",
-                    "description": "Keywords to find campaigns (can be multiple, separated by commas)",
-                    "required": false,
                     "type": "string"
                 }
             ],
@@ -728,7 +714,7 @@
                         "description": "Bigquery adsets retrieved successfully"
                     },
                     "400": {
-                        "description": "Missing required fields: adsetName, campaignId"
+                        "description": "Missing required fields: campaignId"
                     },
                     "404": {
                         "description": "Client not found"
