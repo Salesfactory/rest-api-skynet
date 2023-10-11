@@ -8,6 +8,8 @@ const {
 } = require('../models');
 const { Op } = require('sequelize');
 
+const { checkInFlight } = require('./index');
+
 /**
  * Checks if a campaign is off pace
  */
@@ -186,6 +188,63 @@ function checkBigQueryIdExists({ allocations }) {
 }
 
 /**
+ * returns the users to be notified and their usernames
+ */
+function getUsersToNotifyWithCampaigns({ campaigngroups, currentDate }) {
+    let usersToNotify = {};
+    let usernames = new Map();
+
+    // check if is in flight
+    // in flight campaign means: A campaign with a start date in the past and an end date in the future
+    for (campaign of campaigngroups) {
+        // check if campaign has a user just in case (it should always have a user)
+        if (campaign.user) {
+            // check if campaign is in flight
+            const { inFlight } = checkInFlight({ currentDate, campaign });
+            if (inFlight) {
+                const { offPaceCampaigns, hasOffPaceCampaigns } =
+                    checkIfCampaignIsOffPace({
+                        campaign,
+                        currentDate,
+                    });
+
+                const { unlinkedCampaigns, hasUnlinkedCampaigns } =
+                    checkIfCampaignIsUnlinked({
+                        campaign,
+                    });
+
+                // if campaign is off pace or unlinked, add it to the list of campaigns to notify the user
+                if (hasOffPaceCampaigns || hasUnlinkedCampaigns) {
+                    if (!usersToNotify[campaign.user.id]) {
+                        usersToNotify[campaign.user.id] = [];
+                        usernames[campaign.user.id] = {
+                            name: campaign.user.name,
+                            email: campaign.user.email,
+                        };
+                    }
+
+                    usersToNotify[campaign.user.id].push({
+                        id: campaign.id,
+                        name: campaign.name,
+                        user: {
+                            id: campaign.user.id,
+                            name: campaign.user.name,
+                        },
+                        client: {
+                            id: campaign.client.id,
+                            name: campaign.client.name,
+                        },
+                        offpace: offPaceCampaigns,
+                        unlinked: unlinkedCampaigns,
+                    });
+                }
+            }
+        }
+    }
+    return { usersToNotify, usernames };
+}
+
+/**
  * Sends a notification to the user inserted in the database
  */
 async function sendNotification({ campaign, subject, message, type }) {
@@ -268,6 +327,44 @@ async function fetchCampaignsWithPacings() {
 }
 
 /**
+ *  Fetches all campaigns with their pacings from the database
+ */
+async function fetchCampaignsWithPacingsByUserId({ userId }) {
+    return CampaignGroup.findAll({
+        where: {
+            deleted: false,
+            status: { [Op.not]: 'Ended' },
+            user_id: userId,
+        },
+        include: [
+            {
+                model: User,
+                as: 'user',
+                attributes: ['id', 'name', 'email'],
+            },
+            {
+                model: Client,
+                as: 'client',
+                attributes: ['id', 'name'],
+            },
+            {
+                model: Pacing,
+                as: 'pacings',
+                limit: 1,
+                order: [['updatedAt', 'DESC']],
+            },
+            {
+                model: Budget,
+                as: 'budgets',
+                limit: 1,
+                order: [['updatedAt', 'DESC']],
+                attributes: ['id', 'periods', 'allocations'],
+            },
+        ],
+    });
+}
+
+/**
  * Updates or inserts a new pacing object in the database
  */
 async function updateOrInsertPacingMetrics({ campaign, periods, allocations }) {
@@ -300,7 +397,9 @@ module.exports = {
     checkBigQueryIdExists,
     checkPacingOffPace,
     sendNotification,
+    getUsersToNotifyWithCampaigns,
     fetchCampaignsWithBudgets,
     fetchCampaignsWithPacings,
+    fetchCampaignsWithPacingsByUserId,
     updateOrInsertPacingMetrics,
 };

@@ -41,8 +41,8 @@ const emailTemplate = ({ user, campaigns, baseUrl }) => {
                     <thead>
                         <tr>
                             <th>Client</th>
-                            <th>Campaign</th>
                             <th>Channel</th>
+                            <th>Campaign</th>
                             <th>Pace</th>
                         </tr>
                     </thead>
@@ -52,8 +52,8 @@ const emailTemplate = ({ user, campaigns, baseUrl }) => {
                 html += `
                     <tr>
                         <td>${client.name}</td>
-                        <td>${item.name}</td>
                         <td>${item.channel}</td>
+                        <td>${item.name}</td>
                         <td>${item.pace}</td>
                     </tr>
                 `;
@@ -68,8 +68,8 @@ const emailTemplate = ({ user, campaigns, baseUrl }) => {
                     <thead>
                         <tr>
                             <th>Client</th>
-                            <th>Campaign</th>
                             <th>Channel</th>
+                            <th>Campaign</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -79,8 +79,8 @@ const emailTemplate = ({ user, campaigns, baseUrl }) => {
                 html += `
                     <tr>
                         <td>${client.name}</td>
-                        <td>${item.name}</td>
                         <td>${item.channel}</td>
+                        <td>${item.name}</td>
                         <td>${item.status}</td>
                     </tr>
                 `;
