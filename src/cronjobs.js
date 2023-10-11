@@ -3,14 +3,13 @@ const { Channel, Client } = require('./models');
 const { channelController } = require('./controllers');
 const { computeAndStoreMetrics } = require('./utils/bq_spend');
 const {
-    checkIfCampaignIsOffPace,
-    checkIfCampaignIsUnlinked,
     sendNotification,
     fetchCampaignsWithBudgets,
     fetchCampaignsWithPacings,
     updateOrInsertPacingMetrics,
     checkBigQueryIdExists,
     checkPacingOffPace,
+    getUsersToNotifyWithCampaigns,
 } = require('./utils/cronjobs');
 const { checkInFlight } = require('./utils');
 const { emailTemplate } = require('./templates/email');
@@ -200,57 +199,12 @@ async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
     logMessage('Starting daily check for unlinked or off pace campaigns');
     const campaigngroups = await fetchCampaignsWithPacings();
 
-    let usersToNotify = {};
-    let usernames = new Map();
+    const currentDate = new Date();
 
-    // check if is in flight
-    // in flight campaign means: A campaign with a start date in the past and an end date in the future
-    for (campaign of campaigngroups) {
-        // check if campaign has a user just in case (it should always have a user)
-        if (campaign.user) {
-            const currentDate = new Date();
-            // check if campaign is in flight
-            const { inFlight } = checkInFlight({ currentDate, campaign });
-            if (inFlight) {
-                const { offPaceCampaigns, hasOffPaceCampaigns } =
-                    checkIfCampaignIsOffPace({
-                        campaign,
-                        currentDate,
-                    });
-
-                const { unlinkedCampaigns, hasUnlinkedCampaigns } =
-                    checkIfCampaignIsUnlinked({
-                        campaign,
-                    });
-
-                // if campaign is off pace or unlinked, add it to the list of campaigns to notify the user
-                if (hasOffPaceCampaigns || hasUnlinkedCampaigns) {
-                    if (!usersToNotify[campaign.user.id]) {
-                        usersToNotify[campaign.user.id] = [];
-                        usernames[campaign.user.id] = {
-                            name: campaign.user.name,
-                            email: campaign.user.email,
-                        };
-                    }
-
-                    usersToNotify[campaign.user.id].push({
-                        id: campaign.id,
-                        name: campaign.name,
-                        user: {
-                            id: campaign.user.id,
-                            name: campaign.user.name,
-                        },
-                        client: {
-                            id: campaign.client.id,
-                            name: campaign.client.name,
-                        },
-                        offpace: offPaceCampaigns,
-                        unlinked: unlinkedCampaigns,
-                    });
-                }
-            }
-        }
-    }
+    const { usersToNotify, usernames } = getUsersToNotifyWithCampaigns({
+        campaigngroups,
+        currentDate,
+    });
 
     // send email to users
     for (const id in usersToNotify) {

@@ -8,9 +8,14 @@ const { getUser, checkInFlight } = require('../utils');
 const { computeAndStoreMetrics } = require('../utils/bq_spend');
 const {
     fetchCampaignsWithBudgets,
+    fetchCampaignsWithPacingsByUserId,
     updateOrInsertPacingMetrics,
     checkBigQueryIdExists,
+    getUsersToNotifyWithCampaigns,
+    sendNotification,
 } = require('../utils/cronjobs');
+const { emailTemplate } = require('../templates/email');
+const { send } = require('../utils/email');
 
 //creacion de reporte excel
 const createReport = async (req, res) => {
@@ -953,6 +958,7 @@ const getRecentCampaigns = async (req, res) => {
     }
 };
 
+// temp endpoint to refresh metrics
 const refreshMetrics = async (req, res) => {
     try {
         const campaigns = await fetchCampaignsWithBudgets();
@@ -979,6 +985,68 @@ const refreshMetrics = async (req, res) => {
     }
 };
 
+// temp endpoint to trigger notifications for unlinked or off pace campaigns
+const checkAndNotifyUnlinkedOrOffPaceCampaigns = async (req, res) => {
+    const { userId } = req.body;
+
+    if (!userId) {
+        return res.status(400).json({
+            message: `Missing required fields: userId`,
+        });
+    }
+
+    try {
+        const campaigngroups = await fetchCampaignsWithPacingsByUserId({
+            userId,
+        });
+
+        const currentDate = new Date();
+
+        const { usersToNotify, usernames } = getUsersToNotifyWithCampaigns({
+            campaigngroups,
+            currentDate,
+        });
+
+        // send email to users
+        for (const id in usersToNotify) {
+            const user = usernames[id];
+            const campaigns = usersToNotify[id];
+
+            const html = emailTemplate({
+                user: user.name,
+                campaigns,
+                baseUrl: process.env.WEB_URL,
+            });
+
+            // send notification to user in web
+            await Promise.all(
+                campaigns.map(campaign =>
+                    sendNotification({
+                        campaign,
+                        subject: 'You have unlinked or off pace campaigns',
+                        message: campaign.name + ' is unlinked or off pace',
+                        type: 'email',
+                    })
+                )
+            );
+
+            // send email to user
+            await send({
+                to: user.email,
+                subject: 'You have unlinked or off pace campaigns',
+                message: 'You have unlinked or off pace campaigns',
+                html,
+                type: 'email',
+            });
+        }
+        res.status(200).json({
+            message: 'Campaigns notifications sent successfully',
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getMarketingCampaignsByClient,
     getMarketingCampaignsById,
@@ -992,4 +1060,5 @@ module.exports = {
     getCampaignGroupPacing,
     generatePacingReport,
     refreshMetrics,
+    checkAndNotifyUnlinkedOrOffPaceCampaigns,
 };
