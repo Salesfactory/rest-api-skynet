@@ -41,7 +41,7 @@ const emailTemplate = ({ user, campaigns, baseUrl }) => {
                     <thead>
                         <tr>
                             <th>Client</th>
-                            <th>Campaign Group</th>
+                            <th>Campaign</th>
                             <th>Channel</th>
                             <th>Pace</th>
                         </tr>
@@ -68,7 +68,7 @@ const emailTemplate = ({ user, campaigns, baseUrl }) => {
                     <thead>
                         <tr>
                             <th>Client</th>
-                            <th>Campaign Group</th>
+                            <th>Campaign</th>
                             <th>Channel</th>
                             <th>Status</th>
                         </tr>
