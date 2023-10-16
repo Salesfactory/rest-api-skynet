@@ -18,8 +18,11 @@ jest.mock('../src/config/bigquery', () => ({
         query: jest.fn(),
     },
 }));
+const getSecrets = jest.fn(() => ({
+    CLIENT_ID: 'TEST',
+}));
 
-const app = makeApp();
+const app = makeApp({ getSecrets });
 const request = supertest(app);
 
 describe('Channel Endpoints Test', () => {

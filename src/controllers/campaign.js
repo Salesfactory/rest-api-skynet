@@ -359,9 +359,12 @@ const createMarketingCampaign = async (req, res) => {
         comments,
         status,
     } = req.body;
+
     const user = await getUser(res);
 
     try {
+        const secret = await req.getSecrets();
+        console.log(Object.keys(secret));
         const client = await Client.findOne({
             where: { id: clientId },
         });
