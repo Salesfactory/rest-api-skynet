@@ -19,8 +19,11 @@ jest.mock('../src/utils', () => ({
     ...jest.requireActual('../src/utils'),
     getUser: jest.fn(),
 }));
+const getSecrets = jest.fn(() => ({
+    CLIENT_ID: 'TEST',
+}));
 
-const app = makeApp();
+const app = makeApp({ getSecrets });
 const request = supertest(app);
 
 describe('Notifications Endpoints Test', () => {
