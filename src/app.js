@@ -9,7 +9,7 @@ const cronjobs = require('./cronjobs');
 // api router
 const apiRouter = require('./routes');
 
-module.exports = function () {
+module.exports = function ({ getSecrets }) {
     const app = express();
 
     // override the default json response
@@ -50,6 +50,15 @@ module.exports = function () {
     });
 
     // api routes
+    app.use(
+        '/api',
+        (req, res, next) => {
+            // Attach the getSecrets function to the request object
+            req.getSecrets = getSecrets;
+            next();
+        },
+        apiRouter
+    );
     app.use('/api', apiRouter);
 
     // custom 404
