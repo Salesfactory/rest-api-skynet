@@ -18,7 +18,7 @@ module.exports = {
                 allowNull: false,
                 defaultValue: true,
             },
-            apiCampaign: {
+            apiEnabled: {
                 type: Sequelize.BOOLEAN,
                 allowNull: false,
                 defaultValue: false,

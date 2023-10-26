@@ -1,6 +1,12 @@
 const supertest = require('supertest');
 const makeApp = require('../src/app');
-const { Budget, Campaign, CampaignGroup, Client } = require('../src/models');
+const {
+    Budget,
+    Campaign,
+    Channel,
+    CampaignGroup,
+    Client,
+} = require('../src/models');
 const { getUser } = require('../src/utils');
 
 jest.mock('../src/models', () => ({
@@ -35,6 +41,9 @@ jest.mock('../src/models', () => ({
         findOne: jest.fn(),
         findAll: jest.fn(),
         destroy: jest.fn(),
+    },
+    Channel: {
+        findAll: jest.fn(),
     },
 }));
 
@@ -495,6 +504,11 @@ describe('Campaign Endpoints Test', () => {
                 username: '123',
             };
             getUser.mockResolvedValue(user);
+
+            Channel.findAll.mockResolvedValue([
+                { id: 1, name: 'Google Ads' },
+                { id: 2, name: 'Amazon Advertising' },
+            ]);
 
             Client.findOne.mockResolvedValue({
                 id: 1,
