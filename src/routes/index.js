@@ -40,9 +40,9 @@ const validateToken = (req, res, next) => {
 };
 
 router.use('/users', validateToken, userRouter);
-router.use('/channels', validateToken, channelRouter);
+router.use('/channels', channelRouter);
 router.use('/clients', validateToken, clientRouter);
-router.use('/campaigns', validateToken, campaigntRouter);
+router.use('/campaigns', campaigntRouter);
 router.use('/notifications', validateToken, notificationRouter);
 
 // this is a temp route to test email sending (must be deleted later)

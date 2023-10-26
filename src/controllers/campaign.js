@@ -1,6 +1,13 @@
 const { bigqueryClient } = require('../config/bigquery');
 const { createSheet, createPacingsSheet } = require('../utils/reports');
-const { Agency, Budget, CampaignGroup, Client, Pacing } = require('../models');
+const {
+    Agency,
+    Budget,
+    CampaignGroup,
+    Client,
+    Pacing,
+    Channel,
+} = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
 const { validateObjectAllocations } = require('../utils');
@@ -16,6 +23,7 @@ const {
 } = require('../utils/cronjobs');
 const { emailTemplate } = require('../templates/email');
 const { send } = require('../utils/email');
+const { createAmazonCampaign } = require('./amazon');
 
 //creacion de reporte excel
 const createReport = async (req, res) => {
@@ -358,6 +366,7 @@ const createMarketingCampaign = async (req, res) => {
         allocations,
         comments,
         status,
+        state,
     } = req.body;
 
     const user = await getUser(res);
@@ -440,6 +449,23 @@ const createMarketingCampaign = async (req, res) => {
             }
         }
 
+        const access = {
+            CLIENT_ID: secret.CLIENT_ID,
+            ACCESS_TOKEN: req.session.amazonAccessToken.token,
+        };
+
+        // HARDCODED PROFILE ID
+        const profileId = '1330860679472894';
+
+        const channelsWithApiEnabled = await Channel.findAll({
+            where: { apiEnabled: true },
+        });
+        const channelNames = channelsWithApiEnabled.map(
+            channel => channel.name
+        );
+
+        const campaignData = new Map();
+
         const campaignGroup = (
             await CampaignGroup.create({
                 user_id: user?.id,
@@ -465,6 +491,77 @@ const createMarketingCampaign = async (req, res) => {
                 allocations,
             });
             campaignGroup.budgets = newBudget;
+
+            // Create AMAZON CAMPAIGNS
+            if (allocations) {
+                for (const [index, key] of Object.keys(allocations).entries()) {
+                    const periodAllocations = allocations[key].allocations;
+                    for (const channel of periodAllocations) {
+                        if (channelNames.includes(channel.name)) {
+                            if (Array.isArray(channel.allocations)) {
+                                for (const campaignType of channel.allocations) {
+                                    if (
+                                        Array.isArray(campaignType.allocations)
+                                    ) {
+                                        for (const campaign of campaignType.allocations) {
+                                            campaignData.set(campaign.id, {
+                                                name: campaign.name,
+                                                type: campaignType.name,
+                                                budget:
+                                                    (
+                                                        campaignData.get(
+                                                            campaign.id
+                                                        ) || { budget: 0 }
+                                                    ).budget +
+                                                    parseFloat(campaign.budget),
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                const parsedStartDate = new Date(flight_time_start)
+                    .toISOString()
+                    .substring(0, 10);
+                const parsedEndDate = new Date(flight_time_end)
+                    .toISOString()
+                    .substring(0, 10);
+
+                const campaignArray = Array.from(
+                    campaignData,
+                    ([key, value]) => ({
+                        id: key,
+                        ...value,
+                        startDate: parsedStartDate,
+                        endDate: parsedEndDate,
+                    })
+                );
+
+                const campaignDataByType = campaignArray.reduce(
+                    (acc, campaign) => {
+                        const { type, ...rest } = campaign;
+                        if (!acc[type]) {
+                            acc[type] = [];
+                        }
+                        acc[type].push(rest);
+                        return acc;
+                    },
+                    {}
+                );
+
+                const { message, success, error } = await createAmazonCampaign({
+                    campaigns: campaignDataByType,
+                    state: state || 'PAUSED',
+                    profileId,
+                    access,
+                });
+
+                // creates the campaigns, returns the errors if some of them failed
+                // console.log(message, success, error);
+            }
         }
 
         res.status(201).json({
@@ -472,6 +569,7 @@ const createMarketingCampaign = async (req, res) => {
             data: campaignGroup,
         });
     } catch (error) {
+        console.log(error);
         res.status(500).json({ message: error.message });
     }
 };

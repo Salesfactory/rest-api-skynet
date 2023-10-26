@@ -16,7 +16,7 @@ const getProtectedBigqueryChannels = async () => {
 const getChannels = async (req, res) => {
     try {
         const channels = await Channel.findAll({
-            attributes: ['id', 'name'],
+            attributes: ['id', 'name', 'apiEnabled'],
             where: {
                 active: true,
             },
