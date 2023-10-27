@@ -275,19 +275,19 @@ const getSponsoredProductsCreateData = ({ campaigns, state }) => {
 };
 
 const getSponsoredBrandsCreateData = ({ campaigns, state }) => {
-    let data = JSON.stringify({
-        campaigns: campaigns.map(campaign => ({
-            budgetType: 'DAILY',
-            name: campaign.name,
-            state,
-            productLocation: 'SOLD_ON_AMAZON',
-            startDate: campaign.startDate,
-            budget: campaign.budget,
-            bidding: {
-                bidOptimization: 'true',
-            },
-        })),
-    });
+    const formattedCampaigns = campaigns.map(campaign => ({
+        budgetType: 'DAILY',
+        name: campaign.name,
+        state,
+        productLocation: 'SOLD_ON_AMAZON',
+        startDate: campaign.startDate,
+        budget: campaign.budget,
+        bidding: {
+            bidOptimization: 'true',
+        },
+    }));
+
+    const data = JSON.stringify({ campaigns: formattedCampaigns });
 
     return data;
 };
