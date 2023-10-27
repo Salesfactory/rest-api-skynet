@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { clientController, campaignController } = require('../controllers');
+const { validateAmazonToken } = require('../utils/campaign-controller');
 
 // client routes
 router.get('/', clientController.getClients);
@@ -25,10 +26,12 @@ router.get(
 );
 router.post(
     '/:id/marketingcampaign',
+    [validateAmazonToken],
     campaignController.createMarketingCampaign
 );
 router.put(
     '/:id/marketingcampaign/:cid',
+    [validateAmazonToken],
     campaignController.updateMarketingCampaign
 );
 router.delete(

@@ -1,6 +1,13 @@
 const { bigqueryClient } = require('../config/bigquery');
 const { createSheet, createPacingsSheet } = require('../utils/reports');
-const { Agency, Budget, CampaignGroup, Client, Pacing } = require('../models');
+const {
+    Agency,
+    Budget,
+    CampaignGroup,
+    Client,
+    Pacing,
+    Channel,
+} = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
 const { validateObjectAllocations } = require('../utils');
@@ -16,6 +23,8 @@ const {
 } = require('../utils/cronjobs');
 const { emailTemplate } = require('../templates/email');
 const { send } = require('../utils/email');
+const { createAmazonCampaign } = require('../utils/campaign-controller');
+const { groupCampaignAllocationsByType } = require('../utils/allocations');
 
 //creacion de reporte excel
 const createReport = async (req, res) => {
@@ -358,6 +367,7 @@ const createMarketingCampaign = async (req, res) => {
         allocations,
         comments,
         status,
+        state,
     } = req.body;
 
     const user = await getUser(res);
@@ -439,6 +449,42 @@ const createMarketingCampaign = async (req, res) => {
                 });
             }
         }
+
+        const access = {
+            CLIENT_ID: secret.CLIENT_ID,
+            ACCESS_TOKEN: req.session.amazonAccessToken.token,
+        };
+
+        // HARDCODED PROFILE ID
+        const profileId = '1330860679472894';
+
+        const channelsWithApiEnabled = await Channel.findAll({
+            where: { apiEnabled: true },
+        });
+        const channelNames = channelsWithApiEnabled.map(
+            channel => channel.name
+        );
+
+        const campaignData = new Map();
+
+        const campaignDataByType = groupCampaignAllocationsByType({
+            channelsWithApiEnabled: channelNames,
+            allocations,
+            flight_time_start,
+            flight_time_end,
+        });
+
+        const { message, success, error } = await createAmazonCampaign({
+            campaigns: campaignDataByType,
+            state: state || 'PAUSED',
+            profileId,
+            access,
+        });
+
+        console.log(message, success, error);
+        return res.status(200).json({
+            message: 'TEST',
+        });
 
         const campaignGroup = (
             await CampaignGroup.create({
