@@ -6,6 +6,7 @@ const {
     getConfig,
     getAxiosHeaders,
     getSponsoredProductsCreateData,
+    getSponsoredBrandsCreateData,
 } = require('../src/utils/allocations');
 jest.mock('../src/models', () => ({
     User: {
@@ -597,4 +598,102 @@ describe('getSponsoredProductsCreateData', () => {
         const result = getSponsoredProductsCreateData({ campaigns, state });
         expect(result).toEqual(expectedData);
     });
+});
+
+describe('getSponsoredBrandsCreateData', () => {
+    it('should format a single campaign correctly', () => {
+        const input = {
+            campaigns: [
+                {
+                    name: 'Campaign 1',
+                    startDate: '2023-01-01',
+                    budget: 100,
+                },
+            ],
+            state: 'ACTIVE',
+        };
+
+        const expectedOutput = JSON.stringify({
+            campaigns: [
+                {
+                    budgetType: 'DAILY',
+                    name: 'Campaign 1',
+                    state: 'ACTIVE',
+                    productLocation: 'SOLD_ON_AMAZON',
+                    startDate: '2023-01-01',
+                    budget: 100,
+                    bidding: {
+                        bidOptimization: 'true',
+                    },
+                },
+            ],
+        });
+
+        const result = getSponsoredBrandsCreateData(input);
+        expect(result).toEqual(expectedOutput);
+    });
+
+    it('should format multiple campaigns correctly', () => {
+        const input = {
+            campaigns: [
+                {
+                    name: 'Campaign 1',
+                    startDate: '2023-01-01',
+                    budget: 100,
+                },
+                {
+                    name: 'Campaign 2',
+                    startDate: '2023-01-02',
+                    budget: 200,
+                },
+            ],
+            state: 'INACTIVE',
+        };
+
+        const expectedOutput = JSON.stringify({
+            campaigns: [
+                {
+                    budgetType: 'DAILY',
+                    name: 'Campaign 1',
+                    state: 'INACTIVE',
+                    productLocation: 'SOLD_ON_AMAZON',
+                    startDate: '2023-01-01',
+                    budget: 100,
+                    bidding: {
+                        bidOptimization: 'true',
+                    },
+                },
+                {
+                    budgetType: 'DAILY',
+                    name: 'Campaign 2',
+                    state: 'INACTIVE',
+                    productLocation: 'SOLD_ON_AMAZON',
+                    startDate: '2023-01-02',
+                    budget: 200,
+                    bidding: {
+                        bidOptimization: 'true',
+                    },
+                },
+            ],
+        });
+
+        const result = getSponsoredBrandsCreateData(input);
+        expect(result).toEqual(expectedOutput);
+    });
+
+    it('should handle an empty campaigns array', () => {
+        const input = {
+            campaigns: [],
+            state: 'ACTIVE',
+        };
+
+        const expectedOutput = JSON.stringify({
+            campaigns: [],
+        });
+
+        const result = getSponsoredBrandsCreateData(input);
+        expect(result).toEqual(expectedOutput);
+    });
+
+    // Add more test cases as needed to cover edge cases and scenarios.
 });

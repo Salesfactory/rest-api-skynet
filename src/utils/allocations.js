@@ -274,6 +274,24 @@ const getSponsoredProductsCreateData = ({ campaigns, state }) => {
     return data;
 };
 
+const getSponsoredBrandsCreateData = ({ campaigns, state }) => {
+    let data = JSON.stringify({
+        campaigns: campaigns.map(campaign => ({
+            budgetType: 'DAILY',
+            name: campaign.name,
+            state,
+            productLocation: 'SOLD_ON_AMAZON',
+            startDate: campaign.startDate,
+            budget: campaign.budget,
+            bidding: {
+                bidOptimization: 'true',
+            },
+        })),
+    });
+
+    return data;
+};
+
 module.exports = {
     groupCampaignAllocationsByType,
     validateCredentials,
@@ -281,4 +299,5 @@ module.exports = {
     getConfig,
     getAxiosHeaders,
     getSponsoredProductsCreateData,
+    getSponsoredBrandsCreateData,
 };
