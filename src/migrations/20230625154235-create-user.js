@@ -39,10 +39,15 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: true,
       },
-      role: {
-        type: Sequelize.STRING,
+      roleId: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-        defaultValue: 'DM',
+        references: {
+          model: 'roles',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       createdAt: {
         allowNull: false,
