@@ -244,10 +244,32 @@ const createCampaigns = async (type, campaignsArray, config) => {
     return { errors, successes };
 };
 
+const getSponsoredProductsCreateData = ({ campaigns, state }) => {
+    let data = JSON.stringify({
+        campaigns: campaigns.map(campaign => ({
+            endDate: campaign.endDate,
+            name: campaign.name,
+            targetingType: 'MANUAL',
+            state,
+            dynamicBidding: {
+                strategy: campaign.strategy || 'LEGACY_FOR_SALES',
+            },
+            startDate: campaign.startDate,
+            budget: {
+                budgetType: 'DAILY',
+                budget: campaign.budget,
+            },
+        })),
+    });
+
+    return data;
+};
+
 module.exports = {
     groupCampaignAllocationsByType,
     validateCredentials,
     validateCampaignsArray,
     getConfig,
     getAxiosHeaders,
+    getSponsoredProductsCreateData,
 };

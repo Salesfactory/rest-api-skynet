@@ -5,6 +5,7 @@ const {
     validateCampaignsArray,
     getConfig,
     getAxiosHeaders,
+    getSponsoredProductsCreateData,
 } = require('../src/utils/allocations');
 jest.mock('../src/models', () => ({
     User: {
@@ -487,5 +488,113 @@ describe('getConfig', () => {
                 Prefer: 'return=representation',
             },
         });
+    });
+});
+
+describe('getSponsoredProductsCreateData', () => {
+    it('should format campaigns with complete data', () => {
+        // Input campaigns with complete data
+        const campaigns = [
+            {
+                name: 'Campaign 1',
+                startDate: '2023-01-01',
+                endDate: '2023-01-31',
+                budget: 100,
+            },
+            {
+                name: 'Campaign 2',
+                startDate: '2023-02-01',
+                endDate: '2023-02-28',
+                budget: 200,
+                strategy: 'NEW_STRATEGY',
+            },
+        ];
+
+        const state = 'ACTIVE';
+
+        const expectedData = JSON.stringify({
+            campaigns: [
+                {
+                    endDate: '2023-01-31',
+                    name: 'Campaign 1',
+                    targetingType: 'MANUAL',
+                    state: 'ACTIVE',
+                    dynamicBidding: {
+                        strategy: 'LEGACY_FOR_SALES',
+                    },
+                    startDate: '2023-01-01',
+                    budget: {
+                        budgetType: 'DAILY',
+                        budget: 100,
+                    },
+                },
+                {
+                    endDate: '2023-02-28',
+                    name: 'Campaign 2',
+                    targetingType: 'MANUAL',
+                    state: 'ACTIVE',
+                    dynamicBidding: {
+                        strategy: 'NEW_STRATEGY',
+                    },
+                    startDate: '2023-02-01',
+                    budget: {
+                        budgetType: 'DAILY',
+                        budget: 200,
+                    },
+                },
+            ],
+        });
+
+        const result = getSponsoredProductsCreateData({ campaigns, state });
+        expect(result).toEqual(expectedData);
+    });
+
+    it('should format campaigns with missing strategy', () => {
+        // Input campaigns with missing strategy
+        const campaigns = [
+            {
+                name: 'Campaign 1',
+                startDate: '2023-01-01',
+                endDate: '2023-01-31',
+                budget: 100,
+            },
+        ];
+
+        const state = 'ACTIVE';
+
+        const expectedData = JSON.stringify({
+            campaigns: [
+                {
+                    endDate: '2023-01-31',
+                    name: 'Campaign 1',
+                    targetingType: 'MANUAL',
+                    state: 'ACTIVE',
+                    dynamicBidding: {
+                        strategy: 'LEGACY_FOR_SALES',
+                    },
+                    startDate: '2023-01-01',
+                    budget: {
+                        budgetType: 'DAILY',
+                        budget: 100,
+                    },
+                },
+            ],
+        });
+
+        const result = getSponsoredProductsCreateData({ campaigns, state });
+        expect(result).toEqual(expectedData);
+    });
+
+    it('should handle empty campaigns array', () => {
+        // Input empty campaigns array
+        const campaigns = [];
+        const state = 'ACTIVE';
+
+        const expectedData = JSON.stringify({
+            campaigns: [],
+        });
+
+        const result = getSponsoredProductsCreateData({ campaigns, state });
+        expect(result).toEqual(expectedData);
     });
 });
