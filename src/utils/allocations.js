@@ -1,3 +1,5 @@
+const axios = require('axios');
+
 function groupCampaignAllocationsByType({
     channelsWithApiEnabled,
     allocations,
@@ -86,7 +88,8 @@ const createAmazonCampaign = async ({
                 const { errors, successes } = await createCampaigns(
                     type,
                     campaignsArray,
-                    config
+                    config,
+                    state
                 );
 
                 campaignErrors.push(...errors);
@@ -179,69 +182,78 @@ const getConfig = (type, access, profileId) => {
 };
 
 // Create campaigns and handle responses
-const createCampaigns = async (type, campaignsArray, config) => {
-    const errors = [];
-    const successes = [];
+const createCampaigns = async (type, campaignsArray, config, state) => {
+    return new Promise(async (resolve, reject) => {
+        const errors = [];
+        const successes = [];
 
-    switch (type) {
-        case 'Sponsored Products':
-            config.url = 'https://advertising-api.amazon.com/sp/campaigns';
-            config.data = getSponsoredProductsCreateData({
-                campaigns: campaignsArray,
-                state,
-            });
+        try {
+            switch (type) {
+                case 'Sponsored Products':
+                    config.url =
+                        'https://advertising-api.amazon.com/sp/campaigns';
+                    config.data = getSponsoredProductsCreateData({
+                        campaigns: campaignsArray,
+                        state,
+                    });
 
-            const newSPCampaign = await axios.request(config);
-            const newSPCampaignData = newSPCampaign?.data?.campaigns;
+                    const newSPCampaign = await axios.request(config);
+                    const newSPCampaignData = newSPCampaign?.data?.campaigns;
 
-            if (newSPCampaignData) {
-                errors.push(...newSPCampaignData.error);
-                successes.push(...newSPCampaignData.success);
-            }
-
-            break;
-        case 'Sponsored Brands':
-            config.url = 'https://advertising-api.amazon.com/sb/v4/campaigns';
-            config.data = getSponsoredBrandsCreateData({
-                campaigns: campaignsArray,
-                state,
-            });
-
-            const newSBCampaign = await axios.request(config);
-            const newSBCampaignData = newSBCampaign?.data?.campaigns;
-
-            if (newSBCampaignData) {
-                errors.push(...newSBCampaignData.error);
-                successes.push(...newSBCampaignData.success);
-            }
-
-            break;
-        case 'Sponsored Display':
-            config.url = 'https://advertising-api.amazon.com/sd/campaigns';
-            config.data = getSponsoredDisplayCreateData({
-                campaigns: campaignsArray,
-                state,
-            });
-
-            const newSDCampaign = await axios.request(config);
-            const newSDCampaignData = newSDCampaign?.data;
-
-            if (Array.isArray(newSDCampaignData)) {
-                newSDCampaignData.forEach(campaign => {
-                    if (campaign.code === 'SUCCESS') {
-                        successes.push(campaign);
-                    } else {
-                        errors.push(campaign);
+                    if (newSPCampaignData) {
+                        errors.push(...newSPCampaignData.error);
+                        successes.push(...newSPCampaignData.success);
                     }
-                });
+
+                    break;
+                case 'Sponsored Brands':
+                    config.url =
+                        'https://advertising-api.amazon.com/sb/v4/campaigns';
+                    config.data = getSponsoredBrandsCreateData({
+                        campaigns: campaignsArray,
+                        state,
+                    });
+
+                    const newSBCampaign = await axios.request(config);
+                    const newSBCampaignData = newSBCampaign?.data?.campaigns;
+
+                    if (newSBCampaignData) {
+                        errors.push(...newSBCampaignData.error);
+                        successes.push(...newSBCampaignData.success);
+                    }
+
+                    break;
+                case 'Sponsored Display':
+                    config.url =
+                        'https://advertising-api.amazon.com/sd/campaigns';
+                    config.data = getSponsoredDisplayCreateData({
+                        campaigns: campaignsArray,
+                        state,
+                    });
+
+                    const newSDCampaign = await axios.request(config);
+                    const newSDCampaignData = newSDCampaign?.data;
+
+                    if (Array.isArray(newSDCampaignData)) {
+                        newSDCampaignData.forEach(campaign => {
+                            if (campaign.code === 'SUCCESS') {
+                                successes.push(campaign);
+                            } else {
+                                errors.push(campaign);
+                            }
+                        });
+                    }
+
+                    break;
+                default:
+                    throw new Error('Unknown type');
             }
 
-            break;
-        default:
-            break;
-    }
-
-    return { errors, successes };
+            resolve({ errors, successes });
+        } catch (error) {
+            reject(error);
+        }
+    });
 };
 
 const getSponsoredProductsCreateData = ({ campaigns, state }) => {
@@ -332,4 +344,5 @@ module.exports = {
     getSponsoredProductsCreateData,
     getSponsoredBrandsCreateData,
     getSponsoredDisplayCreateData,
+    createCampaigns,
 };

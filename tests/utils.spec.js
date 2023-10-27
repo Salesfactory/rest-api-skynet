@@ -1,3 +1,4 @@
+const axios = require('axios');
 const utils = require('../src/utils');
 const {
     groupCampaignAllocationsByType,
@@ -8,6 +9,7 @@ const {
     getSponsoredProductsCreateData,
     getSponsoredBrandsCreateData,
     getSponsoredDisplayCreateData,
+    createCampaigns,
 } = require('../src/utils/allocations');
 jest.mock('../src/models', () => ({
     User: {
@@ -842,4 +844,103 @@ describe('getSponsoredDisplayCreateData', () => {
     });
 
     // Add more test cases as needed to cover edge cases and scenarios.
+});
+
+describe('createCampaigns', () => {
+    it('should resolve with errors and successes for Sponsored Products', async () => {
+        // Mock axios request for testing
+        axios.request = jest.fn().mockResolvedValue({
+            data: {
+                campaigns: {
+                    error: [{ code: 'ERROR1' }],
+                    success: [{ code: 'SUCCESS1' }],
+                },
+            },
+        });
+
+        const config = {};
+        const type = 'Sponsored Products';
+        const campaignsArray = [];
+        const state = 'ACTIVE';
+
+        const result = await createCampaigns(
+            type,
+            campaignsArray,
+            config,
+            state
+        );
+
+        expect(result).toEqual({
+            errors: [{ code: 'ERROR1' }],
+            successes: [{ code: 'SUCCESS1' }],
+        });
+    });
+
+    it('should resolve with errors and successes for Sponsored Brands', async () => {
+        // Mock axios request for testing
+        axios.request = jest.fn().mockResolvedValue({
+            data: {
+                campaigns: {
+                    error: [{ code: 'ERROR2' }],
+                    success: [{ code: 'SUCCESS2' }],
+                },
+            },
+        });
+
+        const config = {};
+        const type = 'Sponsored Brands';
+        const campaignsArray = [];
+        const state = 'PAUSED';
+
+        const result = await createCampaigns(
+            type,
+            campaignsArray,
+            config,
+            state
+        );
+
+        expect(result).toEqual({
+            errors: [{ code: 'ERROR2' }],
+            successes: [{ code: 'SUCCESS2' }],
+        });
+    });
+
+    it('should resolve with errors and successes for Sponsored Display', async () => {
+        // Mock axios request for testing
+        axios.request = jest.fn().mockResolvedValue({
+            data: [
+                { code: 'SUCCESS' },
+                { code: 'ERROR3' },
+                { code: 'SUCCESS' },
+            ],
+        });
+
+        const config = {};
+        const type = 'Sponsored Display';
+        const campaignsArray = [];
+        const state = 'PAUSED';
+
+        const result = await createCampaigns(
+            type,
+            campaignsArray,
+            config,
+            state
+        );
+
+        expect(result).toEqual({
+            errors: [{ code: 'ERROR3' }],
+            successes: [{ code: 'SUCCESS' }, { code: 'SUCCESS' }],
+        });
+    });
+
+    it('should reject with an error for an unknown type', async () => {
+        const config = {};
+        const type = 'Unknown Type';
+        const campaignsArray = [];
+        const state = 'PAUSED';
+
+        await expect(
+            createCampaigns(type, campaignsArray, config, state)
+        ).rejects.toThrow('Unknown type');
+    });
 });
