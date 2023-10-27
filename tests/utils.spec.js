@@ -1,5 +1,11 @@
 const utils = require('../src/utils');
-const { groupCampaignAllocationsByType } = require('../src/utils/allocations');
+const {
+    groupCampaignAllocationsByType,
+    validateCredentials,
+    validateCampaignsArray,
+    getConfig,
+    getAxiosHeaders,
+} = require('../src/utils/allocations');
 jest.mock('../src/models', () => ({
     User: {
         findOne: jest.fn(),
@@ -254,5 +260,232 @@ describe('groupCampaignAllocationsByType', () => {
         });
 
         expect(result).toEqual({});
+    });
+});
+
+// Mock the console.error method to capture error messages
+
+describe('validateCredentials', () => {
+    it('should throw an error if CLIENT_ID is missing', () => {
+        // Arrange: Prepare a mock access object with a missing CLIENT_ID
+        const access = {
+            ACCESS_TOKEN: 'your-access-token',
+        };
+        console.error = jest.fn();
+
+        // Act and Assert: Ensure that the function throws an error with the expected message
+        expect(() => validateCredentials(access)).toThrowError(
+            'Access token or client ID is missing'
+        );
+
+        // Verify that console.error was called with the expected message
+        expect(console.error).toHaveBeenCalledWith(
+            'Access token or client ID is missing'
+        );
+    });
+
+    it('should throw an error if ACCESS_TOKEN is missing', () => {
+        // Arrange: Prepare a mock access object with a missing ACCESS_TOKEN
+        const access = {
+            CLIENT_ID: 'your-client-id',
+        };
+        console.error = jest.fn();
+
+        // Act and Assert: Ensure that the function throws an error with the expected message
+        expect(() => validateCredentials(access)).toThrowError(
+            'Access token or client ID is missing'
+        );
+
+        // Verify that console.error was called with the expected message
+        expect(console.error).toHaveBeenCalledWith(
+            'Access token or client ID is missing'
+        );
+    });
+
+    it('should not throw an error if both CLIENT_ID and ACCESS_TOKEN are present', () => {
+        // Arrange: Prepare a mock access object with both CLIENT_ID and ACCESS_TOKEN
+        const access = {
+            CLIENT_ID: 'your-client-id',
+            ACCESS_TOKEN: 'your-access-token',
+        };
+        console.error = jest.fn();
+
+        // Act and Assert: Ensure that the function does not throw an error
+        expect(() => validateCredentials(access)).not.toThrowError();
+
+        // Verify that console.error was not called (no error should be logged)
+        expect(console.error).not.toHaveBeenCalled();
+    });
+});
+
+describe('validateCampaignsArray', () => {
+    it('should throw an error if campaignsArray is not an array', () => {
+        // Arrange: Prepare a mock campaigns array that is not an array
+        const campaignsArray = 'not-an-array';
+        console.error = jest.fn();
+        // Act and Assert: Ensure that the function throws an error with the expected message
+        expect(() => validateCampaignsArray(campaignsArray)).toThrowError(
+            'Campaigns must be an array'
+        );
+
+        // Verify that console.error was called with the expected message
+        expect(console.error).toHaveBeenCalledWith(
+            'Campaigns must be an array'
+        );
+    });
+
+    it('should not throw an error if campaignsArray is an array', () => {
+        console.error = jest.fn();
+        // Arrange: Prepare a mock campaigns array that is an array
+        const campaignsArray = [
+            {
+                name: 'Campaign 1',
+                startDate: '2023-01-01',
+                endDate: '2023-01-31',
+                budget: 1000,
+            },
+            {
+                name: 'Campaign 2',
+                startDate: '2023-02-01',
+                endDate: '2023-02-28',
+                budget: 1500,
+            },
+        ];
+
+        // Act and Assert: Ensure that the function does not throw an error
+        expect(() => validateCampaignsArray(campaignsArray)).not.toThrowError();
+
+        // Verify that console.error was not called (no error should be logged)
+        expect(console.error).not.toHaveBeenCalled();
+    });
+});
+
+describe('getAxiosHeaders', () => {
+    it('should return headers for Sponsored Products', () => {
+        // Arrange: Prepare mock values for clientId, accessToken, profileId, and type
+        const clientId = 'client-id';
+        const accessToken = 'access-token';
+        const profileId = 'profile-id';
+        const type = 'Sponsored Products';
+
+        // Act: Call the getAxiosHeaders function
+        const headers = getAxiosHeaders({
+            clientId,
+            accessToken,
+            profileId,
+            type,
+        });
+
+        // Assert: Check if the returned headers match the expected headers for Sponsored Products
+        expect(headers).toEqual({
+            'Amazon-Advertising-API-ClientId': 'client-id',
+            Authorization: 'Bearer access-token',
+            'Amazon-Advertising-API-Scope': 'profile-id',
+            Prefer: 'return=representation',
+            Accept: 'application/vnd.spCampaign.v3+json',
+            'Content-Type': 'application/vnd.spCampaign.v3+json',
+        });
+    });
+
+    it('should return headers for Sponsored Brands', () => {
+        // Arrange: Prepare mock values for clientId, accessToken, profileId, and type
+        const clientId = 'client-id';
+        const accessToken = 'access-token';
+        const profileId = 'profile-id';
+        const type = 'Sponsored Brands';
+
+        // Act: Call the getAxiosHeaders function
+        const headers = getAxiosHeaders({
+            clientId,
+            accessToken,
+            profileId,
+            type,
+        });
+
+        // Assert: Check if the returned headers match the expected headers for Sponsored Brands
+        expect(headers).toEqual({
+            'Amazon-Advertising-API-ClientId': 'client-id',
+            Authorization: 'Bearer access-token',
+            'Amazon-Advertising-API-Scope': 'profile-id',
+            Accept: 'application/vnd.sbcampaignresource.v4+json',
+        });
+    });
+
+    it('should return headers for Sponsored Display', () => {
+        // Arrange: Prepare mock values for clientId, accessToken, profileId, and type
+        const clientId = 'client-id';
+        const accessToken = 'access-token';
+        const profileId = 'profile-id';
+        const type = 'Sponsored Display';
+
+        // Act: Call the getAxiosHeaders function
+        const headers = getAxiosHeaders({
+            clientId,
+            accessToken,
+            profileId,
+            type,
+        });
+
+        // Assert: Check if the returned headers match the expected headers for Sponsored Display
+        expect(headers).toEqual({
+            'Amazon-Advertising-API-ClientId': 'client-id',
+            Authorization: 'Bearer access-token',
+            'Amazon-Advertising-API-Scope': 'profile-id',
+            'Content-Type': 'application/json',
+        });
+    });
+
+    it('should throw an error for missing parameters', () => {
+        // Arrange: Prepare mock values with missing parameters
+        const clientId = 'client-id';
+        const accessToken = null; // Missing accessToken
+        const profileId = 'profile-id';
+        const type = 'Sponsored Products';
+
+        // Act and Assert: Check if the function throws an error for missing parameters
+        expect(() =>
+            getAxiosHeaders({ clientId, accessToken, profileId, type })
+        ).toThrowError('Missing required parameters for headers');
+    });
+
+    it('should throw an error for unknown type', () => {
+        // Arrange: Prepare mock values for clientId, accessToken, profileId, and an unknown type
+        const clientId = 'client-id';
+        const accessToken = 'access-token';
+        const profileId = 'profile-id';
+        const type = 'Unknown Type';
+
+        expect(() =>
+            getAxiosHeaders({ clientId, accessToken, profileId, type })
+        ).toThrowError('Unknown type parameters for headers');
+    });
+});
+
+describe('getConfig', () => {
+    it('should return the correct config object', () => {
+        // Arrange: Prepare mock values for type, access, and profileId
+        const type = 'Sponsored Products';
+        const access = {
+            CLIENT_ID: 'your-client-id',
+            ACCESS_TOKEN: 'your-access-token',
+        };
+        const profileId = 'your-profile-id';
+
+        // Act: Call the getConfig function
+        const config = getConfig(type, access, profileId);
+
+        // Assert: Check if the returned config object matches the expected structure
+        expect(config).toEqual({
+            method: 'post',
+            maxBodyLength: Infinity,
+            headers: {
+                Accept: 'application/vnd.spCampaign.v3+json',
+                'Amazon-Advertising-API-ClientId': 'your-client-id',
+                'Amazon-Advertising-API-Scope': 'your-profile-id',
+                Authorization: 'Bearer your-access-token',
+                'Content-Type': 'application/vnd.spCampaign.v3+json',
+                Prefer: 'return=representation',
+            },
+        });
     });
 });
