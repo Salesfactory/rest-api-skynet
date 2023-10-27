@@ -7,6 +7,7 @@ const {
     getAxiosHeaders,
     getSponsoredProductsCreateData,
     getSponsoredBrandsCreateData,
+    getSponsoredDisplayCreateData,
 } = require('../src/utils/allocations');
 jest.mock('../src/models', () => ({
     User: {
@@ -692,6 +693,151 @@ describe('getSponsoredBrandsCreateData', () => {
         });
 
         const result = getSponsoredBrandsCreateData(input);
+        expect(result).toEqual(expectedOutput);
+    });
+
+    // Add more test cases as needed to cover edge cases and scenarios.
+});
+
+describe('getSponsoredDisplayCreateData', () => {
+    it('should format a single campaign correctly with a tactic', () => {
+        const input = {
+            campaigns: [
+                {
+                    name: 'Campaign 1',
+                    startDate: '2023-01-01',
+                    endDate: '2023-01-31',
+                    budget: 1000,
+                    state: 'Active',
+                    tactic: 'T00040',
+                },
+            ],
+            state: 'Active',
+        };
+
+        const expectedOutput = JSON.stringify([
+            {
+                name: 'Campaign 1',
+                budgetType: 'daily',
+                budget: '1000.00',
+                startDate: '20230101',
+                endDate: '20230131',
+                costType: 'cpc',
+                state: 'active',
+                tactic: 'T00040',
+            },
+        ]);
+
+        const result = getSponsoredDisplayCreateData(input);
+        expect(result).toEqual(expectedOutput);
+    });
+
+    it('should format multiple campaigns correctly with and without tactics', () => {
+        const input = {
+            campaigns: [
+                {
+                    name: 'Campaign 1',
+                    startDate: '2023-01-01',
+                    endDate: '2023-01-31',
+                    budget: 1000,
+                    state: 'Active',
+                },
+                {
+                    name: 'Campaign 2',
+                    startDate: '2023-02-01',
+                    endDate: '2023-02-28',
+                    budget: 500,
+                    state: 'Paused',
+                    tactic: 'T00030',
+                },
+            ],
+            state: 'Active',
+        };
+
+        const expectedOutput = JSON.stringify([
+            {
+                name: 'Campaign 1',
+                budgetType: 'daily',
+                budget: '1000.00',
+                startDate: '20230101',
+                endDate: '20230131',
+                costType: 'cpc',
+                state: 'active',
+                tactic: 'T00020',
+            },
+            {
+                name: 'Campaign 2',
+                budgetType: 'daily',
+                budget: '500.00',
+                startDate: '20230201',
+                endDate: '20230228',
+                costType: 'cpc',
+                state: 'active',
+                tactic: 'T00030',
+            },
+        ]);
+
+        const result = getSponsoredDisplayCreateData(input);
+        expect(result).toEqual(expectedOutput);
+    });
+
+    it('should handle missing tactics', () => {
+        const input = {
+            campaigns: [
+                {
+                    name: 'Campaign 1',
+                    startDate: '2023-01-01',
+                    endDate: '2023-01-31',
+                    budget: 1000,
+                    state: 'Active',
+                },
+                {
+                    name: 'Campaign 2',
+                    startDate: '2023-02-01',
+                    endDate: '2023-02-28',
+                    budget: 500,
+                    state: 'Paused',
+                },
+            ],
+            state: 'Active',
+        };
+
+        const expectedOutput = JSON.stringify([
+            {
+                name: 'Campaign 1',
+                budgetType: 'daily',
+                budget: '1000.00',
+                startDate: '20230101',
+                endDate: '20230131',
+                costType: 'cpc',
+                state: 'active',
+                tactic: 'T00020',
+            },
+            {
+                name: 'Campaign 2',
+                budgetType: 'daily',
+                budget: '500.00',
+                startDate: '20230201',
+                endDate: '20230228',
+                costType: 'cpc',
+                state: 'active',
+                tactic: 'T00020', // Default tactic
+            },
+        ]);
+
+        const result = getSponsoredDisplayCreateData(input);
+        expect(result).toEqual(expectedOutput);
+    });
+
+    it('should handle an empty campaigns array', () => {
+        const input = {
+            campaigns: [],
+            state: 'Active',
+        };
+
+        const expectedOutput = JSON.stringify([]);
+
+        const result = getSponsoredDisplayCreateData(input);
         expect(result).toEqual(expectedOutput);
     });
 

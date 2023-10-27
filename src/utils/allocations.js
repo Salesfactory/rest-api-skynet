@@ -291,6 +291,37 @@ const getSponsoredBrandsCreateData = ({ campaigns, state }) => {
 
     return data;
 };
+const DEFAULT_CAMPAIGN_TACTIC = 'T00020';
+const DEFAULT_BUDGET_TYPE = 'daily';
+const DEFAULT_COST_TYPE = 'cpc';
+
+const getSponsoredDisplayCreateData = ({ campaigns, state }) => {
+    const formattedCampaigns = campaigns.map(campaign => {
+        const {
+            name,
+            startDate,
+            endDate,
+            budget,
+            tactic = DEFAULT_CAMPAIGN_TACTIC,
+        } = campaign;
+
+        const formattedStartDate = startDate.replace(/-/g, '');
+        const formattedEndDate = endDate.replace(/-/g, '');
+
+        return {
+            name,
+            budgetType: DEFAULT_BUDGET_TYPE,
+            budget: Number(budget).toFixed(2),
+            startDate: formattedStartDate,
+            endDate: formattedEndDate,
+            costType: DEFAULT_COST_TYPE,
+            state: state.toLowerCase(),
+            tactic,
+        };
+    });
+
+    return JSON.stringify(formattedCampaigns);
+};
 
 module.exports = {
     groupCampaignAllocationsByType,
@@ -300,4 +331,5 @@ module.exports = {
     getAxiosHeaders,
     getSponsoredProductsCreateData,
     getSponsoredBrandsCreateData,
+    getSponsoredDisplayCreateData,
 };
