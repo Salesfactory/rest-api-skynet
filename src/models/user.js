@@ -8,7 +8,10 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      // define association here
+      User.belongsTo(models.Role, {
+        foreignKey: 'roleId',
+        as: 'role',
+      });
     }
   }
   User.init({
@@ -33,9 +36,10 @@ module.exports = (sequelize, DataTypes) => {
     active: {
       type: DataTypes.BOOLEAN,
     },
-    role: {
-      type: DataTypes.STRING,
-      defaultValue: 'DM',
+    roleId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 2,
     },
   }, {
     sequelize,
