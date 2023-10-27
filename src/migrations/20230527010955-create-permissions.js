@@ -27,11 +27,11 @@ module.exports = {
 
     // Seed default permissions
     await queryInterface.bulkInsert('permissions', [
-      { name: 'System Configuration', createdAt: new Date(), updatedAt: new Date() },
-      { name: 'Campaign Group Orchestration', createdAt: new Date(), updatedAt: new Date() },
-      { name: 'Budget Pacing', createdAt: new Date(), updatedAt: new Date() },
-      { name: 'Reporting', createdAt: new Date(), updatedAt: new Date() },
-      { name: 'User Management', createdAt: new Date(), updatedAt: new Date() },
+      { name: 'system-configuration', createdAt: new Date(), updatedAt: new Date() },
+      { name: 'campaign-group-orchestration', createdAt: new Date(), updatedAt: new Date() },
+      { name: 'budget-pacing', createdAt: new Date(), updatedAt: new Date() },
+      { name: 'reporting', createdAt: new Date(), updatedAt: new Date() },
+      { name: 'user-management', createdAt: new Date(), updatedAt: new Date() },
     ]);
   },
   async down(queryInterface, Sequelize) {
