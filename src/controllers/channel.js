@@ -43,12 +43,12 @@ const getChannelTypes = async (req, res) => {
         const query = `SELECT campaign_type FROM \`agency_6133.cs_paid_ads__basic_performance\` 
         WHERE channel IN UNNEST(@channelNames) GROUP BY campaign_type LIMIT 1000
         `;
-        const agencies = await Agency.findAll();
-        const aliases = agencies.map(agency => agency.aliases).flat();
-        aliases.push(channelName);
+        // const agencies = await Agency.findAll();
+        // const aliases = agencies.map(agency => agency.aliases).flat();
+        // aliases.push(channelName);
 
         const params = {
-            channelNames: aliases,
+            channelNames: [channelName],
         };
 
         const [rows] = await bigqueryClient.query({
