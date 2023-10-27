@@ -245,8 +245,9 @@ const createCampaigns = async (type, campaignsArray, config) => {
 };
 
 const getSponsoredProductsCreateData = ({ campaigns, state }) => {
-    let data = JSON.stringify({
-        campaigns: campaigns.map(campaign => ({
+    // Helper function to format a single campaign
+    const formatCampaign = campaign => {
+        return {
             endDate: campaign.endDate,
             name: campaign.name,
             targetingType: 'MANUAL',
@@ -259,7 +260,15 @@ const getSponsoredProductsCreateData = ({ campaigns, state }) => {
                 budgetType: 'DAILY',
                 budget: campaign.budget,
             },
-        })),
+        };
+    };
+
+    // Map each campaign using the formatCampaign function
+    const formattedCampaigns = campaigns.map(formatCampaign);
+
+    // Create the final data object
+    const data = JSON.stringify({
+        campaigns: formattedCampaigns,
     });
 
     return data;
