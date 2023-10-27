@@ -28,7 +28,7 @@ module.exports = {
     // Seed default roles
     await queryInterface.bulkInsert('roles', [
       { name: 'Admin', createdAt: new Date(), updatedAt: new Date() },
-      { name: 'User', createdAt: new Date(), updatedAt: new Date() },
+      { name: 'DM', createdAt: new Date(), updatedAt: new Date() },
     ]);
   },
   async down(queryInterface, Sequelize) {
