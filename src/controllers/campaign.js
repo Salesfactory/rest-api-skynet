@@ -461,29 +461,12 @@ const createMarketingCampaign = async (req, res) => {
         const channelsWithApiEnabled = await Channel.findAll({
             where: { apiEnabled: true },
         });
-        const channelNames = channelsWithApiEnabled.map(
-            channel => channel.name
-        );
 
-        const campaignData = new Map();
-
-        const campaignDataByType = groupCampaignAllocationsByType({
-            channelsWithApiEnabled: channelNames,
+        const campaignDataByChannel = groupCampaignAllocationsByType({
+            channelsWithApiEnabled,
             allocations,
             flight_time_start,
             flight_time_end,
-        });
-
-        const { message, success, error } = await createAmazonCampaign({
-            campaigns: campaignDataByType,
-            state: state || 'PAUSED',
-            profileId,
-            access,
-        });
-
-        console.log(message, success, error);
-        return res.status(200).json({
-            message: 'TEST',
         });
 
         const campaignGroup = (
@@ -505,6 +488,31 @@ const createMarketingCampaign = async (req, res) => {
         ).get({ plain: true });
 
         if (campaignGroup) {
+            // the following logic must be done before inserting budget since we need to get the campaignid
+            // returned from amazon and then link it to the campaign group
+            const amazonCampaignDataByType =
+                campaignDataByChannel['Amazon Advertising'];
+
+            // amazon campaign creation
+            if (amazonCampaignDataByType) {
+                const { message, success, error } = await createAmazonCampaign({
+                    campaigns: amazonCampaignDataByType,
+                    state: state || 'PAUSED',
+                    profileId,
+                    access,
+                });
+
+                // handle response from amazon or do nothing
+                console.log(message, success, error);
+                // we could insert it and link, but we need to find what campaign was created
+                // also we need tyo check if the insert campaignId is the same as the one used in bigquery
+                // sample of response in success array gotten from amazon [ { campaignId: 459943342579515, code: 'SUCCESS' } ]
+                // from success array proceed to link campaigns
+            }
+
+            // add logic for other channels here
+
+            // insert budget
             const newBudget = await Budget.create({
                 campaign_group_id: campaignGroup.id,
                 periods,
