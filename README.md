@@ -148,6 +148,18 @@ The basic steps are:
 If you need more information, please read:
 [BigQuery Quickstart](https://github.com/googleapis/nodejs-bigquery#before-you-begin)
 
+## AWS Secrets
+
+To run the project and create campaigns you need to configure AWS secrets
+
+1. Install AWS CLI
+2. Run aws configure
+3. Fill the required fields, ask a team member for the Acces Key ID and Secret Access Key
+   AWS Access Key ID [None]:
+   AWS Secret Access Key [None]:
+   Default region name [None]: us-east-2
+   Default output format [None]: json
+
 ## Contributing
 
 If you would like to contribute to the Rest API Skynet project, you can follow these guidelines:
