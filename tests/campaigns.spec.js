@@ -1,6 +1,12 @@
 const supertest = require('supertest');
 const makeApp = require('../src/app');
-const { Budget, Campaign, CampaignGroup, Client } = require('../src/models');
+const {
+    Budget,
+    Channel,
+    Campaign,
+    CampaignGroup,
+    Client,
+} = require('../src/models');
 const { getUser } = require('../src/utils');
 const { createAmazonCampaign } = require('../src/utils/campaign-controller');
 // Mocked utility functions
@@ -9,12 +15,14 @@ jest.mock('../src/utils/allocations', () => ({
     validateCampaignsArray: jest.fn(),
     getConfig: jest.fn(),
     createCampaigns: jest.fn(),
+    groupCampaignAllocationsByType: jest.fn(),
 }));
 const {
     validateCredentials,
     validateCampaignsArray,
     getConfig,
     createCampaigns,
+    groupCampaignAllocationsByType,
 } = require('../src/utils/allocations');
 const mockData = {
     campaigns: {
@@ -75,6 +83,9 @@ jest.mock('../src/models', () => ({
         findOne: jest.fn(),
         findAll: jest.fn(),
         destroy: jest.fn(),
+    },
+    Channel: {
+        findAll: jest.fn(),
     },
 }));
 
@@ -534,7 +545,22 @@ describe('Campaign Endpoints Test', () => {
                 id: 1,
                 username: '123',
             };
+
+            Channel.findAll.mockResolvedValue([
+                { id: 2, name: 'Amazon Advertising' },
+            ]);
+
+            groupCampaignAllocationsByType.mockResolvedValue([
+                {
+                    type: 'CHANNEL',
+                },
+            ]);
             getUser.mockResolvedValue(user);
+
+            createCampaigns.mockImplementation(() => ({
+                errors: [],
+                successes: [{ y: 'success' }],
+            }));
 
             Client.findOne.mockResolvedValue({
                 id: 1,
@@ -546,6 +572,8 @@ describe('Campaign Endpoints Test', () => {
             const response = await request
                 .post(`/api/clients/${clientId}/marketingcampaign`)
                 .send(sendData);
+
+            console.log(response.body);
 
             expect(response.status).toBe(201);
             expect(response.body.data).toEqual({

@@ -44,7 +44,7 @@ const validateAmazonToken = async (req, res, next) => {
 
         next();
     } else {
-        req.session.amazonAccessToken = { token: '', expiresAt: 0 };
+        req.session.amazonAccessToken = { token: '123', expiresAt: 0 };
         next();
     }
 };

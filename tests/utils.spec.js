@@ -196,40 +196,48 @@ describe('groupCampaignAllocationsByType', () => {
         };
 
         const expectedOutput = {
-            'Sponsored Display': [
-                {
-                    id: '1-SEARCH-dfsdfsd',
-                    name: 'Campaign 1',
-                    budget: 1000,
-                    startDate: '2023-01-01',
-                    endDate: '2023-02-01',
-                },
-                {
-                    id: '1-SEARCH-dfsdfsd1',
-                    name: 'Campaign 2',
-                    budget: 1000,
-                    startDate: '2023-01-01',
-                    endDate: '2023-02-01',
-                },
-            ],
-            'Sponsored Products': [
-                {
-                    id: '1-SEARCH-dfsdfsd212',
-                    name: 'Campaign 3',
-                    budget: 2000,
-                    startDate: '2023-01-01',
-                    endDate: '2023-02-01',
-                },
-            ],
-            'Search Ads': [
-                {
-                    id: '2-SEARCH-123',
-                    name: 'Campaign 4',
-                    budget: 2000,
-                    startDate: '2023-01-01',
-                    endDate: '2023-02-01',
-                },
-            ],
+            'Amazon Advertising': {
+                'Sponsored Display': [
+                    {
+                        id: '1-SEARCH-dfsdfsd',
+                        name: 'Campaign 1',
+                        budget: 1000,
+                        startDate: '2023-01-01',
+                        endDate: '2023-02-01',
+                        type: 'Sponsored Display',
+                    },
+                    {
+                        id: '1-SEARCH-dfsdfsd1',
+                        name: 'Campaign 2',
+                        budget: 1000,
+                        startDate: '2023-01-01',
+                        endDate: '2023-02-01',
+                        type: 'Sponsored Display',
+                    },
+                ],
+                'Sponsored Products': [
+                    {
+                        id: '1-SEARCH-dfsdfsd212',
+                        name: 'Campaign 3',
+                        budget: 2000,
+                        startDate: '2023-01-01',
+                        endDate: '2023-02-01',
+                        type: 'Sponsored Products',
+                    },
+                ],
+            },
+            'Google Ads': {
+                'Search Ads': [
+                    {
+                        id: '2-SEARCH-123',
+                        name: 'Campaign 4',
+                        budget: 2000,
+                        startDate: '2023-01-01',
+                        endDate: '2023-02-01',
+                        type: 'Search Ads',
+                    },
+                ],
+            },
         };
 
         // Call the function with your sample input data
