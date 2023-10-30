@@ -20,6 +20,7 @@ function groupCampaignAllocationsByType({
                         if (Array.isArray(campaignType.allocations)) {
                             for (const campaign of campaignType.allocations) {
                                 campaignData.set(campaign.id, {
+                                    channel: channel.name,
                                     name: campaign.name,
                                     type: campaignType.name,
                                     budget:
@@ -51,15 +52,28 @@ function groupCampaignAllocationsByType({
         endDate: parsedEndDate,
     }));
 
-    const campaignDataByType = campaignArray.reduce((acc, campaign) => {
-        const { type, ...rest } = campaign;
-        if (!acc[type]) {
-            acc[type] = [];
+    // const campaignDataByType = campaignArray.reduce((acc, campaign) => {
+    //     const { type, ...rest } = campaign;
+    //     if (!acc[type]) {
+    //         acc[type] = [];
+    //     }
+    //     acc[type].push(rest);
+    //     return acc;
+    // }, {});
+
+    const campaignDataByChannel = campaignArray.reduce((acc, campaign) => {
+        const { channel, ...rest } = campaign;
+        if (!acc[channel]) {
+            acc[channel] = {};
         }
-        acc[type].push(rest);
+        if (!acc[channel][campaign.type]) {
+            acc[channel][campaign.type] = [];
+        }
+        acc[channel][campaign.type].push(rest);
         return acc;
     }, {});
-    return campaignDataByType;
+
+    return campaignDataByChannel;
 }
 
 // Validation function for credentials

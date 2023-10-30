@@ -3,7 +3,7 @@ const {
     validateCampaignsArray,
     getConfig,
     createCampaigns,
-} = require('./allocations');
+} = require('../utils/allocations');
 
 const createAmazonCampaign = async ({
     campaigns,
@@ -58,4 +58,6 @@ const createAmazonCampaign = async ({
     }
 };
 
-module.exports = { createAmazonCampaign };
+module.exports = {
+    createAmazonCampaign,
+};

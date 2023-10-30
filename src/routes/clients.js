@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { clientController, campaignController } = require('../controllers');
-const { hasPermissions } = require('./middlewares');
+const { hasPermissions, validateAmazonToken } = require('./middlewares');
 
 // client routes
 router.get(
@@ -38,12 +38,12 @@ router.get(
 );
 router.post(
     '/:id/marketingcampaign',
-    [hasPermissions(['campaign-group-orchestration'])],
+    [hasPermissions(['campaign-group-orchestration']), validateAmazonToken],
     campaignController.createMarketingCampaign
 );
 router.put(
     '/:id/marketingcampaign/:cid',
-    [hasPermissions(['campaign-group-orchestration'])],
+    [hasPermissions(['campaign-group-orchestration']), validateAmazonToken],
     campaignController.updateMarketingCampaign
 );
 router.delete(

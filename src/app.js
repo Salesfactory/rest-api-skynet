@@ -6,10 +6,11 @@ const morgan = require('morgan');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('../swagger.json');
 const cronjobs = require('./cronjobs');
+const session = require('express-session');
 // api router
 const apiRouter = require('./routes');
 
-module.exports = function ({ getSecrets }) {
+module.exports = function ({ getSecrets, amazon }) {
     const app = express();
 
     // override the default json response
@@ -40,6 +41,23 @@ module.exports = function ({ getSecrets }) {
     // start job queue
     cronjobs.start();
 
+    // sessions
+    const session_secret = process.env.SESSION_SECRET || 'secret';
+
+    var sess = {
+        secret: session_secret,
+        resave: false,
+        saveUninitialized: true,
+        cookie: {},
+    };
+
+    if (app.get('env') !== 'test' && app.get('env') !== 'development') {
+        app.set('trust proxy', 1);
+        sess.cookie.secure = true;
+    }
+
+    app.use(session(sess));
+
     // parse requests
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
@@ -55,6 +73,7 @@ module.exports = function ({ getSecrets }) {
         (req, res, next) => {
             // Attach the getSecrets function to the request object
             req.getSecrets = getSecrets;
+            req.amazon = amazon;
             next();
         },
         apiRouter
