@@ -8,7 +8,7 @@ const {
     Client,
 } = require('../src/models');
 const { getUser } = require('../src/utils');
-const { createAmazonCampaign } = require('../src/utils/campaign-controller');
+const { createAmazonCampaign } = require('../src/services/amazon');
 // Mocked utility functions
 jest.mock('../src/utils/allocations', () => ({
     validateCredentials: jest.fn(),

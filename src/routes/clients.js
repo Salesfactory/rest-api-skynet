@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { clientController, campaignController } = require('../controllers');
-const { validateAmazonToken } = require('../utils/campaign-controller');
-const { hasPermissions } = require('./middlewares');
+const { hasPermissions, validateAmazonToken } = require('./middlewares');
 
 // client routes
 router.get(

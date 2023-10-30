@@ -10,7 +10,7 @@ const session = require('express-session');
 // api router
 const apiRouter = require('./routes');
 
-module.exports = function ({ getSecrets }) {
+module.exports = function ({ getSecrets, amazon }) {
     const app = express();
 
     // override the default json response
@@ -73,6 +73,7 @@ module.exports = function ({ getSecrets }) {
         (req, res, next) => {
             // Attach the getSecrets function to the request object
             req.getSecrets = getSecrets;
+            req.amazon = amazon;
             next();
         },
         apiRouter

@@ -23,7 +23,6 @@ const {
 } = require('../utils/cronjobs');
 const { emailTemplate } = require('../templates/email');
 const { send } = require('../utils/email');
-const { createAmazonCampaign } = require('../utils/campaign-controller');
 const { groupCampaignAllocationsByType } = require('../utils/allocations');
 
 //creacion de reporte excel
@@ -495,7 +494,7 @@ const createMarketingCampaign = async (req, res) => {
 
             // amazon campaign creation
             if (amazonCampaignDataByType) {
-                const { message, success, error } = await createAmazonCampaign({
+                const { message, success, error } = await req.amazon.create({
                     campaigns: amazonCampaignDataByType,
                     state: state || 'PAUSED',
                     profileId,

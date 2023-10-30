@@ -1,53 +1,9 @@
-const axios = require('axios');
 const {
     validateCredentials,
     validateCampaignsArray,
     getConfig,
     createCampaigns,
-} = require('./allocations');
-
-const validateAmazonToken = async (req, res, next) => {
-    if (process.env.NODE_ENV !== 'test') {
-        const sessionToken = req.session.amazonAccessToken;
-
-        // Access token is still valid, no need to refresh
-        if (sessionToken && sessionToken.expiresAt > Date.now()) {
-            return next();
-        }
-
-        try {
-            const secret = await req.getSecrets();
-
-            if (!sessionToken || sessionToken.expiresAt <= Date.now()) {
-                // Handle the expiration
-                const { data } = await axios.post(
-                    'https://api.amazon.com/auth/o2/token',
-                    new URLSearchParams({
-                        grant_type: 'refresh_token',
-                        refresh_token: secret.CLIENT_REFRESH,
-                        client_id: secret.CLIENT_ID,
-                        client_secret: secret.CLIENT_SECRET,
-                    })
-                );
-
-                // Save the new token
-                req.session.amazonAccessToken = {
-                    token: data.access_token,
-                    expiresAt: Date.now() + data.expires_in * 1000,
-                };
-
-                return next();
-            }
-        } catch (error) {
-            return res.status(500).json({ message: error.message });
-        }
-
-        next();
-    } else {
-        req.session.amazonAccessToken = { token: '123', expiresAt: 0 };
-        next();
-    }
-};
+} = require('../utils/allocations');
 
 const createAmazonCampaign = async ({
     campaigns,
@@ -103,6 +59,5 @@ const createAmazonCampaign = async ({
 };
 
 module.exports = {
-    validateAmazonToken,
     createAmazonCampaign,
 };
