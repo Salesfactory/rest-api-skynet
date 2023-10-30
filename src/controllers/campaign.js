@@ -1,3 +1,4 @@
+const axios = require('axios');
 const { bigqueryClient } = require('../config/bigquery');
 const { createSheet, createPacingsSheet } = require('../utils/reports');
 const {
@@ -24,6 +25,7 @@ const {
 const { emailTemplate } = require('../templates/email');
 const { send } = require('../utils/email');
 const { groupCampaignAllocationsByType } = require('../utils/allocations');
+const { getConfig } = require('../utils/allocations');
 
 //creacion de reporte excel
 const createReport = async (req, res) => {
@@ -1114,6 +1116,113 @@ const checkAndNotifyUnlinkedOrOffPaceCampaigns = async (req, res) => {
     }
 };
 
+const getAmazonCampaigns = async (req, res) => {
+    const { type, status = 'PAUSED' } = req.query;
+    const secret = await req.getSecrets();
+
+    const access = {
+        CLIENT_ID: secret.CLIENT_ID,
+        ACCESS_TOKEN: req.session.amazonAccessToken.token,
+    };
+
+    const maxResults = 20;
+
+    // profile id for amazon
+    const profileId = secret.PROFILE_ID;
+
+    const config = getConfig(type, access, profileId);
+
+    switch (type) {
+        case 'Sponsored Products': {
+            const statusUppercase = status.toUpperCase();
+
+            config.url = 'https://advertising-api.amazon.com/sp/campaigns/list';
+            config.data = JSON.stringify({
+                stateFilter: { include: [statusUppercase] },
+                maxResults,
+            });
+
+            break;
+        }
+        case 'Sponsored Brands': {
+            const statusUppercase = status.toUpperCase();
+
+            config.url =
+                'https://advertising-api.amazon.com/sb/v4/campaigns/list';
+            config.data = JSON.stringify({
+                stateFilter: { include: [statusUppercase] },
+                maxResults,
+            });
+
+            break;
+        }
+        case 'Sponsored Display': {
+            const statusLowercase = status.toLowerCase();
+            config.method = 'get';
+            config.url = `https://advertising-api.amazon.com/sd/campaigns?stateFilter=${statusLowercase}&count=${maxResults}`;
+
+            break;
+        }
+        default:
+            break;
+    }
+
+    try {
+        if (config.url) {
+            const response = await axios.request(config);
+            let data = [];
+
+            if (['Sponsored Products', 'Sponsored Brands'].includes(type)) {
+                data = response.data.campaigns;
+            } else {
+                data = response.data;
+            }
+
+            res.status(200).json({ message: 'get amazon campaign', data });
+        } else {
+            res.status(400).json({ message: 'Invalid type' });
+        }
+    } catch (error) {
+        const message = error?.response?.data?.message ?? error.message;
+        return res.status(500).json({ message });
+    }
+};
+
+const createAmazonCampaigns = async (req, res) => {
+    const secret = await req.getSecrets();
+    const { campaigns, state } = req.body;
+
+    if (!campaigns) {
+        return res.status(400).json({
+            message: `Invalid campaigns object`,
+        });
+    }
+
+    const access = {
+        CLIENT_ID: secret.CLIENT_ID,
+        ACCESS_TOKEN: req.session.amazonAccessToken.token,
+    };
+
+    // profile id for amazon
+    const profileId = secret.PROFILE_ID;
+
+    const { message, success, error } = await req.amazon.create({
+        campaigns,
+        state: state || 'PAUSED',
+        profileId,
+        access,
+    });
+
+    if (Array.isArray(error) && error.length > 0) {
+        return res.status(500).json({
+            message: JSON.stringify(error),
+            success: JSON.stringify(success),
+        });
+    }
+
+    return res.status(200).json({ message, success: JSON.stringify(success) });
+};
+
 module.exports = {
     getMarketingCampaignsByClient,
     getMarketingCampaignsById,
@@ -1128,4 +1237,6 @@ module.exports = {
     generatePacingReport,
     refreshMetrics,
     checkAndNotifyUnlinkedOrOffPaceCampaigns,
+    getAmazonCampaigns,
+    createAmazonCampaigns,
 };

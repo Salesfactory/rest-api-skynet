@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { campaignController } = require('../controllers');
-const { hasPermissions, hasRole } = require('./middlewares');
+const {
+    hasPermissions,
+    hasRole,
+    validateAmazonToken,
+} = require('./middlewares');
 
 // campaigns routes
 router.get(
@@ -20,6 +24,18 @@ router.get(
     '/check-and-notify-email',
     [hasRole('Super')],
     campaignController.checkAndNotifyUnlinkedOrOffPaceCampaigns
+);
+
+//amazon routes
+router.get(
+    '/amazon',
+    [hasPermissions(['campaign-group-orchestration']), validateAmazonToken],
+    campaignController.getAmazonCampaigns
+);
+router.post(
+    '/amazon',
+    [hasPermissions(['campaign-group-orchestration']), validateAmazonToken],
+    campaignController.createAmazonCampaigns
 );
 
 module.exports = router;
