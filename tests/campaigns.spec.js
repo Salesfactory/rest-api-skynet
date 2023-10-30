@@ -104,7 +104,7 @@ const getSecrets = jest.fn(() => ({
     CLIENT_ID: 'TEST',
 }));
 
-const app = makeApp({ getSecrets });
+const app = makeApp({ getSecrets, amazon: { create: createAmazonCampaign } });
 const request = supertest(app);
 
 describe('Campaign Endpoints Test', () => {
