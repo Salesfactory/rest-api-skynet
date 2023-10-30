@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { send } = require('../utils/email');
+const { hasRole } = require('./middlewares');
 
 /**
  * this is a temp route to test email sending (must be deleted later)
  * uses send function from src/utils/email.js
  */
-router.post('/send', (req, res) => {
+router.post('/send', [hasRole('Super')], (req, res) => {
     const { to, subject, message } = req.body;
 
     send({ to, subject, message })
