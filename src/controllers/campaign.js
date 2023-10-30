@@ -486,6 +486,9 @@ const createMarketingCampaign = async (req, res) => {
             })
         ).get({ plain: true });
 
+        let successCampaigns = null;
+        let errorCampaigns = null;
+
         if (campaignGroup) {
             // the following logic must be done before inserting budget since we need to get the campaignid
             // returned from amazon and then link it to the campaign group
@@ -500,6 +503,10 @@ const createMarketingCampaign = async (req, res) => {
                     profileId,
                     access,
                 });
+
+                // send to the front what campaigns were created and what campaigns failed
+                successCampaigns = success;
+                errorCampaigns = error;
 
                 // handle response from amazon or do nothing
                 console.log(message, success, error);
@@ -523,6 +530,10 @@ const createMarketingCampaign = async (req, res) => {
         res.status(201).json({
             message: 'Marketing campaign created successfully',
             data: campaignGroup,
+            amazonData: {
+                success: successCampaigns,
+                error: errorCampaigns,
+            },
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
