@@ -455,8 +455,8 @@ const createMarketingCampaign = async (req, res) => {
             ACCESS_TOKEN: req.session.amazonAccessToken.token,
         };
 
-        // HARDCODED PROFILE ID
-        const profileId = '1330860679472894';
+        // profile id for amazon
+        const profileId = secret.PROFILE_ID;
 
         const channelsWithApiEnabled = await Channel.findAll({
             where: { isApiEnabled: true },
