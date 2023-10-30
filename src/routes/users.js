@@ -5,9 +5,9 @@ const { hasPermissions } = require('./middlewares');
 
 // users routes
 router.get('/', [hasPermissions('user-management')], userController.getUsers);
+// this endpoint is being used by every user to get his own data
 router.get(
     '/:id',
-    [hasPermissions('user-management')],
     userController.getUserById
 );
 router.post(
