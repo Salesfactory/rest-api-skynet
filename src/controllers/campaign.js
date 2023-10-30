@@ -459,7 +459,7 @@ const createMarketingCampaign = async (req, res) => {
         const profileId = '1330860679472894';
 
         const channelsWithApiEnabled = await Channel.findAll({
-            where: { apiEnabled: true },
+            where: { isApiEnabled: true },
         });
 
         const campaignDataByChannel = groupCampaignAllocationsByType({
