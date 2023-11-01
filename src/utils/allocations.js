@@ -23,6 +23,8 @@ function groupCampaignAllocationsByType({
                                     channel: channel.name,
                                     name: campaign.name,
                                     type: campaignType.name,
+                                    strategy: campaign.strategy,
+                                    tactic: campaign.tactic,
                                     budget:
                                         (
                                             campaignData.get(campaign.id) || {
