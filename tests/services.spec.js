@@ -22,12 +22,12 @@ describe('createCampaign function', () => {
         );
 
         expect(axios.post).toHaveBeenCalledWith(
-            `https://graph.facebook.com/vX.X/act_${adAccountId}/campaigns`,
+            `https://graph.facebook.com/v18.0/act_${adAccountId}/campaigns`,
             campaignData,
             {
-                params: {
-                    access_token: accessToken,
-                },
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
             }
         );
 
