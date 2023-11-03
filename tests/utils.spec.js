@@ -1,7 +1,6 @@
 const axios = require('axios');
 const utils = require('../src/utils');
 const {
-    groupCampaignAllocationsByType,
     validateCredentials,
     validateCampaignsArray,
     getConfig,
@@ -11,6 +10,7 @@ const {
     getSponsoredDisplayCreateData,
     createCampaigns,
 } = require('../src/utils/allocations');
+const { groupCampaignAllocationsByType } = require('../src/utils/parsers');
 jest.mock('../src/models', () => ({
     User: {
         findOne: jest.fn(),

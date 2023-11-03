@@ -23,7 +23,7 @@ const {
 } = require('../utils/cronjobs');
 const { emailTemplate } = require('../templates/email');
 const { send } = require('../utils/email');
-const { groupCampaignAllocationsByType } = require('../utils/allocations');
+const { groupCampaignAllocationsByType } = require('../utils/parsers');
 
 //creacion de reporte excel
 const createReport = async (req, res) => {
@@ -373,7 +373,6 @@ const createMarketingCampaign = async (req, res) => {
 
     try {
         const secret = await req.getSecrets();
-        console.log(Object.keys(secret));
         const client = await Client.findOne({
             where: { id: clientId },
         });
@@ -461,7 +460,7 @@ const createMarketingCampaign = async (req, res) => {
             where: { isApiEnabled: true },
         });
 
-        const campaignDataByChannel = groupCampaignAllocationsByType({
+        const campaignDataByChannel = await groupCampaignAllocationsByType({
             channelsWithApiEnabled,
             allocations,
             flight_time_start,
@@ -490,15 +489,10 @@ const createMarketingCampaign = async (req, res) => {
         let errorCampaigns = null;
 
         if (campaignGroup) {
-            // the following logic must be done before inserting budget since we need to get the campaignid
-            // returned from amazon and then link it to the campaign group
-            const amazonCampaignDataByType =
-                campaignDataByChannel['Amazon Advertising'];
-
             // amazon campaign creation
-            if (amazonCampaignDataByType) {
+            if (campaignDataByChannel['Amazon Advertising']) {
                 const { message, success, error } = await req.amazon.create({
-                    campaigns: amazonCampaignDataByType,
+                    campaigns: campaignDataByChannel['Amazon Advertising'],
                     state: state || 'PAUSED',
                     profileId,
                     access,
@@ -517,6 +511,30 @@ const createMarketingCampaign = async (req, res) => {
             }
 
             // add logic for other channels here
+            if (campaignDataByChannel['Facebook']) {
+                for (const campaigns in campaignDataByChannel['Facebook']) {
+                    const _campaigns =
+                        campaignDataByChannel['Facebook'][campaigns];
+                    const totalCampaigns = _campaigns.length;
+                    for (let i = 0; i < totalCampaigns; i++) {
+                        const { name, id, type, budget, startDate, endDate } =
+                            _campaigns[i];
+                        await req.facebook.create(
+                            secret.ACCESS_TOKEN,
+                            secret.AD_ACCOUNT_ID,
+                            {
+                                name,
+                                id,
+                                type,
+                                budget,
+                                startDate,
+                                endDate,
+                                status: 'PAUSED',
+                            }
+                        );
+                    }
+                }
+            }
 
             // insert budget
             const newBudget = await Budget.create({
