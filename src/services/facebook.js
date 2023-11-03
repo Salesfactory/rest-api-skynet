@@ -21,4 +21,25 @@ function createCampaign(accessToken, adAccountId, campaignData) {
     });
 }
 
-module.exports = { createCampaign };
+function createAdsets(accessToken, adAccountId, adsetData) {
+    return new Promise((resolve, reject) => {
+        axios
+            .post(
+                `https://graph.facebook.com/v18.0/act_${adAccountId}/adsets`,
+                adsetData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                }
+            )
+            .then(response => {
+                resolve(response.data);
+            })
+            .catch(error => {
+                reject(error.response.data);
+            });
+    });
+}
+
+module.exports = { createCampaign, createAdsets };
