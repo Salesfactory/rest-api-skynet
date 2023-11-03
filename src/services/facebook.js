@@ -26,6 +26,15 @@ function createCampaign(accessToken, adAccountId, campaignData) {
 
 function createAdsets(accessToken, adAccountId, adsetData) {
     return new Promise((resolve, reject) => {
+        if (accessToken === undefined) {
+            reject({ error: 'Assess Token can not be undefined!' });
+        }
+        if (adAccountId === undefined) {
+            reject({ error: 'Account ID can not be undefined!' });
+        }
+        if (adsetData === undefined) {
+            reject({ error: 'the Adset Data can not be undefined!' });
+        }
         axios
             .post(
                 `https://graph.facebook.com/v18.0/act_${adAccountId}/adsets`,

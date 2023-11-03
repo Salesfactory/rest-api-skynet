@@ -19,7 +19,7 @@ describe('createAdsets function', () => {
             end_time: '2024-03-26T04:45:17+0000',
             optimization_goal: 'REACH',
             targeting: { geo_locations: { countries: ['US'] } },
-            status: 'PAUSED'
+            status: 'PAUSED',
         };
 
         const createdAdset = await createAdsets(
@@ -68,6 +68,57 @@ describe('createAdsets function', () => {
             expect(true).toBe(false);
         } catch (error) {
             expect(error).toEqual({ error: 'Adset creation failed' });
+        }
+    });
+
+    it('should return an error when accessToken is undefined', async () => {
+        const accessToken = undefined;
+        const adAccountId = 'YOUR_AD_ACCOUNT_ID';
+        const campaignData = {
+            name: 'My Campaign',
+            objective: 'LINK_CLICKS',
+            status: 'PAUSED',
+        };
+
+        try {
+            await createAdsets(accessToken, adAccountId, campaignData);
+            expect(true).toBe(false);
+        } catch (error) {
+            expect(error).toEqual({
+                error: 'Assess Token can not be undefined!',
+            });
+        }
+    });
+    it('should return an error when accessToken is undefined', async () => {
+        const accessToken = 'ACCESS_TOKEN';
+        const adAccountId = undefined;
+        const campaignData = {
+            name: 'My Campaign',
+            objective: 'LINK_CLICKS',
+            status: 'PAUSED',
+        };
+
+        try {
+            await createAdsets(accessToken, adAccountId, campaignData);
+            expect(true).toBe(false);
+        } catch (error) {
+            expect(error).toEqual({
+                error: 'Account ID can not be undefined!',
+            });
+        }
+    });
+    it('should return an error when accessToken is undefined', async () => {
+        const accessToken = 'ACCESS_TOKEN';
+        const adAccountId = 'YOUR_AD_ACCOUNT_ID';
+        const campaignData = undefined;
+
+        try {
+            await createAdsets(accessToken, adAccountId, campaignData);
+            expect(true).toBe(false);
+        } catch (error) {
+            expect(error).toEqual({
+                error: 'the Adset Data can not be undefined!',
+            });
         }
     });
 });
