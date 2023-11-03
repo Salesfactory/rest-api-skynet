@@ -367,6 +367,7 @@ const createMarketingCampaign = async (req, res) => {
         comments,
         status,
         state,
+        facebookAdAccountId,
     } = req.body;
 
     const user = await getUser(res);
@@ -507,7 +508,7 @@ const createMarketingCampaign = async (req, res) => {
                 // we could insert it and link, but we need to find what campaign was created
                 // also we need tyo check if the insert campaignId is the same as the one used in bigquery
                 // sample of response in success array gotten from amazon [ { campaignId: 459943342579515, code: 'SUCCESS' } ]
-                // from success array proceed to link campaigns
+                // from success array proceed to link campaigns FACEBOOK_ACCESS_TOKEN
             }
 
             // add logic for other channels here
@@ -520,8 +521,8 @@ const createMarketingCampaign = async (req, res) => {
                         const { name, id, type, budget, startDate, endDate } =
                             _campaigns[i];
                         await req.facebook.create(
-                            secret.ACCESS_TOKEN,
-                            secret.AD_ACCOUNT_ID,
+                            secret.FACEBOOK_ACCESS_TOKEN,
+                            facebookAdAccountId,
                             {
                                 name,
                                 id,

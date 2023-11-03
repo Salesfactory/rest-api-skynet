@@ -60,8 +60,7 @@ jest.mock('../src/utils', () => ({
 
 const getSecrets = jest.fn(() => ({
     CLIENT_ID: 'TEST',
-    ACCESS_TOKEN: 'YOUR_ACCESS_TOKEN',
-    AD_ACCOUNT_ID: 'YOUR_AD_ACCOUNT_ID',
+    FACEBOOK_ACCESS_TOKEN: 'YOUR_ACCESS_TOKEN',
 }));
 
 const _createFacebookCampaign = jest.fn(() => ({}));
@@ -564,6 +563,7 @@ describe('Campaign Endpoints Test', () => {
             expect(response.status).toBe(500);
             expect(response.body.message).toBe('Error');
         });
+
         describe('Test Facebook Campaigns Creation', () => {
             test("Given the payload doesn't contain a Facebook campaign, the Facebook API should not be called", async () => {
                 const campaignOrchestrationPayloadData = {
@@ -628,6 +628,7 @@ describe('Campaign Endpoints Test', () => {
                         { id: 'february', label: 'february' },
                         { id: 'march', label: 'march' },
                     ],
+                    facebookAdAccountId: 'YOUR_AD_ACCOUNT_ID',
                 };
                 const data = {
                     id: 1,
@@ -665,9 +666,11 @@ describe('Campaign Endpoints Test', () => {
                 });
                 CampaignGroup.create.mockResolvedValue(data);
                 Budget.create.mockResolvedValue(data.budget);
+
                 const response = await request
                     .post(`/api/clients/${clientId}/marketingcampaign`)
                     .send(campaignOrchestrationPayloadData);
+
                 expect(_createFacebookCampaign).not.toHaveBeenCalled();
             });
             test('Given the payload  contain a Facebook campaign, the Facebook API should be called', async () => {
@@ -683,6 +686,7 @@ describe('Campaign Endpoints Test', () => {
                         { id: '1', name: 'Google Ads' },
                         { id: '2', name: 'Amazon Advertising' },
                     ],
+                    facebookAdAccountId: 'YOUR_AD_ACCOUNT_ID',
                     allocations: {
                         february: {
                             budget: 54.12,
@@ -878,6 +882,7 @@ describe('Campaign Endpoints Test', () => {
                         { id: '1', name: 'Google Ads' },
                         { id: '2', name: 'Amazon Advertising' },
                     ],
+                    facebookAdAccountId: 'YOUR_AD_ACCOUNT_ID',
                     allocations: {
                         february: {
                             budget: 54.12,
@@ -1075,6 +1080,7 @@ describe('Campaign Endpoints Test', () => {
                         { id: '1', name: 'Google Ads' },
                         { id: '2', name: 'Amazon Advertising' },
                     ],
+                    facebookAdAccountId: 'YOUR_AD_ACCOUNT_ID',
                     allocations: {
                         february: {
                             budget: 54.12,
@@ -1273,6 +1279,8 @@ describe('Campaign Endpoints Test', () => {
                 );
             });
         });
+
+        // describe('Test Facebook Adset Creation', () => {});
     });
 
     describe('Update campaign', () => {
