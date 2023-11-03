@@ -26,8 +26,8 @@ describe('createCampaign function', () => {
             campaignData,
             {
                 headers: {
-                    Authorization: `Bearer ${accessToken}`
-                }
+                    Authorization: `Bearer ${accessToken}`,
+                },
             }
         );
 
@@ -54,6 +54,24 @@ describe('createCampaign function', () => {
             expect(true).toBe(false);
         } catch (error) {
             expect(error).toEqual({ error: 'Campaign creation failed' });
+        }
+    });
+    it('should return an error when accessToken is undefined', async () => {
+        const accessToken = undefined;
+        const adAccountId = 'YOUR_AD_ACCOUNT_ID';
+        const campaignData = {
+            name: 'My Campaign',
+            objective: 'LINK_CLICKS',
+            status: 'PAUSED',
+        };
+
+        try {
+            await createCampaign(accessToken, adAccountId, campaignData);
+            expect(true).toBe(false);
+        } catch (error) {
+            expect(error).toEqual({
+                error: 'Assess Token can not be undefined!',
+            });
         }
     });
 });
