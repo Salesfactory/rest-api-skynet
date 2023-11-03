@@ -1,55 +1,13 @@
 const supertest = require('supertest');
 const makeApp = require('../src/app');
-const {
-    Budget,
-    Channel,
-    Campaign,
-    CampaignGroup,
-    Client,
-} = require('../src/models');
+const { Budget, Channel, CampaignGroup, Client } = require('../src/models');
 const { getUser } = require('../src/utils');
-const { createAmazonCampaign } = require('../src/services/amazon');
+
 // Mocked utility functions
 jest.mock('../src/utils/allocations', () => ({
-    validateCredentials: jest.fn(),
-    validateCampaignsArray: jest.fn(),
-    getConfig: jest.fn(),
     createCampaigns: jest.fn(),
-    groupCampaignAllocationsByType: jest.fn(),
 }));
-const {
-    validateCredentials,
-    validateCampaignsArray,
-    getConfig,
-    createCampaigns,
-    groupCampaignAllocationsByType,
-} = require('../src/utils/allocations');
-const mockData = {
-    campaigns: {
-        'Sponsored Products': [
-            {
-                name: 'SP Campaign 1',
-                startDate: '2023-01-01',
-                endDate: '2023-01-10',
-                budget: 100,
-            },
-        ],
-        'Sponsored Brands': [
-            {
-                name: 'SB Campaign 1',
-                startDate: '2023-01-15',
-                endDate: '2023-01-25',
-                budget: 200,
-            },
-        ],
-    },
-    state: 'ACTIVE',
-    profileId: '12345',
-    access: {
-        CLIENT_ID: 'your-client-id',
-        ACCESS_TOKEN: 'your-access-token',
-    },
-};
+const { createCampaigns } = require('../src/utils/allocations');
 
 jest.mock('../src/models', () => ({
     User: {
@@ -102,14 +60,24 @@ jest.mock('../src/utils', () => ({
 
 const getSecrets = jest.fn(() => ({
     CLIENT_ID: 'TEST',
+    ACCESS_TOKEN: 'YOUR_ACCESS_TOKEN',
+    AD_ACCOUNT_ID: 'YOUR_AD_ACCOUNT_ID',
 }));
 
-const _createAmazonCampaign = jest.fn(() => ({
-    errors: [],
-    successes: [],
-}));
-
-const app = makeApp({ getSecrets, amazon: { create: _createAmazonCampaign } });
+const _createFacebookCampaign = jest.fn(() => ({}));
+const app = makeApp({
+    getSecrets,
+    amazon: {
+        create: jest.fn(() => {
+            console.log('fake function');
+            return {
+                errors: [],
+                successes: [],
+            };
+        }),
+    },
+    facebook: { create: _createFacebookCampaign },
+});
 const request = supertest(app);
 
 describe('Campaign Endpoints Test', () => {
@@ -531,7 +499,6 @@ describe('Campaign Endpoints Test', () => {
                     { id: 'march', label: 'march' },
                 ],
             };
-
             const data = {
                 id: 1,
                 ...sendData,
@@ -551,26 +518,21 @@ describe('Campaign Endpoints Test', () => {
                 username: '123',
             };
 
-            Channel.findAll.mockResolvedValue([
-                { id: 2, name: 'Amazon Advertising' },
-            ]);
-
-            groupCampaignAllocationsByType.mockResolvedValue([
-                {
-                    type: 'CHANNEL',
-                },
-            ]);
             getUser.mockResolvedValue(user);
-
-            createCampaigns.mockImplementation(() => ({
-                errors: [],
-                successes: [{ y: 'success' }],
-            }));
 
             Client.findOne.mockResolvedValue({
                 id: 1,
                 name: 'Test Client 1',
             });
+
+            Channel.findAll.mockResolvedValue([
+                { id: 2, name: 'Amazon Advertising' },
+            ]);
+
+            createCampaigns.mockImplementation(() => ({
+                errors: [],
+                successes: [{ y: 'success' }],
+            }));
             CampaignGroup.create.mockResolvedValue(data);
             Budget.create.mockResolvedValue(data.budget);
 
@@ -601,6 +563,715 @@ describe('Campaign Endpoints Test', () => {
             );
             expect(response.status).toBe(500);
             expect(response.body.message).toBe('Error');
+        });
+        describe('Test Facebook Campaigns Creation', () => {
+            test("Given the payload doesn't contain a Facebook campaign, the Facebook API should not be called", async () => {
+                const campaignOrchestrationPayloadData = {
+                    name: 'Campaña 1',
+                    goals: 'test',
+                    total_gross_budget: 123,
+                    margin: 0.12,
+                    flight_time_start: '2023-02-01T04:00:00.000Z',
+                    flight_time_end: '2023-03-01T04:00:00.000Z',
+                    net_budget: '108.24',
+                    channels: [
+                        { id: '1', name: 'Google Ads' },
+                        { id: '2', name: 'Amazon Advertising' },
+                    ],
+                    allocations: {
+                        february: {
+                            budget: 54.12,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '1',
+                                    name: 'Google Ads',
+                                    budget: 27.06,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                                {
+                                    id: '2',
+                                    name: 'Amazon Advertising',
+                                    budget: 27.06,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                            ],
+                        },
+                        march: {
+                            budget: 54.12,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '1',
+                                    name: 'Google Ads',
+                                    budget: 27.06,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                                {
+                                    id: '2',
+                                    name: 'Amazon Advertising',
+                                    budget: 27.06,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                            ],
+                        },
+                    },
+                    periods: [
+                        { id: 'february', label: 'february' },
+                        { id: 'march', label: 'march' },
+                    ],
+                };
+                const data = {
+                    id: 1,
+                    ...campaignOrchestrationPayloadData,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 3, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+                const response = await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(campaignOrchestrationPayloadData);
+                expect(_createFacebookCampaign).not.toHaveBeenCalled();
+            });
+            test('Given the payload  contain a Facebook campaign, the Facebook API should be called', async () => {
+                const campaignOrchestrationPayloadData = {
+                    name: 'Campaña 1',
+                    goals: 'test',
+                    total_gross_budget: 123,
+                    margin: 0.12,
+                    flight_time_start: '2023-02-01T04:00:00.000Z',
+                    flight_time_end: '2023-03-01T04:00:00.000Z',
+                    net_budget: '108.24',
+                    channels: [
+                        { id: '1', name: 'Google Ads' },
+                        { id: '2', name: 'Amazon Advertising' },
+                    ],
+                    allocations: {
+                        february: {
+                            budget: 54.12,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '1',
+                                    name: 'Google Ads',
+                                    budget: 27.06,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                                {
+                                    id: '4',
+                                    name: 'Facebook',
+                                    isApiEnabled: false,
+                                    budget: 561,
+                                    percentage: 33,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '4-CONVERSIONS',
+                                            name: 'CONVERSIONS',
+                                            budget: 280.5,
+                                            percentage: 50,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '4-CONVERSIONS-test-api-2',
+                                                    name: 'test-api-2',
+                                                    budget: 280.5,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                },
+                                            ],
+                                        },
+                                        {
+                                            id: '4-POST_ENGAGEMENT',
+                                            name: 'POST_ENGAGEMENT',
+                                            budget: 280.5,
+                                            percentage: 50,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '4-POST_ENGAGEMENT-Manuel-API-test-1',
+                                                    name: 'Manuel-API-test-1',
+                                                    budget: 280.5,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                                {
+                                    id: '6',
+                                    name: 'Reddit',
+                                    isApiEnabled: false,
+                                    budget: 561,
+                                    percentage: 33,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                            ],
+                        },
+                        march: {
+                            budget: 54.12,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '1',
+                                    name: 'Google Ads',
+                                    budget: 27.06,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                                {
+                                    id: '4',
+                                    name: 'Facebook',
+                                    isApiEnabled: false,
+                                    budget: 561,
+                                    percentage: 33,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '4-CONVERSIONS',
+                                            name: 'CONVERSIONS',
+                                            budget: 280.5,
+                                            percentage: 50,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '4-CONVERSIONS-test-api-2',
+                                                    name: 'test-api-2',
+                                                    budget: 280.5,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                },
+                                            ],
+                                        },
+                                        {
+                                            id: '4-POST_ENGAGEMENT',
+                                            name: 'POST_ENGAGEMENT',
+                                            budget: 280.5,
+                                            percentage: 50,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '4-POST_ENGAGEMENT-Manuel-API-test-1',
+                                                    name: 'Manuel-API-test-1',
+                                                    budget: 280.5,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                                {
+                                    id: '6',
+                                    name: 'Reddit',
+                                    isApiEnabled: false,
+                                    budget: 561,
+                                    percentage: 33,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                            ],
+                        },
+                    },
+                    periods: [
+                        { id: 'february', label: 'february' },
+                        { id: 'march', label: 'march' },
+                    ],
+                };
+                const data = {
+                    id: 1,
+                    ...campaignOrchestrationPayloadData,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 3, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+                const response = await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(campaignOrchestrationPayloadData);
+                expect(_createFacebookCampaign).toHaveBeenCalled();
+            });
+            test('Given the payload  contain 2 Facebook campaign, the Facebook API should be called 2 Times', async () => {
+                const campaignOrchestrationPayloadData = {
+                    name: 'Campaña 1',
+                    goals: 'test',
+                    total_gross_budget: 123,
+                    margin: 0.12,
+                    flight_time_start: '2023-02-01T04:00:00.000Z',
+                    flight_time_end: '2023-03-01T04:00:00.000Z',
+                    net_budget: '108.24',
+                    channels: [
+                        { id: '1', name: 'Google Ads' },
+                        { id: '2', name: 'Amazon Advertising' },
+                    ],
+                    allocations: {
+                        february: {
+                            budget: 54.12,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '1',
+                                    name: 'Google Ads',
+                                    budget: 27.06,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                                {
+                                    id: '4',
+                                    name: 'Facebook',
+                                    isApiEnabled: false,
+                                    budget: 561,
+                                    percentage: 33,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '4-CONVERSIONS',
+                                            name: 'CONVERSIONS',
+                                            budget: 280.5,
+                                            percentage: 50,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '4-CONVERSIONS-test-api-2',
+                                                    name: 'test-api-2',
+                                                    budget: 280.5,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                },
+                                            ],
+                                        },
+                                        {
+                                            id: '4-POST_ENGAGEMENT',
+                                            name: 'POST_ENGAGEMENT',
+                                            budget: 280.5,
+                                            percentage: 50,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '4-POST_ENGAGEMENT-Manuel-API-test-1',
+                                                    name: 'Manuel-API-test-1',
+                                                    budget: 280.5,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                                {
+                                    id: '6',
+                                    name: 'Reddit',
+                                    isApiEnabled: false,
+                                    budget: 561,
+                                    percentage: 33,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                            ],
+                        },
+                        march: {
+                            budget: 54.12,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '1',
+                                    name: 'Google Ads',
+                                    budget: 27.06,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                                {
+                                    id: '4',
+                                    name: 'Facebook',
+                                    isApiEnabled: false,
+                                    budget: 561,
+                                    percentage: 33,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '4-CONVERSIONS',
+                                            name: 'CONVERSIONS',
+                                            budget: 280.5,
+                                            percentage: 50,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '4-CONVERSIONS-test-api-2',
+                                                    name: 'test-api-2',
+                                                    budget: 280.5,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                },
+                                            ],
+                                        },
+                                        {
+                                            id: '4-POST_ENGAGEMENT',
+                                            name: 'POST_ENGAGEMENT',
+                                            budget: 280.5,
+                                            percentage: 50,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '4-POST_ENGAGEMENT-Manuel-API-test-1',
+                                                    name: 'Manuel-API-test-1',
+                                                    budget: 280.5,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                                {
+                                    id: '6',
+                                    name: 'Reddit',
+                                    isApiEnabled: false,
+                                    budget: 561,
+                                    percentage: 33,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                            ],
+                        },
+                    },
+                    periods: [
+                        { id: 'february', label: 'february' },
+                        { id: 'march', label: 'march' },
+                    ],
+                };
+                const data = {
+                    id: 1,
+                    ...campaignOrchestrationPayloadData,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 3, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                const response = await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(campaignOrchestrationPayloadData);
+
+                expect(_createFacebookCampaign).toHaveBeenCalledTimes(2);
+            });
+            it('should the Facebook API with specific parameters', async () => {
+                const campaignOrchestrationPayloadData = {
+                    name: 'Campaña 1',
+                    goals: 'test',
+                    total_gross_budget: 123,
+                    margin: 0.12,
+                    flight_time_start: '2023-02-01T04:00:00.000Z',
+                    flight_time_end: '2023-03-01T04:00:00.000Z',
+                    net_budget: '108.24',
+                    channels: [
+                        { id: '1', name: 'Google Ads' },
+                        { id: '2', name: 'Amazon Advertising' },
+                    ],
+                    allocations: {
+                        february: {
+                            budget: 54.12,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '1',
+                                    name: 'Google Ads',
+                                    budget: 27.06,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                                {
+                                    id: '4',
+                                    name: 'Facebook',
+                                    isApiEnabled: false,
+                                    budget: 561,
+                                    percentage: 33,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '4-CONVERSIONS',
+                                            name: 'CONVERSIONS',
+                                            budget: 280.5,
+                                            percentage: 50,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '4-CONVERSIONS-test-api-2',
+                                                    name: 'test-api-2',
+                                                    budget: 280.5,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                },
+                                            ],
+                                        },
+                                        {
+                                            id: '4-POST_ENGAGEMENT',
+                                            name: 'POST_ENGAGEMENT',
+                                            budget: 280.5,
+                                            percentage: 50,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '4-POST_ENGAGEMENT-Manuel-API-test-1',
+                                                    name: 'Manuel-API-test-1',
+                                                    budget: 280.5,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                                {
+                                    id: '6',
+                                    name: 'Reddit',
+                                    isApiEnabled: false,
+                                    budget: 561,
+                                    percentage: 33,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                            ],
+                        },
+                        march: {
+                            budget: 54.12,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '1',
+                                    name: 'Google Ads',
+                                    budget: 27.06,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                                {
+                                    id: '4',
+                                    name: 'Facebook',
+                                    isApiEnabled: false,
+                                    budget: 561,
+                                    percentage: 33,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '4-CONVERSIONS',
+                                            name: 'CONVERSIONS',
+                                            budget: 280.5,
+                                            percentage: 50,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '4-CONVERSIONS-test-api-2',
+                                                    name: 'test-api-2',
+                                                    budget: 280.5,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                },
+                                            ],
+                                        },
+                                        {
+                                            id: '4-POST_ENGAGEMENT',
+                                            name: 'POST_ENGAGEMENT',
+                                            budget: 280.5,
+                                            percentage: 50,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '4-POST_ENGAGEMENT-Manuel-API-test-1',
+                                                    name: 'Manuel-API-test-1',
+                                                    budget: 280.5,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                                {
+                                    id: '6',
+                                    name: 'Reddit',
+                                    isApiEnabled: false,
+                                    budget: 561,
+                                    percentage: 33,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                            ],
+                        },
+                    },
+                    periods: [
+                        { id: 'february', label: 'february' },
+                        { id: 'march', label: 'march' },
+                    ],
+                };
+                const data = {
+                    id: 1,
+                    ...campaignOrchestrationPayloadData,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 3, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                const response = await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(campaignOrchestrationPayloadData);
+
+                // Check if _createFAcebook was called with the expected parameters
+                expect(_createFacebookCampaign).toHaveBeenCalledWith(
+                    'YOUR_ACCESS_TOKEN',
+                    'YOUR_AD_ACCOUNT_ID',
+                    {
+                        id: '4-POST_ENGAGEMENT-Manuel-API-test-1',
+                        name: 'Manuel-API-test-1',
+                        type: 'POST_ENGAGEMENT',
+                        budget: 561,
+                        startDate: '2023-02-01',
+                        endDate: '2023-03-01',
+                        status: 'PAUSED',
+                    }
+                );
+            });
         });
     });
 
@@ -811,69 +1482,4 @@ describe('Campaign Endpoints Test', () => {
             expect(response.body.message).toBe('Error');
         });
     });
-});
-
-describe('createAmazonCampaign', () => {
-    it('should create Amazon campaigns successfully', async () => {
-        // Mock utility function behaviors
-        validateCredentials.mockImplementation(() => {});
-        validateCampaignsArray.mockImplementation(() => {});
-        getConfig.mockImplementation(() => ({
-            /* mock config object */
-        }));
-        createCampaigns.mockImplementation(() => ({
-            errors: [],
-            successes: [{ y: 'success' }],
-        }));
-
-        // Call the function
-        const result = await createAmazonCampaign(mockData);
-
-        // Assertions
-        expect(result.message).toBe('Amazon campaign creation complete');
-        expect(result.success).toEqual([{ y: 'success' }, { y: 'success' }]);
-        expect(result.error).toEqual([]);
-    });
-
-    it('should handle errors during campaign creation', async () => {
-        // Mock utility function behaviors
-        validateCredentials.mockImplementation(() => {});
-        validateCampaignsArray.mockImplementation(() => {});
-        getConfig.mockImplementation(() => ({}));
-        createCampaigns.mockImplementation(() => ({
-            errors: [{ foo: 'bar' }],
-            successes: [],
-        }));
-
-        // Call the function
-        const result = await createAmazonCampaign(mockData);
-
-        // Assertions
-        expect(result.message).toBe('Amazon campaign creation complete');
-        expect(result.success).toEqual([]);
-        expect(result.error).toEqual([{ foo: 'bar' }, { foo: 'bar' }]);
-    });
-
-    it('should handle validation errors', async () => {
-        // Mock utility function behaviors to throw validation errors
-        validateCredentials.mockImplementation(() => {
-            throw new Error('Access token or client ID is missing');
-        });
-        validateCampaignsArray.mockImplementation(() => {
-            throw new Error('Campaigns must be an array');
-        });
-
-        // Call the function
-        const result = await createAmazonCampaign(mockData);
-
-        // Assertions
-        expect(result.message).toBe('Amazon campaign creation failed');
-        expect(result.success).toEqual([]);
-        expect(result.error).toEqual({
-            code: 500,
-            message: 'Access token or client ID is missing', // Check the actual error message
-        });
-    });
-
-    // Add more test cases to cover different scenarios and edge cases
 });
