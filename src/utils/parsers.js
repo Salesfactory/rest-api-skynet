@@ -74,4 +74,82 @@ function groupCampaignAllocationsByType({
     return campaignDataByChannel;
 }
 
-module.exports = { groupCampaignAllocationsByType };
+function transformBudgetData({ allocations, periods }) {
+    const result = [];
+
+    for (const monthKey in allocations) {
+        if (allocations.hasOwnProperty(monthKey)) {
+            const monthData = {
+                ...allocations[monthKey],
+                ...periods.find(period => period.id === monthKey),
+            };
+
+            for (const channelKey in monthData.allocations) {
+                if (monthData.allocations.hasOwnProperty(channelKey)) {
+                    const channelData = monthData.allocations[channelKey];
+                    const timePeriod = {
+                        id: monthKey,
+                        label: monthData.label,
+                        days: monthData.days,
+                        campaigns: [],
+                    };
+
+                    for (const campaignTypeKey in channelData.allocations) {
+                        if (
+                            channelData.allocations.hasOwnProperty(
+                                campaignTypeKey
+                            )
+                        ) {
+                            const campaignTypeData =
+                                channelData.allocations[campaignTypeKey];
+
+                            for (const campaignKey in campaignTypeData.allocations) {
+                                if (
+                                    campaignTypeData.allocations.hasOwnProperty(
+                                        campaignKey
+                                    )
+                                ) {
+                                    const campaignData =
+                                        campaignTypeData.allocations[
+                                            campaignKey
+                                        ];
+                                    const campaign = {
+                                        id: campaignData.id,
+                                        name: campaignData.name,
+                                        budget: campaignData.budget,
+                                        percentage: campaignData.percentage,
+                                        type: campaignData.type,
+                                        campaignType: campaignTypeData.name,
+                                        adsets: [...campaignData.allocations],
+                                    };
+                                    timePeriod.campaigns.push(campaign);
+                                }
+                            }
+                        }
+                    }
+
+                    const existingChannel = result.find(
+                        ch => ch.id === channelData.id
+                    );
+                    if (existingChannel) {
+                        existingChannel.timePeriods.push(timePeriod);
+                    } else {
+                        const channel = {
+                            id: channelData.id,
+                            name: channelData.name,
+                            isApiEnabled: channelData.isApiEnabled,
+                            timePeriods: [timePeriod],
+                        };
+                        result.push(channel);
+                    }
+                }
+            }
+        }
+    }
+
+    // console.log(JSON.stringify(result, null, 2));
+
+    return result;
+}
+
+module.exports = { groupCampaignAllocationsByType, transformBudgetData };
