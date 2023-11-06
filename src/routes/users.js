@@ -10,11 +10,7 @@ router.get(
     '/:id',
     userController.getUserById
 );
-router.post(
-    '/',
-    [hasPermissions('user-management')],
-    userController.createUser
-);
+router.post('/', userController.createUser);
 router.put(
     '/:id',
     [hasPermissions('user-management')],
