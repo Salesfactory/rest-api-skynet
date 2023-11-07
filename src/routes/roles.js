@@ -12,4 +12,8 @@ router.get(
 router.get('/', [hasRole('Super')], roleController.getRoles);
 router.get('/:id', [hasRole('Super')], roleController.getRole);
 
+router.post('/', [hasRole('Super')], roleController.createRole);
+router.patch('/:id', [hasRole('Super')], roleController.updateRole);
+router.delete('/:id', [hasRole('Super')], roleController.deleteRole);
+
 module.exports = router;
