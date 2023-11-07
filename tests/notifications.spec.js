@@ -32,6 +32,7 @@ describe('Notifications Endpoints Test', () => {
             const data = [
                 {
                     id: 1,
+                    roleId: 1,
                     title: 'Notification',
                     message: 'This is a notification',
                     campaign_group_info: {
@@ -50,6 +51,7 @@ describe('Notifications Endpoints Test', () => {
 
             const user = {
                 id: 1,
+                roleId: 1,
                 username: '123',
             };
 
@@ -85,6 +87,7 @@ describe('Notifications Endpoints Test', () => {
             const data = [
                 {
                     id: 1,
+                    roleId: 1,
                     title: 'Notification',
                     message: 'This is a notification',
                     campaign_group_info: {
@@ -103,6 +106,7 @@ describe('Notifications Endpoints Test', () => {
 
             const user = {
                 id: 1,
+                roleId: 1,
                 username: '123',
             };
 
