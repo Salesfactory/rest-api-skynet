@@ -76,8 +76,12 @@ const app = makeApp({
         }),
     },
     amazonDSP: {
-        list: jest.fn(() => {}),
-        create: jest.fn(() => {}),
+        list: jest.fn(() => ({
+            data: [],
+        })),
+        create: jest.fn(() => ({
+            data: [],
+        })),
     },
     facebook: { create: _createFacebookCampaign },
 });
