@@ -25,7 +25,7 @@ const createAmazonCampaign = async ({
                 // Validate campaigns array
                 validateCampaignsArray(campaignsArray);
 
-                const config = getConfig(type, access, profileId);
+                const config = getConfig({ type, access, profileId });
 
                 // Create campaigns and handle responses
                 const { errors, successes } = await createCampaigns(

@@ -1,6 +1,6 @@
 const cron = require('node-cron');
 const { Channel, Client } = require('./models');
-const { channelController } = require('./controllers');
+const { channelController, clientController } = require('./controllers');
 const { computeAndStoreMetrics } = require('./utils/bq_spend');
 const {
     sendNotification,

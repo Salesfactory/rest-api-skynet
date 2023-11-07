@@ -9,6 +9,10 @@ const {
     getSponsoredBrandsCreateData,
     getSponsoredDisplayCreateData,
     createCampaigns,
+    isValidDate,
+    formatDateString,
+    getSponsoredAdsCreateData,
+    createDSPCampaign,
 } = require('../src/utils/allocations');
 const { groupCampaignAllocationsByType } = require('../src/utils/parsers');
 jest.mock('../src/models', () => ({
@@ -485,7 +489,7 @@ describe('getConfig', () => {
         const profileId = 'your-profile-id';
 
         // Act: Call the getConfig function
-        const config = getConfig(type, access, profileId);
+        const config = getConfig({ type, access, profileId });
 
         // Assert: Check if the returned config object matches the expected structure
         expect(config).toEqual({
@@ -950,5 +954,215 @@ describe('createCampaigns', () => {
         await expect(
             createCampaigns(type, campaignsArray, config, state)
         ).rejects.toThrow('Unknown type');
+    });
+});
+
+describe('isValidDate function', () => {
+    it('valid date in "yyyy-MM-dd" format', () => {
+        expect(isValidDate('2023-11-11')).toBe(true);
+    });
+
+    it('valid date in different format', () => {
+        expect(isValidDate('November 11, 2023')).toBe(true);
+    });
+
+    it('invalid date', () => {
+        expect(isValidDate('Invalid Date')).toBe(false);
+    });
+
+    it('empty string input', () => {
+        expect(isValidDate('')).toBe(false);
+    });
+
+    it('undefined input', () => {
+        expect(isValidDate(undefined)).toBe(false);
+    });
+});
+
+describe('formatDateString function', () => {
+    it('valid input date in "yyyy-MM-dd" format', () => {
+        const inputDate = '2023-11-11';
+        const formattedDate = formatDateString(inputDate);
+        expect(isValidDate(formattedDate)).toBe(true);
+    });
+
+    it('valid input date in different format', () => {
+        const inputDate = 'November 11, 2023';
+        const formattedDate = formatDateString(inputDate);
+        expect(isValidDate(formattedDate)).toBe(true);
+    });
+
+    it('invalid input date', () => {
+        const inputDate = 'Invalid Date';
+        const formattedDate = formatDateString(inputDate);
+        expect(formattedDate).toBeNull();
+    });
+
+    it('empty string input', () => {
+        const inputDate = '';
+        const formattedDate = formatDateString(inputDate);
+        expect(formattedDate).toBeNull();
+    });
+
+    it('undefined input', () => {
+        const inputDate = undefined;
+        const formattedDate = formatDateString(inputDate);
+        expect(formattedDate).toBeNull();
+    });
+});
+
+describe('getSponsoredAdsCreateData function', () => {
+    it('valid input data', () => {
+        const campaign = {
+            advertiserId: '580945557665079951',
+            name: 'test campaign',
+            startDate: '2023-11-10 20:00:00 UTC',
+            endDate: '2023-11-11 20:00:00 UTC',
+            budget: 1,
+            recurrenceTimePeriod: 'DAILY',
+            frequencyCapType: 'UNCAPPED',
+            productLocation: 'SOLD_ON_AMAZON',
+            goal: 'AWARENESS',
+            goalKpi: 'REACH',
+        };
+
+        const expectedOutput = JSON.stringify([
+            {
+                advertiserId: '580945557665079951',
+                name: 'test campaign',
+                budget: {
+                    budgetCaps: [
+                        {
+                            recurrenceTimePeriod: 'DAILY',
+                            amount: 1,
+                        },
+                    ],
+                    flights: [
+                        {
+                            startDateTime: '2023-11-10 16:00:00 UTC',
+                            endDateTime: '2023-11-11 16:00:00 UTC',
+                            amount: 1,
+                        },
+                    ],
+                },
+                frequencyCap: {
+                    type: 'UNCAPPED',
+                },
+                optimization: {
+                    productLocation: 'SOLD_ON_AMAZON',
+                    goal: 'AWARENESS',
+                    goalKpi: 'REACH',
+                },
+            },
+        ]);
+
+        const result = getSponsoredAdsCreateData({ campaign });
+        expect(result).toBe(expectedOutput);
+    });
+
+    it('valid input data with custom frequency cap', () => {
+        const campaign = {
+            advertiserId: '580945557665079951',
+            name: 'test campaign',
+            startDate: '2023-11-10 20:00:00 UTC',
+            endDate: '2023-11-11 20:00:00 UTC',
+            budget: 1,
+            recurrenceTimePeriod: 'DAILY',
+            frequencyCapType: 'CUSTOM',
+            frequencyCapMaxImpressions: 10,
+            frequencyCapTimeUnitCount: 2,
+            frequencyCapTimeUnit: 'HOURS',
+            productLocation: 'SOLD_ON_AMAZON',
+            goal: 'AWARENESS',
+            goalKpi: 'REACH',
+        };
+
+        const expectedOutput = JSON.stringify([
+            {
+                advertiserId: '580945557665079951',
+                name: 'test campaign',
+                budget: {
+                    budgetCaps: [
+                        {
+                            recurrenceTimePeriod: 'DAILY',
+                            amount: 1,
+                        },
+                    ],
+                    flights: [
+                        {
+                            startDateTime: '2023-11-10 16:00:00 UTC',
+                            endDateTime: '2023-11-11 16:00:00 UTC',
+                            amount: 1,
+                        },
+                    ],
+                },
+                frequencyCap: {
+                    type: 'CUSTOM',
+                    maxImpressions: 10,
+                    timeUnitCount: 2,
+                    timeUnit: 'HOURS',
+                },
+                optimization: {
+                    productLocation: 'SOLD_ON_AMAZON',
+                    goal: 'AWARENESS',
+                    goalKpi: 'REACH',
+                },
+            },
+        ]);
+
+        const result = getSponsoredAdsCreateData({ campaign });
+        expect(result).toBe(expectedOutput);
+    });
+});
+
+describe('createDSPCampaign function', () => {
+    test('creates DSP campaign with valid input', async () => {
+        const type = 'Sponsored Ads';
+        const access = {
+            CLIENT_ID: 'your-client-id',
+            ACCESS_TOKEN: 'your-access-token',
+        };
+        const profileId = 'your-profile-id';
+
+        // Act: Call the getConfig function
+        const config = getConfig({ type, access, profileId });
+
+        const campaign = {
+            advertiserId: '580945557665079951',
+            name: 'test campaign',
+            startDate: '2023-11-10 20:00:00 UTC',
+            endDate: '2023-11-11 20:00:00 UTC',
+            budget: 1,
+            recurrenceTimePeriod: 'DAILY',
+            frequencyCapType: 'CUSTOM',
+            frequencyCapMaxImpressions: 10,
+            frequencyCapTimeUnitCount: 2,
+            frequencyCapTimeUnit: 'HOURS',
+            productLocation: 'SOLD_ON_AMAZON',
+            goal: 'AWARENESS',
+            goalKpi: 'REACH',
+        };
+
+        // Mock axios request for testing
+        axios.request = jest.fn().mockResolvedValue({
+            data: [
+                {
+                    orderId: '123456789',
+                },
+            ],
+        });
+
+        const result = await createDSPCampaign({
+            campaign,
+            config,
+        });
+
+        expect(result).toEqual({
+            data: [
+                {
+                    orderId: '123456789',
+                },
+            ],
+        });
     });
 });
