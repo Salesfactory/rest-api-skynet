@@ -75,6 +75,10 @@ const app = makeApp({
             };
         }),
     },
+    amazonDSP: {
+        list: jest.fn(() => {}),
+        create: jest.fn(() => {}),
+    },
     facebook: { create: _createFacebookCampaign },
 });
 const request = supertest(app);
