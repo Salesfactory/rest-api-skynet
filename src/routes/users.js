@@ -13,7 +13,6 @@ router.get(
 router.post('/', userController.createUser);
 router.put(
     '/:id',
-    [hasPermissions('user-management')],
     userController.updateUser
 );
 router.delete(
