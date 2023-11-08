@@ -190,8 +190,8 @@ const getMetrics = ({
         year,
     });
     // we insert data from the previous day so we make calculations based on the previous day
-    const elapsedDaysMinusOne = elapsedDays - 1 || 1;
-    const currentAdb = elapsedDays > 0 ? MTDSpend / elapsedDaysMinusOne : 'N/A';
+    const elapsedDaysMinusOne = elapsedDays - 1;
+    const currentAdb = elapsedDaysMinusOne > 0 ? MTDSpend / elapsedDaysMinusOne : 'N/A';
     const avgDailySpent =
         remainingDays > 0 ? remainingBudget / remainingDays : 'N/A';
 
