@@ -153,87 +153,68 @@ function transformBudgetData({ allocations, periods }) {
 }
 
 function generateCampaignsWithTimePeriodsAndAdsets(inputData) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const result = [];
+    const result = [];
 
-            for (const channel of inputData.channels) {
-                const channelData = {
-                    id: channel.id,
-                    name: channel.name,
-                    isApiEnabled: channel.isApiEnabled,
-                    type: 'CHANNEL',
-                    campaigns: [],
-                };
+    for (const channel of inputData.channels) {
+        const channelData = {
+            ...channel,
+            type: 'CHANNEL',
+            campaigns: [],
+        };
 
-                for (const period of inputData.periods) {
-                    const periodData = {
-                        id: period.id,
-                        label: period.label,
-                        days: period.days,
-                        adsets: [],
-                    };
+        for (const period of inputData.periods) {
+            const periodData = {
+                ...period,
+                adsets: [],
+            };
 
-                    for (const allocation of inputData.allocations[period.id]
-                        .allocations) {
-                        for (const campaignType of allocation.allocations) {
-                            for (const campaign of campaignType.allocations) {
-                                const campaignData = {
-                                    id: campaign.id,
-                                    name: campaign.name,
-                                    goals: campaign.goals,
-                                    type: 'CAMPAIGN',
-                                    campaignType: campaignType.name,
-                                    timePeriods: [],
-                                };
+            for (const allocation of inputData.allocations[period.id]
+                .allocations) {
+                for (const campaignType of allocation.allocations) {
+                    for (const campaign of campaignType.allocations) {
+                        const campaignData = {
+                            id: campaign.id,
+                            name: campaign.name,
+                            goals: campaign.goals,
+                            type: 'CAMPAIGN',
+                            campaignType: campaignType.name,
+                            timePeriods: [],
+                        };
 
-                                let adsets = [];
-                                if (Array.isArray(campaign.allocations)) {
-                                    for (const adset of campaign.allocations) {
-                                        const adsetData = {
-                                            id: adset.id,
-                                            name: adset.name,
-                                            budget: adset.budget,
-                                            percentage: adset.percentage,
-                                            type: 'ADSET',
-                                        };
+                        let adsets = [];
+                        if (Array.isArray(campaign.allocations)) {
+                            adsets = [...campaign.allocations];
+                        }
+                        const existingCampaign = channelData.campaigns.find(
+                            campaign => campaign.id === campaignData.id
+                        );
 
-                                        adsets.push({ ...adsetData });
-                                    }
-                                }
-                                const existingCampaign =
-                                    channelData.campaigns.find(
-                                        campaign =>
-                                            campaign.id === campaignData.id
-                                    );
-                                if (existingCampaign) {
-                                    // If the id exists, push data to the timePeriods array
-                                    existingCampaign.timePeriods.push({
-                                        ...periodData,
-                                        adsets,
-                                    });
-                                } else {
-                                    // If the id doesn't exist, create a new object and add it to the array
-                                    campaignData.timePeriods.push({
-                                        ...periodData,
-                                        adsets,
-                                    });
-                                    channelData.campaigns.push(campaignData);
-                                }
-                            }
+                        const timePeriodWithAdsets = {
+                            ...periodData,
+                            adsets,
+                        };
+                        if (existingCampaign) {
+                            // If the id exists, push data to the timePeriods array
+                            existingCampaign.timePeriods.push({
+                                ...timePeriodWithAdsets,
+                            });
+                        } else {
+                            // If the id doesn't exist, create a new object and add it to the array
+                            campaignData.timePeriods.push({
+                                ...timePeriodWithAdsets,
+                            });
+                            channelData.campaigns.push({ ...campaignData });
                         }
                     }
                 }
-
-                // Push channelData to the result
-                result.push(channelData);
             }
-
-            resolve(result);
-        } catch (error) {
-            reject(error);
         }
-    });
+
+        // Push channelData to the result
+        result.push(channelData);
+    }
+
+    return result;
 }
 
 module.exports = {

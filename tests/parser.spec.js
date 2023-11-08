@@ -378,8 +378,8 @@ const expected = [
 ];
 
 describe('generateCampaignsWithTimePeriodsAndAdsets', () => {
-    it('returns the expected data', async () => {
-        const result = await generateCampaignsWithTimePeriodsAndAdsets(
+    it('returns the expected data', () => {
+        const result = generateCampaignsWithTimePeriodsAndAdsets(
             orchestrationDataSample
         );
 

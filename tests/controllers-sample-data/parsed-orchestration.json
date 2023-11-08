@@ -1,0 +1,439 @@
+{
+    "id": "4",
+    "name": "Facebook",
+    "isApiEnabled": false,
+    "timePeriods": [
+        {
+            "id": "january_2023",
+            "label": "January 2023",
+            "days": 31,
+            "campaigns": [
+                {
+                    "id": "4-PAGE_LIKES-api-test-1",
+                    "name": "api-test-1",
+                    "budget": 850,
+                    "percentage": 50,
+                    "type": "CAMPAIGN",
+                    "campaignType": "PAGE_LIKES",
+                    "adsets": [
+                        {
+                            "id": "4-PAGE_LIKES-api-test-1-api-adset-test-1",
+                            "name": "api-adset-test-1",
+                            "budget": 850,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        },
+                        {
+                            "id": "4-PAGE_LIKES-api-test-1-api-adset-test-2",
+                            "name": "api-adset-test-2",
+                            "budget": 850,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        }
+                    ]
+                },
+                {
+                    "id": "4-PAGE_LIKES-api-campaign-2",
+                    "name": "api-campaign-2",
+                    "budget": 850,
+                    "percentage": 50,
+                    "type": "CAMPAIGN",
+                    "campaignType": "PAGE_LIKES",
+                    "adsets": [
+                        {
+                            "id": "4-PAGE_LIKES-api-campaign-2-adtest-test-4",
+                            "name": "adtest-test-4",
+                            "budget": 850,
+                            "percentage": 100,
+                            "type": "ADSET"
+                        }
+                    ]
+                },
+                {
+                    "id": "4-CONVERSIONS-campaign-3-test",
+                    "name": "campaign-3-test",
+                    "budget": 850,
+                    "percentage": 100,
+                    "type": "CAMPAIGN",
+                    "campaignType": "CONVERSIONS",
+                    "adsets": [
+                        {
+                            "id": "4-CONVERSIONS-campaign-3-test-adset-test-4",
+                            "name": "adset-test-4",
+                            "budget": 425,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        },
+                        {
+                            "id": "4-CONVERSIONS-campaign-3-test-adtes-test-5",
+                            "name": "adtes-test-5",
+                            "budget": 425,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "february_2023",
+            "label": "February 2023",
+            "days": 28,
+            "campaigns": [
+                {
+                    "id": "4-PAGE_LIKES-api-test-1",
+                    "name": "api-test-1",
+                    "budget": 680,
+                    "percentage": 50,
+                    "type": "CAMPAIGN",
+                    "campaignType": "PAGE_LIKES",
+                    "adsets": [
+                        {
+                            "id": "4-PAGE_LIKES-api-test-1-api-adset-test-1",
+                            "name": "api-adset-test-1",
+                            "budget": 680,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        },
+                        {
+                            "id": "4-PAGE_LIKES-api-test-1-api-adset-test-2",
+                            "name": "api-adset-test-2",
+                            "budget": 680,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        }
+                    ]
+                },
+                {
+                    "id": "4-PAGE_LIKES-api-campaign-2",
+                    "name": "api-campaign-2",
+                    "budget": 680,
+                    "percentage": 50,
+                    "type": "CAMPAIGN",
+                    "campaignType": "PAGE_LIKES",
+                    "adsets": [
+                        {
+                            "id": "4-PAGE_LIKES-api-campaign-2-adtest-test-4",
+                            "name": "adtest-test-4",
+                            "budget": 680,
+                            "percentage": 100,
+                            "type": "ADSET"
+                        }
+                    ]
+                },
+                {
+                    "id": "4-CONVERSIONS-campaign-3-test",
+                    "name": "campaign-3-test",
+                    "budget": 680,
+                    "percentage": 100,
+                    "type": "CAMPAIGN",
+                    "campaignType": "CONVERSIONS",
+                    "adsets": [
+                        {
+                            "id": "4-CONVERSIONS-campaign-3-test-adset-test-4",
+                            "name": "adset-test-4",
+                            "budget": 340,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        },
+                        {
+                            "id": "4-CONVERSIONS-campaign-3-test-adtes-test-5",
+                            "name": "adtes-test-5",
+                            "budget": 340,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "march_2023",
+            "label": "March 2023",
+            "days": 31,
+            "campaigns": [
+                {
+                    "id": "4-PAGE_LIKES-api-test-1",
+                    "name": "api-test-1",
+                    "budget": 680,
+                    "percentage": 50,
+                    "type": "CAMPAIGN",
+                    "campaignType": "PAGE_LIKES",
+                    "adsets": [
+                        {
+                            "id": "4-PAGE_LIKES-api-test-1-api-adset-test-1",
+                            "name": "api-adset-test-1",
+                            "budget": 680,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        },
+                        {
+                            "id": "4-PAGE_LIKES-api-test-1-api-adset-test-2",
+                            "name": "api-adset-test-2",
+                            "budget": 680,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        }
+                    ]
+                },
+                {
+                    "id": "4-PAGE_LIKES-api-campaign-2",
+                    "name": "api-campaign-2",
+                    "budget": 680,
+                    "percentage": 50,
+                    "type": "CAMPAIGN",
+                    "campaignType": "PAGE_LIKES",
+                    "adsets": [
+                        {
+                            "id": "4-PAGE_LIKES-api-campaign-2-adtest-test-4",
+                            "name": "adtest-test-4",
+                            "budget": 680,
+                            "percentage": 100,
+                            "type": "ADSET"
+                        }
+                    ]
+                },
+                {
+                    "id": "4-CONVERSIONS-campaign-3-test",
+                    "name": "campaign-3-test",
+                    "budget": 680,
+                    "percentage": 100,
+                    "type": "CAMPAIGN",
+                    "campaignType": "CONVERSIONS",
+                    "adsets": [
+                        {
+                            "id": "4-CONVERSIONS-campaign-3-test-adset-test-4",
+                            "name": "adset-test-4",
+                            "budget": 340,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        },
+                        {
+                            "id": "4-CONVERSIONS-campaign-3-test-adtes-test-5",
+                            "name": "adtes-test-5",
+                            "budget": 340,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "april_2023",
+            "label": "April 2023",
+            "days": 30,
+            "campaigns": [
+                {
+                    "id": "4-PAGE_LIKES-api-test-1",
+                    "name": "api-test-1",
+                    "budget": 680,
+                    "percentage": 50,
+                    "type": "CAMPAIGN",
+                    "campaignType": "PAGE_LIKES",
+                    "adsets": [
+                        {
+                            "id": "4-PAGE_LIKES-api-test-1-api-adset-test-1",
+                            "name": "api-adset-test-1",
+                            "budget": 680,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        },
+                        {
+                            "id": "4-PAGE_LIKES-api-test-1-api-adset-test-2",
+                            "name": "api-adset-test-2",
+                            "budget": 680,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        }
+                    ]
+                },
+                {
+                    "id": "4-PAGE_LIKES-api-campaign-2",
+                    "name": "api-campaign-2",
+                    "budget": 680,
+                    "percentage": 50,
+                    "type": "CAMPAIGN",
+                    "campaignType": "PAGE_LIKES",
+                    "adsets": [
+                        {
+                            "id": "4-PAGE_LIKES-api-campaign-2-adtest-test-4",
+                            "name": "adtest-test-4",
+                            "budget": 680,
+                            "percentage": 100,
+                            "type": "ADSET"
+                        }
+                    ]
+                },
+                {
+                    "id": "4-CONVERSIONS-campaign-3-test",
+                    "name": "campaign-3-test",
+                    "budget": 680,
+                    "percentage": 100,
+                    "type": "CAMPAIGN",
+                    "campaignType": "CONVERSIONS",
+                    "adsets": [
+                        {
+                            "id": "4-CONVERSIONS-campaign-3-test-adset-test-4",
+                            "name": "adset-test-4",
+                            "budget": 340,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        },
+                        {
+                            "id": "4-CONVERSIONS-campaign-3-test-adtes-test-5",
+                            "name": "adtes-test-5",
+                            "budget": 340,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "may_2023",
+            "label": "May 2023",
+            "days": 31,
+            "campaigns": [
+                {
+                    "id": "4-PAGE_LIKES-api-test-1",
+                    "name": "api-test-1",
+                    "budget": 680,
+                    "percentage": 50,
+                    "type": "CAMPAIGN",
+                    "campaignType": "PAGE_LIKES",
+                    "adsets": [
+                        {
+                            "id": "4-PAGE_LIKES-api-test-1-api-adset-test-1",
+                            "name": "api-adset-test-1",
+                            "budget": 680,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        },
+                        {
+                            "id": "4-PAGE_LIKES-api-test-1-api-adset-test-2",
+                            "name": "api-adset-test-2",
+                            "budget": 680,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        }
+                    ]
+                },
+                {
+                    "id": "4-PAGE_LIKES-api-campaign-2",
+                    "name": "api-campaign-2",
+                    "budget": 680,
+                    "percentage": 50,
+                    "type": "CAMPAIGN",
+                    "campaignType": "PAGE_LIKES",
+                    "adsets": [
+                        {
+                            "id": "4-PAGE_LIKES-api-campaign-2-adtest-test-4",
+                            "name": "adtest-test-4",
+                            "budget": 680,
+                            "percentage": 100,
+                            "type": "ADSET"
+                        }
+                    ]
+                },
+                {
+                    "id": "4-CONVERSIONS-campaign-3-test",
+                    "name": "campaign-3-test",
+                    "budget": 680,
+                    "percentage": 100,
+                    "type": "CAMPAIGN",
+                    "campaignType": "CONVERSIONS",
+                    "adsets": [
+                        {
+                            "id": "4-CONVERSIONS-campaign-3-test-adset-test-4",
+                            "name": "adset-test-4",
+                            "budget": 340,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        },
+                        {
+                            "id": "4-CONVERSIONS-campaign-3-test-adtes-test-5",
+                            "name": "adtes-test-5",
+                            "budget": 340,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "june_2023",
+            "label": "June 2023",
+            "days": 30,
+            "campaigns": [
+                {
+                    "id": "4-PAGE_LIKES-api-test-1",
+                    "name": "api-test-1",
+                    "budget": 680,
+                    "percentage": 50,
+                    "type": "CAMPAIGN",
+                    "campaignType": "PAGE_LIKES",
+                    "adsets": [
+                        {
+                            "id": "4-PAGE_LIKES-api-test-1-api-adset-test-1",
+                            "name": "api-adset-test-1",
+                            "budget": 680,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        },
+                        {
+                            "id": "4-PAGE_LIKES-api-test-1-api-adset-test-2",
+                            "name": "api-adset-test-2",
+                            "budget": 680,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        }
+                    ]
+                },
+                {
+                    "id": "4-PAGE_LIKES-api-campaign-2",
+                    "name": "api-campaign-2",
+                    "budget": 680,
+                    "percentage": 50,
+                    "type": "CAMPAIGN",
+                    "campaignType": "PAGE_LIKES",
+                    "adsets": [
+                        {
+                            "id": "4-PAGE_LIKES-api-campaign-2-adtest-test-4",
+                            "name": "adtest-test-4",
+                            "budget": 680,
+                            "percentage": 100,
+                            "type": "ADSET"
+                        }
+                    ]
+                },
+                {
+                    "id": "4-CONVERSIONS-campaign-3-test",
+                    "name": "campaign-3-test",
+                    "budget": 680,
+                    "percentage": 100,
+                    "type": "CAMPAIGN",
+                    "campaignType": "CONVERSIONS",
+                    "adsets": [
+                        {
+                            "id": "4-CONVERSIONS-campaign-3-test-adset-test-4",
+                            "name": "adset-test-4",
+                            "budget": 340,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        },
+                        {
+                            "id": "4-CONVERSIONS-campaign-3-test-adtes-test-5",
+                            "name": "adtes-test-5",
+                            "budget": 340,
+                            "percentage": 50,
+                            "type": "ADSET"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
