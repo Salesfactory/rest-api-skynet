@@ -248,8 +248,13 @@ function getUsersToNotifyWithCampaigns({ campaigngroups, currentDate }) {
  * Sends a notification to the user inserted in the database
  */
 async function sendNotification({ campaign, subject, message, type }) {
+    const roleId = User.findOne({
+        where: { id: campaign.user.id },
+        attributes: ['roleId'],
+    });
     await Notification.create({
         user_id: campaign.user.id,
+        roleId: roleId,
         title: subject,
         message: message,
         campaign_group_info: {
