@@ -491,7 +491,14 @@ const createMarketingCampaign = async (req, res) => {
 
         let successCampaigns = null;
         let errorCampaigns = null;
-
+        const createdfacebookCampaignsResult = {
+            success: [],
+            fails: [],
+        };
+        const createdFacebookAdsetResult = {
+            success: [],
+            fails: [],
+        };
         if (campaignGroup) {
             // const allocationsData = transformBudgetData(req.body);
             // amazon campaign creation
@@ -546,6 +553,10 @@ const createMarketingCampaign = async (req, res) => {
                                 }
                             );
 
+                        createdfacebookCampaignsResult.success.push(
+                            facebookCampaign
+                        );
+
                         if (Array.isArray(timePeriods)) {
                             for (const timePeriod of timePeriods) {
                                 for (const adset of timePeriod.adsets) {
@@ -560,31 +571,37 @@ const createMarketingCampaign = async (req, res) => {
                                             optimization_goal,
                                             targeting,
                                         } = adset;
-                                        await req.facebook.createAdset(
-                                            secret.FACEBOOK_ACCESS_TOKEN,
-                                            facebookAdAccountId,
-                                            {
-                                                campaign_id:
-                                                    facebookCampaign.campaignId,
-                                                name: adsetName,
-                                                bid_amount,
-                                                billing_event,
-                                                lifetime_budget: budget,
-                                                start_time,
-                                                end_time,
-                                                optimization_goal,
-                                                targeting,
-                                                status: 'PAUSED',
-                                            }
+                                        const adsetResponse =
+                                            await req.facebook.createAdset(
+                                                secret.FACEBOOK_ACCESS_TOKEN,
+                                                facebookAdAccountId,
+                                                {
+                                                    campaign_id:
+                                                        facebookCampaign.id,
+                                                    name: adsetName,
+                                                    bid_amount,
+                                                    billing_event,
+                                                    lifetime_budget: budget,
+                                                    start_time,
+                                                    end_time,
+                                                    optimization_goal,
+                                                    targeting,
+                                                    status: 'PAUSED',
+                                                }
+                                            );
+                                        createdFacebookAdsetResult.success.push(
+                                            adsetResponse
                                         );
                                     } catch (adsetError) {
                                         console.error(
                                             'Error creating adset:',
                                             adsetError
                                         );
-                                        res.status(500).json({
-                                            message: 'Error creating adset',
-                                            adsetError,
+                                        createdFacebookAdsetResult.fails.push({
+                                            facebookCampaignId:
+                                                facebookCampaign.id,
+                                            adsetName: adset.name,
+                                            ...adsetError,
                                         });
                                     }
                                 }
@@ -595,9 +612,9 @@ const createMarketingCampaign = async (req, res) => {
                             'Error creating campaign:',
                             campaignError
                         );
-                        res.status(500).json({
-                            message: 'Error creating campaign',
-                            campaignError,
+                        createdfacebookCampaignsResult.fails.push({
+                            name: campaign.name,
+                            ...campaignError,
                         });
                     }
                 }
@@ -611,12 +628,40 @@ const createMarketingCampaign = async (req, res) => {
             });
             campaignGroup.budgets = newBudget;
         }
+        if (
+            createdfacebookCampaignsResult.fails.length > 0 ||
+            createdFacebookAdsetResult.fails.length > 0
+        ) {
+            return res.status(207).json({
+                message: 'Marketing campaign created with errors',
+                data: {
+                    ...campaignGroup,
+                    amazonData: {
+                        success: successCampaigns,
+                        error: errorCampaigns,
+                    },
+                    facebook: {
+                        success: createdfacebookCampaignsResult.success,
+                        error: createdfacebookCampaignsResult.fails,
+                        adsets: {
+                            success: [],
+                            error: createdFacebookAdsetResult.fails,
+                        },
+                    },
+                },
+            });
+        }
+
         res.status(201).json({
             message: 'Marketing campaign created successfully',
             data: campaignGroup,
             amazonData: {
                 success: successCampaigns,
                 error: errorCampaigns,
+            },
+            facebook: {
+                success: createdfacebookCampaignsResult.success,
+                error: createdfacebookCampaignsResult.fails,
             },
         });
     } catch (error) {

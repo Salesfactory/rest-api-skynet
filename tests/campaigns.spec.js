@@ -66,7 +66,7 @@ const getSecrets = jest.fn(() => ({
 }));
 
 const _createFacebookCampaign = jest.fn(() => {
-    return { campaignId: 'FACEBOOK_CAMPAIGN_ID' };
+    return Promise.resolve({ id: 'FACEBOOK_CAMPAIGN_ID' });
 });
 const _createFacebookAdset = jest.fn(() => {
     return {};
@@ -979,10 +979,116 @@ describe('Campaign Endpoints Test', () => {
                     }
                 );
             });
+            test('Given the payload contains 2 facebook campaigns and one faild to create, the endpoint should return an object with the llist of failed campaigns', async () => {
+                const data = {
+                    id: 1,
+                    ...campaignOrchestrationFacebookPayloadData,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 3, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                _createFacebookCampaign.mockRejectedValueOnce({
+                    response: {
+                        data: {
+                            error: 'Bad Request',
+                            message: 'Invalid campaign data',
+                        },
+                        status: 400, // Or any other non-2xx status code
+                        statusText: 'Bad Request',
+                        headers: {},
+                    },
+                });
+
+                _createFacebookCampaign.mockResolvedValueOnce({
+                    data: { id: 'FACEBOOK_CAMPAIGN_ID' },
+                    status: 200,
+                    statusText: 'OK',
+                    headers: {},
+                });
+
+                const response = await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(campaignOrchestrationFacebookPayloadData);
+
+                expect(response.status).toBe(207);
+                expect(_createFacebookCampaign).toHaveBeenCalledTimes(2);
+                expect(response.body).toEqual({
+                    code: 207,
+                    data: {
+                        amazonData: {
+                            error: null,
+                            success: null,
+                        },
+                        facebook: {
+                            error: [
+                                {
+                                    name: 'test-api-2',
+                                    response: {
+                                        data: {
+                                            error: 'Bad Request',
+                                            message: 'Invalid campaign data',
+                                        },
+                                        headers: {},
+                                        status: 400,
+                                        statusText: 'Bad Request',
+                                    },
+                                },
+                            ],
+                            success: [
+                                {
+                                    data: {
+                                        id: 'FACEBOOK_CAMPAIGN_ID',
+                                    },
+                                    headers: {},
+                                    status: 200,
+                                    statusText: 'OK',
+                                },
+                            ],
+                            adsets: {
+                                success: expect.any(Array),
+                                error: expect.any(Array),
+                            },
+                        },
+                    },
+                    message: 'Marketing campaign created with errors',
+                });
+
+                _createFacebookCampaign.mockClear();
+            });
         });
 
         describe('Test Facebook Adset Creation', () => {
-            test("Given the payload doesn't contain a Facebook campaign, the Facebook Adset API should not be called", async () => {
+            test("Given the payload doesn't contain a Facebook Adset, the Facebook Adset API should not be called", async () => {
                 const data = {
                     id: 1,
                     ...campaignOrchestrationFacebookPayloadData,
@@ -1071,7 +1177,7 @@ describe('Campaign Endpoints Test', () => {
 
                 expect(_createFacebookAdset).toHaveBeenCalled();
             });
-            test('Given the payload  contain 3 dset acr Facebook campaign, the Facebook API should be called 2 Times', async () => {
+            test('Given the payload  contain 30 Facebook adset, the Facebook API should be called 30 Times', async () => {
                 const data = {
                     id: 1,
                     ...adsetFacebookPayload,
@@ -1109,7 +1215,7 @@ describe('Campaign Endpoints Test', () => {
                 CampaignGroup.create.mockResolvedValue(data);
                 Budget.create.mockResolvedValue(data.budget);
 
-                const response = await request
+                await request
                     .post(`/api/clients/${clientId}/marketingcampaign`)
                     .send(adsetFacebookPayload);
 
@@ -1174,6 +1280,95 @@ describe('Campaign Endpoints Test', () => {
                         status: 'PAUSED',
                     }
                 );
+            });
+            test('When the payload contains data for creating 3 Facebook adsets, and the process results in 2 adsets failing during creation, the API response should include a list of successfully created adsets and a list of adsets that failed to be created.', async () => {
+                const data = {
+                    id: 1,
+                    ...adsetFacebookPayload,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 3, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                _createFacebookAdset.mockRejectedValueOnce({
+                    response: {
+                        data: {
+                            error: 'Bad Request',
+                            message: 'Invalid adset data',
+                        },
+                        status: 400, // Or any other non-2xx status code
+                        statusText: 'Bad Request',
+                        headers: {},
+                    },
+                });
+                const response = await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(adsetFacebookPayload);
+
+                expect(response.status).toBe(207);
+                expect(response.body).toEqual({
+                    code: 207,
+                    data: {
+                        amazonData: {
+                            error: null,
+                            success: null,
+                        },
+                        facebook: {
+                            error: expect.any(Array),
+                            success: expect.any(Array),
+                            adsets: {
+                                error: [
+                                    {
+                                        adsetName: 'api-adset-test-1',
+                                        facebookCampaignId:
+                                            'FACEBOOK_CAMPAIGN_ID',
+                                        response: {
+                                            data: {
+                                                error: 'Bad Request',
+                                                message: 'Invalid adset data',
+                                            },
+                                            headers: {},
+                                            status: 400,
+                                            statusText: 'Bad Request',
+                                        },
+                                    },
+                                ],
+                                success: expect.any(Array),
+                            },
+                        },
+                    },
+                    message: 'Marketing campaign created with errors',
+                });
+                _createFacebookCampaign.mockClear();
             });
         });
     });
