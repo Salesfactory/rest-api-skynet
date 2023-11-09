@@ -20,6 +20,16 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.INTEGER,
                 allowNull: false,
             },
+            roleId: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+                references: {
+                    model: 'roles',
+                    key: 'id',
+                },
+                onUpdate: 'CASCADE',
+                onDelete: 'SET NULL',
+            },
             title: {
                 type: DataTypes.STRING,
                 allowNull: false,

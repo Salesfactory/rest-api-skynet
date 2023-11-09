@@ -1,6 +1,6 @@
 {
     "name": "rest-api-skynet",
-    "version": "1.0.10",
+    "version": "1.1.1",
     "description": "Skynet REST API",
     "main": "index.js",
     "scripts": {
@@ -25,12 +25,14 @@
         "@aws-sdk/client-secrets-manager": "^3.428.0",
         "@google-cloud/bigquery": "^6.2.0",
         "aws-sdk": "^2.1473.0",
+        "axios": "^1.6.0",
         "cognito-express": "^3.0.3",
         "cors": "^2.8.5",
         "dotenv": "^16.3.1",
         "excel4node": "^1.8.2",
         "exceljs": "^4.3.0",
         "express": "^4.18.2",
+        "express-session": "^1.17.3",
         "helmet": "^7.0.0",
         "lodash": "^4.17.21",
         "morgan": "^1.10.0",

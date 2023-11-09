@@ -1,6 +1,13 @@
 const { bigqueryClient } = require('../config/bigquery');
 const { createSheet, createPacingsSheet } = require('../utils/reports');
-const { Agency, Budget, CampaignGroup, Client, Pacing } = require('../models');
+const {
+    Agency,
+    Budget,
+    CampaignGroup,
+    Client,
+    Pacing,
+    Channel,
+} = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
 const { validateObjectAllocations } = require('../utils');
@@ -16,6 +23,7 @@ const {
 } = require('../utils/cronjobs');
 const { emailTemplate } = require('../templates/email');
 const { send } = require('../utils/email');
+const { groupCampaignAllocationsByType } = require('../utils/parsers');
 
 //creacion de reporte excel
 const createReport = async (req, res) => {
@@ -358,13 +366,14 @@ const createMarketingCampaign = async (req, res) => {
         allocations,
         comments,
         status,
+        state,
+        facebookAdAccountId,
     } = req.body;
 
     const user = await getUser(res);
 
     try {
         const secret = await req.getSecrets();
-        console.log(Object.keys(secret));
         const client = await Client.findOne({
             where: { id: clientId },
         });
@@ -440,6 +449,25 @@ const createMarketingCampaign = async (req, res) => {
             }
         }
 
+        const access = {
+            CLIENT_ID: secret.CLIENT_ID,
+            ACCESS_TOKEN: req.session.amazonAccessToken.token,
+        };
+
+        // profile id for amazon
+        const profileId = secret.PROFILE_ID;
+
+        const channelsWithApiEnabled = await Channel.findAll({
+            where: { isApiEnabled: true },
+        });
+
+        const campaignDataByChannel = await groupCampaignAllocationsByType({
+            channelsWithApiEnabled,
+            allocations,
+            flight_time_start,
+            flight_time_end,
+        });
+
         const campaignGroup = (
             await CampaignGroup.create({
                 user_id: user?.id,
@@ -458,7 +486,58 @@ const createMarketingCampaign = async (req, res) => {
             })
         ).get({ plain: true });
 
+        let successCampaigns = null;
+        let errorCampaigns = null;
+
         if (campaignGroup) {
+            // amazon campaign creation
+            if (campaignDataByChannel['Amazon Advertising']) {
+                const { message, success, error } = await req.amazon.create({
+                    campaigns: campaignDataByChannel['Amazon Advertising'],
+                    state: state || 'PAUSED',
+                    profileId,
+                    access,
+                });
+
+                // send to the front what campaigns were created and what campaigns failed
+                successCampaigns = success;
+                errorCampaigns = error;
+
+                // handle response from amazon or do nothing
+                console.log(message, success, error);
+                // we could insert it and link, but we need to find what campaign was created
+                // also we need tyo check if the insert campaignId is the same as the one used in bigquery
+                // sample of response in success array gotten from amazon [ { campaignId: 459943342579515, code: 'SUCCESS' } ]
+                // from success array proceed to link campaigns FACEBOOK_ACCESS_TOKEN
+            }
+
+            // add logic for other channels here
+            if (campaignDataByChannel['Facebook']) {
+                for (const campaigns in campaignDataByChannel['Facebook']) {
+                    const _campaigns =
+                        campaignDataByChannel['Facebook'][campaigns];
+                    const totalCampaigns = _campaigns.length;
+                    for (let i = 0; i < totalCampaigns; i++) {
+                        const { name, id, type, budget, startDate, endDate } =
+                            _campaigns[i];
+                        await req.facebook.create(
+                            secret.FACEBOOK_ACCESS_TOKEN,
+                            facebookAdAccountId,
+                            {
+                                name,
+                                id,
+                                type,
+                                budget,
+                                startDate,
+                                endDate,
+                                status: 'PAUSED',
+                            }
+                        );
+                    }
+                }
+            }
+
+            // insert budget
             const newBudget = await Budget.create({
                 campaign_group_id: campaignGroup.id,
                 periods,
@@ -470,6 +549,10 @@ const createMarketingCampaign = async (req, res) => {
         res.status(201).json({
             message: 'Marketing campaign created successfully',
             data: campaignGroup,
+            amazonData: {
+                success: successCampaigns,
+                error: errorCampaigns,
+            },
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

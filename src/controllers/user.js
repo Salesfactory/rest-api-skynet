@@ -1,6 +1,45 @@
-const { User } = require('../models');
+const { User, Role, Permission } = require('../models');
 const { validateUUID } = require('../utils');
 const { Op } = require('sequelize');
+
+const getUserPermissions = async (req, res) => {
+    const id = req.params.id;
+    const isUUID = validateUUID(id);
+    const searchParams = {
+        ...(isUUID ? { uid: id } : { id: parseInt(id) }),
+    };
+
+    try {
+        const user = await User.findOne({
+            where: searchParams,
+            include: [
+                {
+                    model: Role,
+                    attributes: ['id', 'name'],
+                    as: 'role',
+                    include: [
+                        {
+                            model: Permission,
+                            attributes: ['id', 'name'],
+                            as: 'permissions',
+                            through: { attributes: [] },
+                        },
+                    ],
+                },
+            ],
+        });
+        if (!user)
+            return res.status(404).json({
+                message: `User not found`,
+            });
+        return res.status(200).json({
+            data: user.role.permissions,
+            message: `User permissions retrieved successfully`,
+        });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
 
 const getUsers = async (req, res) => {
     const { search, active } = req.query;
@@ -164,6 +203,7 @@ const deleteUser = async (req, res) => {
 };
 
 module.exports = {
+    getUserPermissions,
     getUsers,
     getUserById,
     createUser,
