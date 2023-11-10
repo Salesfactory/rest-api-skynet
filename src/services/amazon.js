@@ -1,9 +1,32 @@
+const axios = require('axios');
+
 const {
     validateCredentials,
     validateCampaignsArray,
     getConfig,
     createCampaigns,
+    getSponsoredAdsCreateData,
 } = require('../utils/allocations');
+
+const DSP_GOALS = {
+    AWARENESS: ['REACH'],
+    CONSIDERATIONS_ON_AMAZON: [
+        'CLICK_THROUGH_RATE', //CTR
+        'COST_PER_CLICK', //CPC
+        'COST_PER_VIDEO_COMPLETION', // CPVC
+        'VIDEO_COMPLETION_RATE', // VCR
+        'COST_PER_DETAIL_PAGE_VIEW', // CPDV
+        'DETAIL_PAGE_VIEW_RATE', // DPVR
+    ],
+    CONVERSIONS_OFF_AMAZON: [
+        'RETURN_ON_AD_SPEND', // ROAS
+        'TOTAL_RETURN_ON_AD_SPEND', // T-ROAS
+        'COST_PER_ACQUISITION', // CPA
+        'COMBINED_RETURN_ON_AD_SPEND', // C-ROAS
+        'COST_PER_DOWNLOAD', // CPD
+        // webpage shows 2 more, CPSU, CPFAO
+    ],
+};
 
 const createAmazonCampaign = async ({
     campaigns,
@@ -58,6 +81,32 @@ const createAmazonCampaign = async ({
     }
 };
 
+// Creates a campaign on Amazon DSP
+const createDSPCampaign = async ({ campaign, type, access, profileId }) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const config = getConfig({ type, access, profileId });
+            config.url = 'https://advertising-api.amazon.com/dsp/orders';
+
+            // validate goals from campaign
+            const { goal, goalKpi } = campaign;
+            const goals = DSP_GOALS[goal];
+            if (goals && !goals.includes(goalKpi)) {
+                reject('Invalid goal or goalKpi');
+            }
+
+            config.data = getSponsoredAdsCreateData({ campaign });
+
+            const response = await axios.request(config);
+
+            resolve({ data: response?.data || [] });
+        } catch (error) {
+            reject({ error: error?.response?.data || error });
+        }
+    });
+};
+
 module.exports = {
     createAmazonCampaign,
+    createDSPCampaign,
 };
