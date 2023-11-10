@@ -23,7 +23,10 @@ const {
 } = require('../utils/cronjobs');
 const { emailTemplate } = require('../templates/email');
 const { send } = require('../utils/email');
-const { groupCampaignAllocationsByType } = require('../utils/parsers');
+const {
+    groupCampaignAllocationsByType,
+    generateCampaignsWithTimePeriodsAndAdsets,
+} = require('../utils/parsers');
 
 //creacion de reporte excel
 const createReport = async (req, res) => {
@@ -488,9 +491,21 @@ const createMarketingCampaign = async (req, res) => {
 
         let successCampaigns = null;
         let errorCampaigns = null;
-
+        const createdfacebookCampaignsResult = {
+            success: [],
+            fails: [],
+        };
+        const createdFacebookAdsetResult = {
+            success: [],
+            fails: [],
+        };
         if (campaignGroup) {
+            // const allocationsData = transformBudgetData(req.body);
             // amazon campaign creation
+            const campaignAdSetAllocation =
+                await generateCampaignsWithTimePeriodsAndAdsets({
+                    ...req.body,
+                });
             if (campaignDataByChannel['Amazon Advertising']) {
                 const { message, success, error } = await req.amazon.create({
                     campaigns: campaignDataByChannel['Amazon Advertising'],
@@ -513,26 +528,94 @@ const createMarketingCampaign = async (req, res) => {
 
             // add logic for other channels here
             if (campaignDataByChannel['Facebook']) {
-                for (const campaigns in campaignDataByChannel['Facebook']) {
-                    const _campaigns =
-                        campaignDataByChannel['Facebook'][campaigns];
-                    const totalCampaigns = _campaigns.length;
-                    for (let i = 0; i < totalCampaigns; i++) {
-                        const { name, id, type, budget, startDate, endDate } =
-                            _campaigns[i];
-                        await req.facebook.create(
-                            secret.FACEBOOK_ACCESS_TOKEN,
-                            facebookAdAccountId,
-                            {
-                                name,
-                                id,
-                                type,
-                                budget,
-                                startDate,
-                                endDate,
-                                status: 'PAUSED',
-                            }
+                if (!facebookAdAccountId) {
+                    return res.status(400).json({
+                        message: `Invalid Facebook ADAccountId`,
+                    });
+                }
+                const { campaigns } = campaignAdSetAllocation.find(
+                    channel => channel.name === 'Facebook'
+                );
+
+                for (const campaign of campaigns) {
+                    try {
+                        const { name, id, campaignType, timePeriods } =
+                            campaign;
+                        const facebookCampaign =
+                            await req.facebook.createCampaign(
+                                secret.FACEBOOK_ACCESS_TOKEN,
+                                facebookAdAccountId,
+                                {
+                                    name,
+                                    id,
+                                    type: campaignType,
+                                    status: 'PAUSED',
+                                }
+                            );
+
+                        createdfacebookCampaignsResult.success.push(
+                            facebookCampaign
                         );
+
+                        if (Array.isArray(timePeriods)) {
+                            for (const timePeriod of timePeriods) {
+                                for (const adset of timePeriod.adsets) {
+                                    try {
+                                        const {
+                                            name: adsetName,
+                                            bid_amount,
+                                            billing_event,
+                                            budget,
+                                            start_time,
+                                            end_time,
+                                            optimization_goal,
+                                            targeting,
+                                        } = adset;
+                                        const adsetResponse =
+                                            await req.facebook.createAdset(
+                                                secret.FACEBOOK_ACCESS_TOKEN,
+                                                facebookAdAccountId,
+                                                {
+                                                    campaign_id:
+                                                        facebookCampaign.id,
+                                                    name: adsetName,
+                                                    bid_amount,
+                                                    billing_event,
+                                                    lifetime_budget: budget,
+                                                    start_time,
+                                                    end_time,
+                                                    optimization_goal,
+                                                    targeting,
+                                                    status: 'PAUSED',
+                                                }
+                                            );
+                                        createdFacebookAdsetResult.success.push(
+                                            adsetResponse
+                                        );
+                                    } catch (adsetError) {
+                                        console.error(
+                                            'Error creating adset:',
+                                            adsetError
+                                        );
+                                        createdFacebookAdsetResult.fails.push({
+                                            facebookCampaignId:
+                                                facebookCampaign.id,
+                                            adsetName: adset.name,
+                                            ...adsetError,
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    } catch (campaignError) {
+                        console.error(
+                            'Error creating campaign:',
+                            campaignError
+                        );
+                        createdfacebookCampaignsResult.fails.push({
+                            name: campaign.name,
+                            ...campaignError,
+                        });
                     }
                 }
             }
@@ -545,6 +628,29 @@ const createMarketingCampaign = async (req, res) => {
             });
             campaignGroup.budgets = newBudget;
         }
+        if (
+            createdfacebookCampaignsResult.fails.length > 0 ||
+            createdFacebookAdsetResult.fails.length > 0
+        ) {
+            return res.status(207).json({
+                message: 'Marketing campaign created with errors',
+                data: {
+                    ...campaignGroup,
+                    amazonData: {
+                        success: successCampaigns,
+                        error: errorCampaigns,
+                    },
+                    facebook: {
+                        success: createdfacebookCampaignsResult.success,
+                        error: createdfacebookCampaignsResult.fails,
+                        adsets: {
+                            success: [],
+                            error: createdFacebookAdsetResult.fails,
+                        },
+                    },
+                },
+            });
+        }
 
         res.status(201).json({
             message: 'Marketing campaign created successfully',
@@ -553,8 +659,13 @@ const createMarketingCampaign = async (req, res) => {
                 success: successCampaigns,
                 error: errorCampaigns,
             },
+            facebook: {
+                success: createdfacebookCampaignsResult.success,
+                error: createdfacebookCampaignsResult.fails,
+            },
         });
     } catch (error) {
+        console.log(error);
         res.status(500).json({ message: error.message });
     }
 };

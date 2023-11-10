@@ -1,5 +1,7 @@
 const supertest = require('supertest');
 const makeApp = require('../src/app');
+const adsetFacebookPayload = require('./controllers-sample-data/orchestration-adset-facebook.json');
+const campaignOrchestrationFacebookPayloadData = require('./controllers-sample-data/orchestration-facebook.json');
 const { Budget, Channel, CampaignGroup, Client } = require('../src/models');
 const { getUser } = require('../src/utils');
 
@@ -63,7 +65,12 @@ const getSecrets = jest.fn(() => ({
     FACEBOOK_ACCESS_TOKEN: 'YOUR_ACCESS_TOKEN',
 }));
 
-const _createFacebookCampaign = jest.fn(() => ({}));
+const _createFacebookCampaign = jest.fn(() => {
+    return Promise.resolve({ id: 'FACEBOOK_CAMPAIGN_ID' });
+});
+const _createFacebookAdset = jest.fn(() => {
+    return {};
+});
 const app = makeApp({
     getSecrets,
     amazon: {
@@ -75,7 +82,10 @@ const app = makeApp({
             };
         }),
     },
-    facebook: { create: _createFacebookCampaign },
+    facebook: {
+        createCampaign: _createFacebookCampaign,
+        createAdset: _createFacebookAdset,
+    },
 });
 const request = supertest(app);
 
@@ -656,10 +666,10 @@ describe('Campaign Endpoints Test', () => {
 
                 getUser.mockResolvedValue(user);
 
-                createCampaigns.mockImplementation(() => ({
+                createCampaigns.mockResolvedValue({
                     errors: [],
                     successes: [{ y: 'success' }],
-                }));
+                });
                 Client.findOne.mockResolvedValue({
                     id: 1,
                     name: 'Test Client 1',
@@ -674,163 +684,9 @@ describe('Campaign Endpoints Test', () => {
                 expect(_createFacebookCampaign).not.toHaveBeenCalled();
             });
             test('Given the payload  contain a Facebook campaign, the Facebook API should be called', async () => {
-                const campaignOrchestrationPayloadData = {
-                    name: 'Campaña 1',
-                    goals: 'test',
-                    total_gross_budget: 123,
-                    margin: 0.12,
-                    flight_time_start: '2023-02-01T04:00:00.000Z',
-                    flight_time_end: '2023-03-01T04:00:00.000Z',
-                    net_budget: '108.24',
-                    channels: [
-                        { id: '1', name: 'Google Ads' },
-                        { id: '2', name: 'Amazon Advertising' },
-                    ],
-                    facebookAdAccountId: 'YOUR_AD_ACCOUNT_ID',
-                    allocations: {
-                        february: {
-                            budget: 54.12,
-                            percentage: 50,
-                            allocations: [
-                                {
-                                    id: '1',
-                                    name: 'Google Ads',
-                                    budget: 27.06,
-                                    percentage: 50,
-                                    type: 'CHANNEL',
-                                    allocations: [],
-                                },
-                                {
-                                    id: '4',
-                                    name: 'Facebook',
-                                    isApiEnabled: false,
-                                    budget: 561,
-                                    percentage: 33,
-                                    type: 'CHANNEL',
-                                    allocations: [
-                                        {
-                                            id: '4-CONVERSIONS',
-                                            name: 'CONVERSIONS',
-                                            budget: 280.5,
-                                            percentage: 50,
-                                            type: 'CAMPAIGN_TYPE',
-                                            allocations: [
-                                                {
-                                                    id: '4-CONVERSIONS-test-api-2',
-                                                    name: 'test-api-2',
-                                                    budget: 280.5,
-                                                    percentage: 100,
-                                                    goals: '',
-                                                    type: 'CAMPAIGN',
-                                                },
-                                            ],
-                                        },
-                                        {
-                                            id: '4-POST_ENGAGEMENT',
-                                            name: 'POST_ENGAGEMENT',
-                                            budget: 280.5,
-                                            percentage: 50,
-                                            type: 'CAMPAIGN_TYPE',
-                                            allocations: [
-                                                {
-                                                    id: '4-POST_ENGAGEMENT-Manuel-API-test-1',
-                                                    name: 'Manuel-API-test-1',
-                                                    budget: 280.5,
-                                                    percentage: 100,
-                                                    goals: '',
-                                                    type: 'CAMPAIGN',
-                                                },
-                                            ],
-                                        },
-                                    ],
-                                },
-                                {
-                                    id: '6',
-                                    name: 'Reddit',
-                                    isApiEnabled: false,
-                                    budget: 561,
-                                    percentage: 33,
-                                    type: 'CHANNEL',
-                                    allocations: [],
-                                },
-                            ],
-                        },
-                        march: {
-                            budget: 54.12,
-                            percentage: 50,
-                            allocations: [
-                                {
-                                    id: '1',
-                                    name: 'Google Ads',
-                                    budget: 27.06,
-                                    percentage: 50,
-                                    type: 'CHANNEL',
-                                    allocations: [],
-                                },
-                                {
-                                    id: '4',
-                                    name: 'Facebook',
-                                    isApiEnabled: false,
-                                    budget: 561,
-                                    percentage: 33,
-                                    type: 'CHANNEL',
-                                    allocations: [
-                                        {
-                                            id: '4-CONVERSIONS',
-                                            name: 'CONVERSIONS',
-                                            budget: 280.5,
-                                            percentage: 50,
-                                            type: 'CAMPAIGN_TYPE',
-                                            allocations: [
-                                                {
-                                                    id: '4-CONVERSIONS-test-api-2',
-                                                    name: 'test-api-2',
-                                                    budget: 280.5,
-                                                    percentage: 100,
-                                                    goals: '',
-                                                    type: 'CAMPAIGN',
-                                                },
-                                            ],
-                                        },
-                                        {
-                                            id: '4-POST_ENGAGEMENT',
-                                            name: 'POST_ENGAGEMENT',
-                                            budget: 280.5,
-                                            percentage: 50,
-                                            type: 'CAMPAIGN_TYPE',
-                                            allocations: [
-                                                {
-                                                    id: '4-POST_ENGAGEMENT-Manuel-API-test-1',
-                                                    name: 'Manuel-API-test-1',
-                                                    budget: 280.5,
-                                                    percentage: 100,
-                                                    goals: '',
-                                                    type: 'CAMPAIGN',
-                                                },
-                                            ],
-                                        },
-                                    ],
-                                },
-                                {
-                                    id: '6',
-                                    name: 'Reddit',
-                                    isApiEnabled: false,
-                                    budget: 561,
-                                    percentage: 33,
-                                    type: 'CHANNEL',
-                                    allocations: [],
-                                },
-                            ],
-                        },
-                    },
-                    periods: [
-                        { id: 'february', label: 'february' },
-                        { id: 'march', label: 'march' },
-                    ],
-                };
                 const data = {
                     id: 1,
-                    ...campaignOrchestrationPayloadData,
+                    ...campaignOrchestrationFacebookPayloadData,
                     createdAt: '2023-07-07 18:13:23.552748-04',
                     updatedAt: '2023-07-07 18:13:23.552748-04',
                     get: jest.fn().mockResolvedValue({
@@ -864,169 +720,17 @@ describe('Campaign Endpoints Test', () => {
                 });
                 CampaignGroup.create.mockResolvedValue(data);
                 Budget.create.mockResolvedValue(data.budget);
-                const response = await request
+
+                await request
                     .post(`/api/clients/${clientId}/marketingcampaign`)
-                    .send(campaignOrchestrationPayloadData);
+                    .send(campaignOrchestrationFacebookPayloadData);
+
                 expect(_createFacebookCampaign).toHaveBeenCalled();
             });
             test('Given the payload  contain 2 Facebook campaign, the Facebook API should be called 2 Times', async () => {
-                const campaignOrchestrationPayloadData = {
-                    name: 'Campaña 1',
-                    goals: 'test',
-                    total_gross_budget: 123,
-                    margin: 0.12,
-                    flight_time_start: '2023-02-01T04:00:00.000Z',
-                    flight_time_end: '2023-03-01T04:00:00.000Z',
-                    net_budget: '108.24',
-                    channels: [
-                        { id: '1', name: 'Google Ads' },
-                        { id: '2', name: 'Amazon Advertising' },
-                    ],
-                    facebookAdAccountId: 'YOUR_AD_ACCOUNT_ID',
-                    allocations: {
-                        february: {
-                            budget: 54.12,
-                            percentage: 50,
-                            allocations: [
-                                {
-                                    id: '1',
-                                    name: 'Google Ads',
-                                    budget: 27.06,
-                                    percentage: 50,
-                                    type: 'CHANNEL',
-                                    allocations: [],
-                                },
-                                {
-                                    id: '4',
-                                    name: 'Facebook',
-                                    isApiEnabled: false,
-                                    budget: 561,
-                                    percentage: 33,
-                                    type: 'CHANNEL',
-                                    allocations: [
-                                        {
-                                            id: '4-CONVERSIONS',
-                                            name: 'CONVERSIONS',
-                                            budget: 280.5,
-                                            percentage: 50,
-                                            type: 'CAMPAIGN_TYPE',
-                                            allocations: [
-                                                {
-                                                    id: '4-CONVERSIONS-test-api-2',
-                                                    name: 'test-api-2',
-                                                    budget: 280.5,
-                                                    percentage: 100,
-                                                    goals: '',
-                                                    type: 'CAMPAIGN',
-                                                },
-                                            ],
-                                        },
-                                        {
-                                            id: '4-POST_ENGAGEMENT',
-                                            name: 'POST_ENGAGEMENT',
-                                            budget: 280.5,
-                                            percentage: 50,
-                                            type: 'CAMPAIGN_TYPE',
-                                            allocations: [
-                                                {
-                                                    id: '4-POST_ENGAGEMENT-Manuel-API-test-1',
-                                                    name: 'Manuel-API-test-1',
-                                                    budget: 280.5,
-                                                    percentage: 100,
-                                                    goals: '',
-                                                    type: 'CAMPAIGN',
-                                                },
-                                            ],
-                                        },
-                                    ],
-                                },
-                                {
-                                    id: '6',
-                                    name: 'Reddit',
-                                    isApiEnabled: false,
-                                    budget: 561,
-                                    percentage: 33,
-                                    type: 'CHANNEL',
-                                    allocations: [],
-                                },
-                            ],
-                        },
-                        march: {
-                            budget: 54.12,
-                            percentage: 50,
-                            allocations: [
-                                {
-                                    id: '1',
-                                    name: 'Google Ads',
-                                    budget: 27.06,
-                                    percentage: 50,
-                                    type: 'CHANNEL',
-                                    allocations: [],
-                                },
-                                {
-                                    id: '4',
-                                    name: 'Facebook',
-                                    isApiEnabled: false,
-                                    budget: 561,
-                                    percentage: 33,
-                                    type: 'CHANNEL',
-                                    allocations: [
-                                        {
-                                            id: '4-CONVERSIONS',
-                                            name: 'CONVERSIONS',
-                                            budget: 280.5,
-                                            percentage: 50,
-                                            type: 'CAMPAIGN_TYPE',
-                                            allocations: [
-                                                {
-                                                    id: '4-CONVERSIONS-test-api-2',
-                                                    name: 'test-api-2',
-                                                    budget: 280.5,
-                                                    percentage: 100,
-                                                    goals: '',
-                                                    type: 'CAMPAIGN',
-                                                },
-                                            ],
-                                        },
-                                        {
-                                            id: '4-POST_ENGAGEMENT',
-                                            name: 'POST_ENGAGEMENT',
-                                            budget: 280.5,
-                                            percentage: 50,
-                                            type: 'CAMPAIGN_TYPE',
-                                            allocations: [
-                                                {
-                                                    id: '4-POST_ENGAGEMENT-Manuel-API-test-1',
-                                                    name: 'Manuel-API-test-1',
-                                                    budget: 280.5,
-                                                    percentage: 100,
-                                                    goals: '',
-                                                    type: 'CAMPAIGN',
-                                                },
-                                            ],
-                                        },
-                                    ],
-                                },
-                                {
-                                    id: '6',
-                                    name: 'Reddit',
-                                    isApiEnabled: false,
-                                    budget: 561,
-                                    percentage: 33,
-                                    type: 'CHANNEL',
-                                    allocations: [],
-                                },
-                            ],
-                        },
-                    },
-                    periods: [
-                        { id: 'february', label: 'february' },
-                        { id: 'march', label: 'march' },
-                    ],
-                };
                 const data = {
                     id: 1,
-                    ...campaignOrchestrationPayloadData,
+                    ...campaignOrchestrationFacebookPayloadData,
                     createdAt: '2023-07-07 18:13:23.552748-04',
                     updatedAt: '2023-07-07 18:13:23.552748-04',
                     get: jest.fn().mockResolvedValue({
@@ -1063,7 +767,7 @@ describe('Campaign Endpoints Test', () => {
 
                 const response = await request
                     .post(`/api/clients/${clientId}/marketingcampaign`)
-                    .send(campaignOrchestrationPayloadData);
+                    .send(campaignOrchestrationFacebookPayloadData);
 
                 expect(_createFacebookCampaign).toHaveBeenCalledTimes(2);
             });
@@ -1077,7 +781,7 @@ describe('Campaign Endpoints Test', () => {
                     flight_time_end: '2023-03-01T04:00:00.000Z',
                     net_budget: '108.24',
                     channels: [
-                        { id: '1', name: 'Google Ads' },
+                        { id: '1', name: 'Facebook' },
                         { id: '2', name: 'Amazon Advertising' },
                     ],
                     facebookAdAccountId: 'YOUR_AD_ACCOUNT_ID',
@@ -1259,7 +963,7 @@ describe('Campaign Endpoints Test', () => {
                 CampaignGroup.create.mockResolvedValue(data);
                 Budget.create.mockResolvedValue(data.budget);
 
-                const response = await request
+                await request
                     .post(`/api/clients/${clientId}/marketingcampaign`)
                     .send(campaignOrchestrationPayloadData);
 
@@ -1271,16 +975,402 @@ describe('Campaign Endpoints Test', () => {
                         id: '4-POST_ENGAGEMENT-Manuel-API-test-1',
                         name: 'Manuel-API-test-1',
                         type: 'POST_ENGAGEMENT',
-                        budget: 561,
-                        startDate: '2023-02-01',
-                        endDate: '2023-03-01',
                         status: 'PAUSED',
                     }
                 );
             });
+            test('Given the payload contains 2 facebook campaigns and one faild to create, the endpoint should return an object with the llist of failed campaigns', async () => {
+                const data = {
+                    id: 1,
+                    ...campaignOrchestrationFacebookPayloadData,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 3, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                _createFacebookCampaign.mockRejectedValueOnce({
+                    response: {
+                        data: {
+                            error: 'Bad Request',
+                            message: 'Invalid campaign data',
+                        },
+                        status: 400, // Or any other non-2xx status code
+                        statusText: 'Bad Request',
+                        headers: {},
+                    },
+                });
+
+                _createFacebookCampaign.mockResolvedValueOnce({
+                    data: { id: 'FACEBOOK_CAMPAIGN_ID' },
+                    status: 200,
+                    statusText: 'OK',
+                    headers: {},
+                });
+
+                const response = await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(campaignOrchestrationFacebookPayloadData);
+
+                expect(response.status).toBe(207);
+                expect(_createFacebookCampaign).toHaveBeenCalledTimes(2);
+                expect(response.body).toEqual({
+                    code: 207,
+                    data: {
+                        amazonData: {
+                            error: null,
+                            success: null,
+                        },
+                        facebook: {
+                            error: [
+                                {
+                                    name: 'test-api-2',
+                                    response: {
+                                        data: {
+                                            error: 'Bad Request',
+                                            message: 'Invalid campaign data',
+                                        },
+                                        headers: {},
+                                        status: 400,
+                                        statusText: 'Bad Request',
+                                    },
+                                },
+                            ],
+                            success: [
+                                {
+                                    data: {
+                                        id: 'FACEBOOK_CAMPAIGN_ID',
+                                    },
+                                    headers: {},
+                                    status: 200,
+                                    statusText: 'OK',
+                                },
+                            ],
+                            adsets: {
+                                success: expect.any(Array),
+                                error: expect.any(Array),
+                            },
+                        },
+                    },
+                    message: 'Marketing campaign created with errors',
+                });
+
+                _createFacebookCampaign.mockClear();
+            });
         });
 
-        // describe('Test Facebook Adset Creation', () => {});
+        describe('Test Facebook Adset Creation', () => {
+            test("Given the payload doesn't contain a Facebook Adset, the Facebook Adset API should not be called", async () => {
+                const data = {
+                    id: 1,
+                    ...campaignOrchestrationFacebookPayloadData,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 3, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                const response = await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(campaignOrchestrationFacebookPayloadData);
+
+                expect(_createFacebookAdset).not.toHaveBeenCalled();
+            });
+            test('Given the payload  contain a Facebook Adset, the Facebook Adset API should be called', async () => {
+                const data = {
+                    id: 1,
+                    ...adsetFacebookPayload,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 4, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+                const response = await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(adsetFacebookPayload);
+
+                expect(_createFacebookAdset).toHaveBeenCalled();
+            });
+            test('Given the payload  contain 30 Facebook adset, the Facebook API should be called 30 Times', async () => {
+                const data = {
+                    id: 1,
+                    ...adsetFacebookPayload,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 3, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(adsetFacebookPayload);
+
+                expect(_createFacebookAdset).toHaveBeenCalledTimes(30);
+            });
+            it('should the Facebook API with specific parameters', async () => {
+                const data = {
+                    id: 1,
+                    ...adsetFacebookPayload,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 3, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                const response = await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(adsetFacebookPayload);
+
+                // Check if _createFAcebook was called with the expected parameters
+                expect(_createFacebookAdset).toHaveBeenCalledWith(
+                    'YOUR_ACCESS_TOKEN',
+                    'YOUR_AD_ACCOUNT_ID',
+                    {
+                        name: 'api-adset-test-1',
+                        campaign_id: 'FACEBOOK_CAMPAIGN_ID',
+                        lifetime_budget: 425,
+                        bid_amount: 200,
+                        billing_event: 'PAGE_LIKES',
+                        start_time: '2023-01-01T00:00:17+0000',
+                        end_time: '2023-02-01T00:00:17+0000',
+                        optimization_goal: 'REACH',
+                        targeting: { geo_locations: { countries: ['US'] } },
+                        status: 'PAUSED',
+                    }
+                );
+            });
+            test('When the payload contains data for creating 3 Facebook adsets, and the process results in 2 adsets failing during creation, the API response should include a list of successfully created adsets and a list of adsets that failed to be created.', async () => {
+                const data = {
+                    id: 1,
+                    ...adsetFacebookPayload,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 3, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                _createFacebookAdset.mockRejectedValueOnce({
+                    response: {
+                        data: {
+                            error: 'Bad Request',
+                            message: 'Invalid adset data',
+                        },
+                        status: 400, // Or any other non-2xx status code
+                        statusText: 'Bad Request',
+                        headers: {},
+                    },
+                });
+                const response = await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(adsetFacebookPayload);
+
+                expect(response.status).toBe(207);
+                expect(response.body).toEqual({
+                    code: 207,
+                    data: {
+                        amazonData: {
+                            error: null,
+                            success: null,
+                        },
+                        facebook: {
+                            error: expect.any(Array),
+                            success: expect.any(Array),
+                            adsets: {
+                                error: [
+                                    {
+                                        adsetName: 'api-adset-test-1',
+                                        facebookCampaignId:
+                                            'FACEBOOK_CAMPAIGN_ID',
+                                        response: {
+                                            data: {
+                                                error: 'Bad Request',
+                                                message: 'Invalid adset data',
+                                            },
+                                            headers: {},
+                                            status: 400,
+                                            statusText: 'Bad Request',
+                                        },
+                                    },
+                                ],
+                                success: expect.any(Array),
+                            },
+                        },
+                    },
+                    message: 'Marketing campaign created with errors',
+                });
+                _createFacebookCampaign.mockClear();
+            });
+        });
     });
 
     describe('Update campaign', () => {
