@@ -11,7 +11,6 @@ const {
     createCampaigns,
     isValidDate,
     formatDateString,
-    getSponsoredAdsCreateData,
     createDSPCampaign,
 } = require('../src/utils/allocations');
 const { groupCampaignAllocationsByType } = require('../src/utils/parsers');
@@ -1021,7 +1020,6 @@ describe('createDSPCampaign function', () => {
         const profileId = 'your-profile-id';
 
         // Act: Call the getConfig function
-        const config = getConfig({ type, access, profileId });
 
         const campaign = {
             advertiserId: '580945557665079951',
@@ -1050,7 +1048,9 @@ describe('createDSPCampaign function', () => {
 
         const result = await createDSPCampaign({
             campaign,
-            config,
+            type,
+            access,
+            profileId,
         });
 
         expect(result).toEqual({

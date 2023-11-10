@@ -340,9 +340,10 @@ const getDSPCampaigns = async ({ config, advertiserId }) => {
 };
 
 // Creates a campaign on Amazon DSP
-const createDSPCampaign = async ({ campaign, config }) => {
+const createDSPCampaign = async ({ campaign, type, access, profileId }) => {
     return new Promise(async (resolve, reject) => {
         try {
+            const config = getConfig({ type, access, profileId });
             config.url = 'https://advertising-api.amazon.com/dsp/orders';
 
             // validate goals from campaign
