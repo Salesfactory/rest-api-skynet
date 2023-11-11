@@ -539,16 +539,20 @@ const createMarketingCampaign = async (req, res) => {
 
                 for (const campaign of campaigns) {
                     try {
-                        const { name, id, campaignType, timePeriods } =
-                            campaign;
+                        const {
+                            name,
+                            objective,
+                            specialAdCategories,
+                            timePeriods,
+                        } = campaign;
                         const facebookCampaign =
                             await req.facebook.createCampaign(
                                 secret.FACEBOOK_ACCESS_TOKEN,
                                 facebookAdAccountId,
                                 {
                                     name,
-                                    id,
-                                    type: campaignType,
+                                    objective,
+                                    special_ad_categories: specialAdCategories,
                                     status: 'PAUSED',
                                 }
                             );

@@ -16,6 +16,8 @@ const expected = [
                 goals: '',
                 campaignType: 'PAGE_LIKES',
                 type: 'CAMPAIGN',
+                objective: 'OUTCOME_AWARENESS',
+                specialAdCategories: 'NONE',
                 timePeriods: [
                     {
                         id: 'january_2023',
@@ -151,6 +153,8 @@ const expected = [
                 goals: '',
                 campaignType: 'PAGE_LIKES',
                 type: 'CAMPAIGN',
+                objective: 'OUTCOME_AWARENESS',
+                specialAdCategories: 'NONE',
                 timePeriods: [
                     {
                         id: 'january_2023',
@@ -244,6 +248,8 @@ const expected = [
                 goals: '',
                 campaignType: 'CONVERSIONS',
                 type: 'CAMPAIGN',
+                objective: 'OUTCOME_AWARENESS',
+                specialAdCategories: 'NONE',
                 timePeriods: [
                     {
                         id: 'january_2023',
