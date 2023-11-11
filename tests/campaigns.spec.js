@@ -820,6 +820,9 @@ describe('Campaign Endpoints Test', () => {
                                                     percentage: 100,
                                                     goals: '',
                                                     type: 'CAMPAIGN',
+                                                    objective:
+                                                        'OUTCOME_AWARENESS',
+                                                    specialAdCategories: 'NONE',
                                                 },
                                             ],
                                         },
@@ -837,6 +840,9 @@ describe('Campaign Endpoints Test', () => {
                                                     percentage: 100,
                                                     goals: '',
                                                     type: 'CAMPAIGN',
+                                                    objective:
+                                                        'OUTCOME_AWARENESS',
+                                                    specialAdCategories: 'NONE',
                                                 },
                                             ],
                                         },
@@ -887,6 +893,9 @@ describe('Campaign Endpoints Test', () => {
                                                     percentage: 100,
                                                     goals: '',
                                                     type: 'CAMPAIGN',
+                                                    objective:
+                                                        'OUTCOME_AWARENESS',
+                                                    specialAdCategories: 'NONE',
                                                 },
                                             ],
                                         },
@@ -902,6 +911,9 @@ describe('Campaign Endpoints Test', () => {
                                                     name: 'Manuel-API-test-1',
                                                     budget: 280.5,
                                                     percentage: 100,
+                                                    objective:
+                                                        'OUTCOME_AWARENESS',
+                                                    specialAdCategories: 'NONE',
                                                     goals: '',
                                                     type: 'CAMPAIGN',
                                                 },
@@ -972,9 +984,9 @@ describe('Campaign Endpoints Test', () => {
                     'YOUR_ACCESS_TOKEN',
                     'YOUR_AD_ACCOUNT_ID',
                     {
-                        id: '4-POST_ENGAGEMENT-Manuel-API-test-1',
                         name: 'Manuel-API-test-1',
-                        type: 'POST_ENGAGEMENT',
+                        objective: 'OUTCOME_AWARENESS',
+                        special_ad_categories: 'NONE',
                         status: 'PAUSED',
                     }
                 );

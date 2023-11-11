@@ -41,6 +41,8 @@
                                     "percentage": 50,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-PAGE_LIKES-api-test-1-api-adset-test-1",
@@ -65,6 +67,8 @@
                                     "percentage": 50,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-PAGE_LIKES-api-campaign-2-adtest-test-4",
@@ -91,6 +95,8 @@
                                     "percentage": 100,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-CONVERSIONS-campaign-3-test-adset-test-4",
@@ -140,6 +146,8 @@
                                     "percentage": 50,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-PAGE_LIKES-api-test-1-api-adset-test-1",
@@ -164,6 +172,8 @@
                                     "percentage": 50,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-PAGE_LIKES-api-campaign-2-adtest-test-4",
@@ -190,6 +200,8 @@
                                     "percentage": 100,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-CONVERSIONS-campaign-3-test-adset-test-4",
@@ -239,6 +251,8 @@
                                     "percentage": 50,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-PAGE_LIKES-api-test-1-api-adset-test-1",
@@ -263,6 +277,8 @@
                                     "percentage": 50,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-PAGE_LIKES-api-campaign-2-adtest-test-4",
@@ -289,6 +305,8 @@
                                     "percentage": 100,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-CONVERSIONS-campaign-3-test-adset-test-4",
@@ -338,6 +356,8 @@
                                     "percentage": 50,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-PAGE_LIKES-api-test-1-api-adset-test-1",
@@ -362,6 +382,8 @@
                                     "percentage": 50,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-PAGE_LIKES-api-campaign-2-adtest-test-4",
@@ -388,6 +410,8 @@
                                     "percentage": 100,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-CONVERSIONS-campaign-3-test-adset-test-4",
@@ -437,6 +461,8 @@
                                     "percentage": 50,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-PAGE_LIKES-api-test-1-api-adset-test-1",
@@ -461,6 +487,8 @@
                                     "percentage": 50,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-PAGE_LIKES-api-campaign-2-adtest-test-4",
@@ -487,6 +515,8 @@
                                     "percentage": 100,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-CONVERSIONS-campaign-3-test-adset-test-4",
@@ -536,6 +566,8 @@
                                     "percentage": 50,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-PAGE_LIKES-api-test-1-api-adset-test-1",
@@ -560,6 +592,8 @@
                                     "percentage": 50,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-PAGE_LIKES-api-campaign-2-adtest-test-4",
@@ -586,6 +620,8 @@
                                     "percentage": 100,
                                     "goals": "",
                                     "type": "CAMPAIGN",
+                                    "objective": "OUTCOME_AWARENESS",
+                                    "specialAdCategories": "NONE",
                                     "allocations": [
                                         {
                                             "id": "4-CONVERSIONS-campaign-3-test-adset-test-4",

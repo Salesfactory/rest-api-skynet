@@ -173,6 +173,8 @@ function generateCampaignsWithTimePeriodsAndAdsets(inputData) {
                 for (const campaignType of allocation.allocations) {
                     for (const campaign of campaignType.allocations) {
                         const campaignData = {
+                            objective: campaign.objective,
+                            specialAdCategories: campaign.specialAdCategories,
                             id: campaign.id,
                             name: campaign.name,
                             goals: campaign.goals,
