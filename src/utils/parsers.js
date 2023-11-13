@@ -234,8 +234,14 @@ function generateCampaignsWithTimePeriodsAndAdsets(inputData) {
     return result;
 }
 
+function convertToCents(dollars) {
+    const cents = dollars * 100;
+    return cents;
+}
+
 module.exports = {
     groupCampaignAllocationsByType,
     transformBudgetData,
     generateCampaignsWithTimePeriodsAndAdsets,
+    convertToCents,
 };

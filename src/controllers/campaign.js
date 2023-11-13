@@ -26,6 +26,7 @@ const { send } = require('../utils/email');
 const {
     groupCampaignAllocationsByType,
     generateCampaignsWithTimePeriodsAndAdsets,
+    convertToCents,
 } = require('../utils/parsers');
 
 //creacion de reporte excel
@@ -618,7 +619,8 @@ const createMarketingCampaign = async (req, res) => {
                                                     name: adsetName,
                                                     bid_amount,
                                                     billing_event,
-                                                    lifetime_budget: budget,
+                                                    lifetime_budget:
+                                                        convertToCents(budget),
                                                     start_time,
                                                     end_time,
                                                     optimization_goal,
