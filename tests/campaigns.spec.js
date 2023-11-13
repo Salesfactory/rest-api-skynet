@@ -2195,6 +2195,7 @@ describe('Campaign Endpoints Test', () => {
                                             status: 400,
                                             statusText: 'Bad Request',
                                         },
+                                        payload: expect.any(Object),
                                     },
                                 ],
                                 success: expect.any(Array),

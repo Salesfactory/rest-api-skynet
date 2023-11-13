@@ -634,11 +634,34 @@ const createMarketingCampaign = async (req, res) => {
                                             'Error creating adset:',
                                             adsetError
                                         );
+                                        const {
+                                            name: adsetName,
+                                            bid_amount,
+                                            billing_event,
+                                            budget,
+                                            start_time,
+                                            end_time,
+                                            optimization_goal,
+                                            targeting,
+                                        } = adset;
                                         createdFacebookAdsetResult.fails.push({
                                             facebookCampaignId:
                                                 facebookCampaign.id,
                                             adsetName: adset.name,
                                             ...adsetError,
+                                            payload: {
+                                                campaign_id:
+                                                    facebookCampaign.id,
+                                                name: adsetName,
+                                                bid_amount,
+                                                billing_event,
+                                                lifetime_budget: budget,
+                                                start_time,
+                                                end_time,
+                                                optimization_goal,
+                                                targeting,
+                                                status: 'PAUSED',
+                                            },
                                         });
                                     }
                                 }
