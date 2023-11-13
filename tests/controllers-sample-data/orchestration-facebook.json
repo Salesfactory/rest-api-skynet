@@ -1,0 +1,398 @@
+{
+    "name": "Manuel Test Facebook API 2",
+    "goals": "More Sales",
+    "total_gross_budget": 10000,
+    "margin": 0.15,
+    "flight_time_start": "2023-01-01T04:00:00.000Z",
+    "flight_time_end": "2023-05-01T04:00:00.000Z",
+    "net_budget": "8500.00",
+    "change_reason_log": "",
+    "channels": [
+        {
+            "id": "1",
+            "name": "Google Ads",
+            "isApiEnabled": false
+        },
+        {
+            "id": "4",
+            "name": "Facebook",
+            "isApiEnabled": false
+        },
+        {
+            "id": "6",
+            "name": "Reddit",
+            "isApiEnabled": false
+        }
+    ],
+    "allocations": {
+        "january_2023": {
+            "budget": 1700,
+            "percentage": 20,
+            "allocations": [
+                {
+                    "id": "1",
+                    "name": "Google Ads",
+                    "isApiEnabled": false,
+                    "budget": 578,
+                    "percentage": 34,
+                    "type": "CHANNEL",
+                    "allocations": []
+                },
+                {
+                    "id": "4",
+                    "name": "Facebook",
+                    "isApiEnabled": false,
+                    "budget": 561,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "4-CONVERSIONS",
+                            "name": "CONVERSIONS",
+                            "budget": 280.5,
+                            "percentage": 50,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-CONVERSIONS-test-api-2",
+                                    "name": "test-api-2",
+                                    "budget": 280.5,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "4-POST_ENGAGEMENT",
+                            "name": "POST_ENGAGEMENT",
+                            "budget": 280.5,
+                            "percentage": 50,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-POST_ENGAGEMENT-Manuel-API-test-1",
+                                    "name": "Manuel-API-test-1",
+                                    "budget": 280.5,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "name": "Reddit",
+                    "isApiEnabled": false,
+                    "budget": 561,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": []
+                }
+            ]
+        },
+        "february_2023": {
+            "budget": 1700,
+            "percentage": 20,
+            "allocations": [
+                {
+                    "id": "1",
+                    "name": "Google Ads",
+                    "isApiEnabled": false,
+                    "budget": 578,
+                    "percentage": 34,
+                    "type": "CHANNEL",
+                    "allocations": []
+                },
+                {
+                    "id": "4",
+                    "name": "Facebook",
+                    "isApiEnabled": false,
+                    "budget": 561,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "4-CONVERSIONS",
+                            "name": "CONVERSIONS",
+                            "budget": 280.5,
+                            "percentage": 50,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-CONVERSIONS-test-api-2",
+                                    "name": "test-api-2",
+                                    "budget": 280.5,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "4-POST_ENGAGEMENT",
+                            "name": "POST_ENGAGEMENT",
+                            "budget": 280.5,
+                            "percentage": 50,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-POST_ENGAGEMENT-Manuel-API-test-1",
+                                    "name": "Manuel-API-test-1",
+                                    "budget": 280.5,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "name": "Reddit",
+                    "isApiEnabled": false,
+                    "budget": 561,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": []
+                }
+            ]
+        },
+        "march_2023": {
+            "budget": 1700,
+            "percentage": 20,
+            "allocations": [
+                {
+                    "id": "1",
+                    "name": "Google Ads",
+                    "isApiEnabled": false,
+                    "budget": 578,
+                    "percentage": 34,
+                    "type": "CHANNEL",
+                    "allocations": []
+                },
+                {
+                    "id": "4",
+                    "name": "Facebook",
+                    "isApiEnabled": false,
+                    "budget": 561,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "4-CONVERSIONS",
+                            "name": "CONVERSIONS",
+                            "budget": 280.5,
+                            "percentage": 50,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-CONVERSIONS-test-api-2",
+                                    "name": "test-api-2",
+                                    "budget": 280.5,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "4-POST_ENGAGEMENT",
+                            "name": "POST_ENGAGEMENT",
+                            "budget": 280.5,
+                            "percentage": 50,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-POST_ENGAGEMENT-Manuel-API-test-1",
+                                    "name": "Manuel-API-test-1",
+                                    "budget": 280.5,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "name": "Reddit",
+                    "isApiEnabled": false,
+                    "budget": 561,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": []
+                }
+            ]
+        },
+        "april_2023": {
+            "budget": 1700,
+            "percentage": 20,
+            "allocations": [
+                {
+                    "id": "1",
+                    "name": "Google Ads",
+                    "isApiEnabled": false,
+                    "budget": 578,
+                    "percentage": 34,
+                    "type": "CHANNEL",
+                    "allocations": []
+                },
+                {
+                    "id": "4",
+                    "name": "Facebook",
+                    "isApiEnabled": false,
+                    "budget": 561,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "4-CONVERSIONS",
+                            "name": "CONVERSIONS",
+                            "budget": 280.5,
+                            "percentage": 50,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-CONVERSIONS-test-api-2",
+                                    "name": "test-api-2",
+                                    "budget": 280.5,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "4-POST_ENGAGEMENT",
+                            "name": "POST_ENGAGEMENT",
+                            "budget": 280.5,
+                            "percentage": 50,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-POST_ENGAGEMENT-Manuel-API-test-1",
+                                    "name": "Manuel-API-test-1",
+                                    "budget": 280.5,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "name": "Reddit",
+                    "isApiEnabled": false,
+                    "budget": 561,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": []
+                }
+            ]
+        },
+        "may_2023": {
+            "budget": 1700,
+            "percentage": 20,
+            "allocations": [
+                {
+                    "id": "1",
+                    "name": "Google Ads",
+                    "isApiEnabled": false,
+                    "budget": 578,
+                    "percentage": 34,
+                    "type": "CHANNEL",
+                    "allocations": []
+                },
+                {
+                    "id": "4",
+                    "name": "Facebook",
+                    "isApiEnabled": false,
+                    "budget": 561,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "4-CONVERSIONS",
+                            "name": "CONVERSIONS",
+                            "budget": 280.5,
+                            "percentage": 50,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-CONVERSIONS-test-api-2",
+                                    "name": "test-api-2",
+                                    "budget": 280.5,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "4-POST_ENGAGEMENT",
+                            "name": "POST_ENGAGEMENT",
+                            "budget": 280.5,
+                            "percentage": 50,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-POST_ENGAGEMENT-Manuel-API-test-1",
+                                    "name": "Manuel-API-test-1",
+                                    "budget": 280.5,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "name": "Reddit",
+                    "isApiEnabled": false,
+                    "budget": 561,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": []
+                }
+            ]
+        }
+    },
+    "periods": [
+        {
+            "id": "january_2023",
+            "label": "January 2023",
+            "days": 31
+        },
+        {
+            "id": "february_2023",
+            "label": "February 2023",
+            "days": 28
+        },
+        {
+            "id": "march_2023",
+            "label": "March 2023",
+            "days": 31
+        },
+        {
+            "id": "april_2023",
+            "label": "April 2023",
+            "days": 30
+        },
+        {
+            "id": "may_2023",
+            "label": "May 2023",
+            "days": 31
+        }
+    ],
+    "status": "Not tracking",
+    "facebookAdAccountId": "YOUR_AD_ACCOUNT_ID"
+}

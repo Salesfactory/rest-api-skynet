@@ -24,7 +24,7 @@ function createCampaign(accessToken, adAccountId, campaignData) {
     });
 }
 
-function createAdsets(accessToken, adAccountId, adsetData) {
+function createAdset(accessToken, adAccountId, adsetData) {
     return new Promise((resolve, reject) => {
         if (accessToken === undefined) {
             reject({ error: 'Assess Token can not be undefined!' });
@@ -54,4 +54,4 @@ function createAdsets(accessToken, adAccountId, adsetData) {
     });
 }
 
-module.exports = { createCampaign, createAdsets };
+module.exports = { createCampaign, createAdset };

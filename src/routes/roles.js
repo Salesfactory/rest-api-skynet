@@ -9,11 +9,12 @@ router.get(
     [hasRole('Super')],
     roleController.getPermission
 );
-router.get('/', [hasRole('Super')], roleController.getRoles);
-router.get('/:id', [hasRole('Super')], roleController.getRole);
+//TODO FIX ADD MIDDLEWARES FOR ROLE VALIDATION
+router.get('/', roleController.getRoles);
+router.get('/:id', roleController.getRole);
 
-router.post('/', [hasRole('Super')], roleController.createRole);
-router.patch('/:id', [hasRole('Super')], roleController.updateRole);
-router.delete('/:id', [hasRole('Super')], roleController.deleteRole);
+router.post('/', roleController.createRole);
+router.patch('/:id', roleController.updateRole);
+router.delete('/:id', roleController.deleteRole);
 
 module.exports = router;

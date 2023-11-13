@@ -3,10 +3,9 @@ const { getUser } = require('../utils');
 
 const getNotifications = async (req, res) => {
     const user = await getUser(res);
-
     try {
         const notifications = await Notification.findAll({
-            where: { user_id: user.id },
+            where: { user_id: user.id, roleId: user.roleId },
             order: [['createdAt', 'DESC']],
             attributes: [
                 'id',

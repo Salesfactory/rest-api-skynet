@@ -1,11 +1,11 @@
 const axios = require('axios');
-const { createAdsets } = require('../src/services/facebook'); // Replace with the actual path to your function
+const { createAdset } = require('../src/services/facebook'); // Replace with the actual path to your function
 
 // Mock axios.post to simulate API responses
 jest.mock('axios');
 axios.post.mockResolvedValue({ data: { id: '12345', name: 'Test Adset' } });
 
-describe('createAdsets function', () => {
+describe('createAdset function', () => {
     it('creates an adset successfully', async () => {
         const accessToken = 'YOUR_ACCESS_TOKEN';
         const adAccountId = 'YOUR_AD_ACCOUNT_ID';
@@ -22,7 +22,7 @@ describe('createAdsets function', () => {
             status: 'PAUSED',
         };
 
-        const createdAdset = await createAdsets(
+        const createdAdset = await createAdset(
             accessToken,
             adAccountId,
             adsetData
@@ -63,7 +63,7 @@ describe('createAdsets function', () => {
         };
 
         try {
-            await createAdsets(accessToken, adAccountId, adsetData);
+            await createAdset(accessToken, adAccountId, adsetData);
             // If no error is thrown, the test should fail
             expect(true).toBe(false);
         } catch (error) {
@@ -81,7 +81,7 @@ describe('createAdsets function', () => {
         };
 
         try {
-            await createAdsets(accessToken, adAccountId, campaignData);
+            await createAdset(accessToken, adAccountId, campaignData);
             expect(true).toBe(false);
         } catch (error) {
             expect(error).toEqual({
@@ -99,7 +99,7 @@ describe('createAdsets function', () => {
         };
 
         try {
-            await createAdsets(accessToken, adAccountId, campaignData);
+            await createAdset(accessToken, adAccountId, campaignData);
             expect(true).toBe(false);
         } catch (error) {
             expect(error).toEqual({
@@ -113,7 +113,7 @@ describe('createAdsets function', () => {
         const campaignData = undefined;
 
         try {
-            await createAdsets(accessToken, adAccountId, campaignData);
+            await createAdset(accessToken, adAccountId, campaignData);
             expect(true).toBe(false);
         } catch (error) {
             expect(error).toEqual({

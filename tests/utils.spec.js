@@ -11,7 +11,12 @@ const {
     isValidDate,
     formatDateString,
 } = require('../src/utils/allocations');
-const { groupCampaignAllocationsByType } = require('../src/utils/parsers');
+const {
+    groupCampaignAllocationsByType,
+    transformBudgetData,
+} = require('../src/utils/parsers');
+const orchestrationDataSample = require('./parser-sample-data/orchestration-adset-facebook.json');
+const expectedCampaigns = require('./parser-sample-data/expected-campaigns.json');
 jest.mock('../src/models', () => ({
     User: {
         findOne: jest.fn(),
@@ -906,5 +911,88 @@ describe('formatDateString function', () => {
         const inputDate = undefined;
         const formattedDate = formatDateString(inputDate);
         expect(formattedDate).toBeNull();
+    });
+});
+
+describe('transformBudgetData', () => {
+    it('should return an array with one element for a single channel', () => {
+        const result = transformBudgetData(orchestrationDataSample);
+
+        // Assert that the result is an array
+        expect(Array.isArray(result)).toBe(true);
+
+        // Assert that the array contains one element
+        expect(result).toHaveLength(1);
+    });
+    test('transformBudgetData returns the expected channel array with time periods', () => {
+        const expectedOutput = [
+            {
+                id: '4',
+                name: 'Facebook',
+                isApiEnabled: false,
+                timePeriods: [
+                    {
+                        id: 'january_2023',
+                        label: 'January 2023',
+                        days: 31,
+                        campaigns: expect.any(Array),
+                    },
+                    {
+                        id: 'february_2023',
+                        label: 'February 2023',
+                        days: 28,
+                        campaigns: expect.any(Array),
+                    },
+                    {
+                        id: 'march_2023',
+                        label: 'March 2023',
+                        days: 31,
+                        campaigns: expect.any(Array),
+                    },
+                    {
+                        id: 'april_2023',
+                        label: 'April 2023',
+                        days: 30,
+                        campaigns: expect.any(Array),
+                    },
+                    {
+                        id: 'may_2023',
+                        label: 'May 2023',
+                        days: 31,
+                        campaigns: expect.any(Array),
+                    },
+                    {
+                        id: 'june_2023',
+                        label: 'June 2023',
+                        days: 30,
+                        campaigns: expect.any(Array),
+                    },
+                ],
+            },
+        ];
+
+        const result = transformBudgetData(orchestrationDataSample);
+
+        expect(result).toEqual(expectedOutput);
+    });
+    test('time periods should contain an array of campaigns', () => {
+        // Replace 'yourChannelId' and 'yourPeriodId' with the channel and period you want to test
+        const yourChannelId = '4'; // Replace with your channel ID
+        // You can use this expectedAdsets object for your test purposes.
+
+        const transformedData = transformBudgetData(orchestrationDataSample);
+        // Find the channel and period in the transformed data
+        const channel = transformedData.find(ch => ch.id === yourChannelId);
+
+        // Assert that the channel and period exist
+        expect(channel).toBeDefined();
+
+        for (const period of orchestrationDataSample.periods) {
+            const { campaigns } = channel.timePeriods.find(
+                p => p.id === period.id
+            );
+
+            expect(campaigns).toEqual(expectedCampaigns[period.id]);
+        }
     });
 });
