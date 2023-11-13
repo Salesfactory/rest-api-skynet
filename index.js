@@ -1,13 +1,11 @@
 require('dotenv').config();
 const makeApp = require('./src/app');
 const getSecrets = require('./src/services/secrets');
-// amazon create
-const { createAmazonCampaign } = require('./src/services/amazon');
+const { createDSPCampaign } = require('./src/services/amazon');
 const { createCampaign, createAdset } = require('./src/services/facebook');
-
 const app = makeApp({
     getSecrets,
-    amazon: { create: createAmazonCampaign },
+    amazon: { createCampaign: createDSPCampaign },
     facebook: {
         createCampaign: createCampaign,
         createAdset: createAdset,

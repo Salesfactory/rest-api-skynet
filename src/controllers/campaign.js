@@ -457,8 +457,11 @@ const createMarketingCampaign = async (req, res) => {
             ACCESS_TOKEN: req.session.amazonAccessToken.token,
         };
 
-        // profile id for amazon
-        const profileId = secret.PROFILE_ID;
+        // profile id for amazon DSP
+        const profileId = secret.DSP_PROFILE_ID;
+
+        // channellock advertiser id
+        const advertiserId = secret.CHANNELLOCK_ADVERTISER_ID;
 
         const channelsWithApiEnabled = await Channel.findAll({
             where: { isApiEnabled: true },
@@ -470,7 +473,6 @@ const createMarketingCampaign = async (req, res) => {
             flight_time_start,
             flight_time_end,
         });
-
         const campaignGroup = (
             await CampaignGroup.create({
                 user_id: user?.id,
@@ -489,6 +491,18 @@ const createMarketingCampaign = async (req, res) => {
             })
         ).get({ plain: true });
 
+        const amazonDSPCampaigns = [];
+        const createdAmazonCampaignsResult = {
+            success: [],
+            fails: [],
+        };
+        const isAmazonAdvertisingSponsoredAdsNotEmpty =
+            campaignDataByChannel['Amazon Advertising'] &&
+            campaignDataByChannel['Amazon Advertising']['Sponsored Ads'] &&
+            campaignDataByChannel['Amazon Advertising']['Sponsored Ads']
+                .length > 0;
+        const isAccessInvalid = !access?.CLIENT_ID || !access?.ACCESS_TOKEN;
+
         let successCampaigns = null;
         let errorCampaigns = null;
         const createdfacebookCampaignsResult = {
@@ -499,34 +513,53 @@ const createMarketingCampaign = async (req, res) => {
             success: [],
             fails: [],
         };
+
         if (campaignGroup) {
+            if (isAmazonAdvertisingSponsoredAdsNotEmpty) {
+                if (isAccessInvalid) {
+                    createdAmazonCampaignsResult.fails.push({
+                        error: 'invalid Amazon DSP Advertising Credentials',
+                    });
+                } else if (!advertiserId) {
+                    createdAmazonCampaignsResult.fails.push({
+                        error: 'Amazon DSP Advertising ID is require',
+                    });
+                } else {
+                    for (const campaign of campaignDataByChannel[
+                        'Amazon Advertising'
+                    ]['Sponsored Ads']) {
+                        try {
+                            const response = await req.amazon.createCampaign({
+                                campaign: {
+                                    ...campaign,
+                                    advertiserId,
+                                },
+                                type: 'Sponsored Ads',
+                                access,
+                                profileId,
+                            });
+                            createdAmazonCampaignsResult.success.push(response);
+                            console.log(response);
+                        } catch (campaignError) {
+                            console.error(
+                                'Error creating campaign:',
+                                campaignError
+                            );
+                            createdAmazonCampaignsResult.fails.push({
+                                name: campaign.name,
+                                ...campaignError,
+                            });
+                        }
+                    }
+                }
+            }
             // const allocationsData = transformBudgetData(req.body);
             // amazon campaign creation
             const campaignAdSetAllocation =
                 await generateCampaignsWithTimePeriodsAndAdsets({
                     ...req.body,
                 });
-            if (campaignDataByChannel['Amazon Advertising']) {
-                const { message, success, error } = await req.amazon.create({
-                    campaigns: campaignDataByChannel['Amazon Advertising'],
-                    state: state || 'PAUSED',
-                    profileId,
-                    access,
-                });
 
-                // send to the front what campaigns were created and what campaigns failed
-                successCampaigns = success;
-                errorCampaigns = error;
-
-                // handle response from amazon or do nothing
-                console.log(message, success, error);
-                // we could insert it and link, but we need to find what campaign was created
-                // also we need tyo check if the insert campaignId is the same as the one used in bigquery
-                // sample of response in success array gotten from amazon [ { campaignId: 459943342579515, code: 'SUCCESS' } ]
-                // from success array proceed to link campaigns FACEBOOK_ACCESS_TOKEN
-            }
-
-            // add logic for other channels here
             if (campaignDataByChannel['Facebook']) {
                 if (!facebookAdAccountId) {
                     return res.status(400).json({
@@ -679,12 +712,24 @@ const createMarketingCampaign = async (req, res) => {
             });
         }
 
+        if (createdAmazonCampaignsResult.fails.length > 0) {
+            return res.status(207).json({
+                message: 'Marketing campaign created with errors',
+                data: {
+                    ...campaignGroup,
+                    amazonData: {
+                        success: createdAmazonCampaignsResult.success,
+                        error: createdAmazonCampaignsResult.fails,
+                    },
+                },
+            });
+        }
+
         res.status(201).json({
             message: 'Marketing campaign created successfully',
             data: campaignGroup,
             amazonData: {
-                success: successCampaigns,
-                error: errorCampaigns,
+                amazonDSPCampaigns,
             },
             facebook: {
                 success: createdfacebookCampaignsResult.success,
@@ -1271,6 +1316,67 @@ const checkAndNotifyUnlinkedOrOffPaceCampaigns = async (req, res) => {
     }
 };
 
+const getAmazonDSPCampaigns = async (req, res) => {
+    try {
+        const secret = await req.getSecrets();
+
+        const access = {
+            CLIENT_ID: secret.CLIENT_ID,
+            ACCESS_TOKEN: req.session.amazonAccessToken.token,
+        };
+
+        const advertiserId = secret.CHANNELLOCK_ADVERTISER_ID;
+
+        // profile id for amazon
+        const profileId = secret.DSP_PROFILE_ID;
+
+        const response = await req.amazonDSP.list({
+            profileId,
+            access,
+            advertiserId,
+        });
+
+        res.status(200).json({
+            message: 'Amazon DSP campaigns retrieved successfully',
+            data: response.data,
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const createAmazonDSPCampaigns = async (req, res) => {
+    const { campaigns } = req.body;
+    try {
+        const secret = await req.getSecrets();
+
+        const access = {
+            CLIENT_ID: secret.CLIENT_ID,
+            ACCESS_TOKEN: req.session.amazonAccessToken.token,
+        };
+
+        const advertiserId = secret.CHANNELLOCK_ADVERTISER_ID;
+
+        // profile id for amazon
+        const profileId = secret.DSP_PROFILE_ID;
+
+        const response = await req.amazonDSP.create({
+            campaigns,
+            profileId,
+            access,
+            advertiserId,
+        });
+
+        res.status(200).json({
+            message: 'Amazon DSP campaigns retrieved successfully',
+            data: response.data,
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getMarketingCampaignsByClient,
     getMarketingCampaignsById,
@@ -1285,4 +1391,6 @@ module.exports = {
     generatePacingReport,
     refreshMetrics,
     checkAndNotifyUnlinkedOrOffPaceCampaigns,
+    getAmazonDSPCampaigns,
+    createAmazonDSPCampaigns,
 };

@@ -27,6 +27,21 @@ function groupCampaignAllocationsByType({
                                                 budget: 0,
                                             }
                                         ).budget + parseFloat(campaign.budget),
+
+                                    // amazon dsp specific fields
+                                    advertiserId: campaign.advertiserId,
+                                    recurrenceTimePeriod:
+                                        campaign.recurrenceTimePeriod,
+                                    frequencyCapType: campaign.frequencyCapType,
+                                    frequencyCapMaxImpressions:
+                                        campaign.frequencyCapMaxImpressions,
+                                    frequencyCapTimeUnitCount:
+                                        campaign.frequencyCapTimeUnitCount,
+                                    frequencyCapTimeUnit:
+                                        campaign.frequencyCapTimeUnit,
+                                    productLocation: campaign.productLocation,
+                                    goal: campaign.orderGoal,
+                                    goalKpi: campaign.orderGoalKpi,
                                 });
                             }
                         }
