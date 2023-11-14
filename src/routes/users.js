@@ -1,30 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const { userController } = require('../controllers');
-const { hasPermissions } = require('./middlewares');
+const { hasOneOfRoles } = require('./middlewares');
 
 // users routes
-router.get('/', [hasPermissions('user-management')], userController.getUsers);
+router.get('/', [hasOneOfRoles(['Super', 'Admin'])], userController.getUsers);
 // this endpoint is being used by every user to get his own data
-router.get(
-    '/:id',
-    userController.getUserById
-);
+router.get('/:id', userController.getUserById);
+// this endpoint is beign used by the user once successfully registered
 router.post('/', userController.createUser);
-router.put(
-    '/:id',
-    [hasPermissions('user-management')],
-    userController.updateUser
-);
+// this endpoint is being used by the user to update his own data
+router.put('/:id', userController.updateUser);
+
+// user won't be able to delete his own account
 router.delete(
     '/:id',
-    [hasPermissions('user-management')],
+    [hasOneOfRoles(['Super', 'Admin'])],
     userController.deleteUser
 );
-router.get(
-    '/:id/permissions',
-    [hasPermissions('user-management')],
-    userController.getUserPermissions
-);
+router.get('/:id/permissions', userController.getUserPermissions);
 
 module.exports = router;

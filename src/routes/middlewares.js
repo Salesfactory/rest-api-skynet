@@ -92,6 +92,49 @@ const hasRole = role => async (req, res, next) => {
     }
 };
 
+const hasOneOfRoles = roles => async (req, res, next) => {
+    if (process.env.NODE_ENV !== 'test') {
+        const { user: userSession } = res.locals;
+
+        if (!userSession)
+            return res.status(401).json({ message: 'Access Token missing' });
+
+        // find user in database
+        const user = await User.findOne({
+            where: { uid: userSession.username },
+            include: [
+                {
+                    model: Role,
+                    attributes: ['id', 'name'],
+                    as: 'role',
+                },
+            ],
+        });
+
+        // might cause some trouble since not all users are actaully register in our db
+        // this line is included to force us to migrate these users into our db
+        // once they complain about not being able to access the app
+        if (!user)
+            return res.status(404).json({
+                message: 'User not found in database',
+            });
+
+        // check if role exist
+        if (
+            (Array.isArray(roles) && roles.includes(user.role.name)) ||
+            (typeof roles === 'string' && roles === user.role.name)
+        ) {
+            next();
+        } else {
+            return res.status(403).json({
+                message: 'You do not have the role to perform this action',
+            });
+        }
+    } else {
+        next();
+    }
+};
+
 const hasPermissions = perms => async (req, res, next) => {
     if (process.env.NODE_ENV !== 'test') {
         const { user: userSession } = res.locals;
@@ -214,4 +257,5 @@ module.exports = {
     hasRole,
     hasPermissions,
     validateAmazonToken,
+    hasOneOfRoles,
 };
