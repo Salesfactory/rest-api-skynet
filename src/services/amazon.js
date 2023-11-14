@@ -6,6 +6,7 @@ const {
     getConfig,
     createCampaigns,
     getSponsoredAdsCreateData,
+    getSponsoredAdsLineItemCreateData,
 } = require('../utils/allocations');
 
 const DSP_GOALS = {
@@ -106,7 +107,33 @@ const createDSPCampaign = async ({ campaign, type, access, profileId }) => {
     });
 };
 
+// Creates an adset on Amazon DSP
+const createDSPAdset = async ({ adset, orderId, type, access, profileId }) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (orderId) {
+                const config = getConfig({ type, access, profileId });
+                config.url = 'https://advertising-api.amazon.com/dsp/lineItems';
+
+                config.data = getSponsoredAdsLineItemCreateData({
+                    adset,
+                    orderId,
+                });
+
+                const response = await axios.request(config);
+
+                resolve({ data: response?.data || [] });
+            } else {
+                reject({ error: 'Invalid orderId' });
+            }
+        } catch (error) {
+            reject({ error: error?.response?.data || error });
+        }
+    });
+};
+
 module.exports = {
     createAmazonCampaign,
     createDSPCampaign,
+    createDSPAdset,
 };
