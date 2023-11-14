@@ -42,6 +42,7 @@ function groupCampaignAllocationsByType({
                                     productLocation: campaign.productLocation,
                                     goal: campaign.orderGoal,
                                     goalKpi: campaign.orderGoalKpi,
+                                    adsets: campaign.allocations,
                                 });
                             }
                         }

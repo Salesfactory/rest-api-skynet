@@ -3,12 +3,14 @@ jest.mock('../src/utils/allocations', () => ({
     validateCampaignsArray: jest.fn(),
     getConfig: jest.fn(),
     createCampaigns: jest.fn(),
+    getSponsoredAdsLineItemCreateData: jest.fn(),
 }));
 const {
     validateCredentials,
     validateCampaignsArray,
     getConfig,
     createCampaigns,
+    getSponsoredAdsLineItemCreateData,
 } = require('../src/utils/allocations');
 const { createAmazonCampaign } = require('../src/services/amazon');
 const mockData = {
@@ -97,6 +99,45 @@ describe('createAmazonCampaign', () => {
             code: 500,
             message: 'Access token or client ID is missing', // Check the actual error message
         });
+    });
+
+    it('returns the correct line item data with default values', () => {
+        const adset = {
+            lineItemType: 'AMAZON_MOBILE_DISPLAY',
+            name: 'AdSetName',
+            startDate: '2023-01-01',
+            endDate: '2023-02-01',
+        };
+        const orderId = '123456';
+
+        const expectedData = {
+            lineItemType: 'AMAZON_MOBILE_DISPLAY',
+            name: 'AdSetName',
+            orderId: '123456',
+            startDateTime: '2023-01-01T00:00:00Z',
+            endDateTime: '2023-02-01T00:00:00Z',
+            lineItemClassification: {
+                productCategories: [],
+            },
+            frequencyCap: {
+                type: 'UNCAPPED',
+            },
+            bidding: {
+                baseSupplyBid: 1.5,
+                maxSupplyBid: 5.0,
+            },
+            optimization: {
+                budgetOptimization: true,
+            },
+        };
+
+        getSponsoredAdsLineItemCreateData.mockImplementation(
+            () => expectedData
+        );
+
+        const result = getSponsoredAdsLineItemCreateData({ adset, orderId });
+
+        expect(result).toEqual(expectedData);
     });
 
     // Add more test cases to cover different scenarios and edge cases
