@@ -99,7 +99,7 @@ describe('Campaign Endpoints Test', () => {
     });
 
     describe('Get recent campaigns', () => {
-        it('200', async () => {
+        it('200 with search term', async () => {
             const data = [
                 {
                     id: 1,
@@ -198,6 +198,162 @@ describe('Campaign Endpoints Test', () => {
             );
             expect(response.status).toBe(200);
             expect(response.body.data).toEqual(data);
+            expect(response.body.message).toBe(
+                'Recent campaigns groups retrieved successfully'
+            );
+        });
+
+        it('200 with no search term', async () => {
+            jest.useFakeTimers('modern');
+            jest.setSystemTime(new Date(2023, 8, 10));
+            const data = [
+                {
+                    id: 1,
+                    name: 'Test campaign',
+                    company_name: 'Test company name',
+                    createdAt: '2023-08-11T16:47:01.294Z',
+                    budgets: [
+                        {
+                            periods: [],
+                            allocations: {
+                                august_2023: {
+                                    allocations: [
+                                        {
+                                            type: 'CHANNEL',
+                                            allocations: [
+                                                {
+                                                    type: 'CAMPAIGN_TYPE',
+                                                    allocations: [
+                                                        {
+                                                            type: 'CAMPAIGN',
+                                                            allocations: [
+                                                                {
+                                                                    percentage: 100,
+                                                                    type: 'ADSET',
+                                                                    bigquery_adset_id:
+                                                                        '137922937858',
+                                                                },
+                                                            ],
+                                                            bidgquery_campaign_id:
+                                                                '137922937858',
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    ],
+                    flight_time_start: '2023-08-01T04:00:00.000Z',
+                    flight_time_end: '2023-09-01T04:00:00.000Z',
+                    dataValues: {},
+                },
+                {
+                    id: 2,
+                    name: 'Test campaign',
+                    company_name: 'Test company name',
+                    createdAt: '2023-07-11T16:38:59.516Z',
+                    budgets: [
+                        {
+                            periods: [],
+                            allocations: {
+                                august_2023: {
+                                    allocations: [
+                                        {
+                                            type: 'CHANNEL',
+                                            allocations: [
+                                                {
+                                                    type: 'CAMPAIGN_TYPE',
+                                                    allocations: [
+                                                        {
+                                                            type: 'CAMPAIGN',
+                                                            allocations: [
+                                                                {
+                                                                    percentage: 100,
+                                                                    type: 'ADSET',
+                                                                    bigquery_adset_id:
+                                                                        '137922937858',
+                                                                },
+                                                            ],
+                                                            bidgquery_campaign_id:
+                                                                '137922937858',
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    ],
+                    flight_time_start: '2023-08-01T04:00:00.000Z',
+                    flight_time_end: '2023-09-01T04:00:00.000Z',
+                    dataValues: {},
+                },
+            ];
+
+            const expectedData = [
+                { title: 'Today', data: [] },
+                { title: 'Yesterday', data: [] },
+                { title: 'Last Week', data: [] },
+                {
+                    title: 'Last Month',
+                    data: [
+                        {
+                            id: 1,
+                            name: 'Test campaign',
+                            company_name: 'Test company name',
+                            createdAt: '2023-08-11T16:47:01.294Z',
+                            budgets: [
+                                {
+                                    periods: [],
+                                    allocations: {
+                                        august_2023: {
+                                            allocations: [
+                                                {
+                                                    type: 'CHANNEL',
+                                                    allocations: [
+                                                        {
+                                                            type: 'CAMPAIGN_TYPE',
+                                                            allocations: [
+                                                                {
+                                                                    type: 'CAMPAIGN',
+                                                                    allocations:
+                                                                        [
+                                                                            {
+                                                                                percentage: 100,
+                                                                                type: 'ADSET',
+                                                                                bigquery_adset_id:
+                                                                                    '137922937858',
+                                                                            },
+                                                                        ],
+                                                                    bidgquery_campaign_id:
+                                                                        '137922937858',
+                                                                },
+                                                            ],
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    },
+                                },
+                            ],
+                            flight_time_start: '2023-08-01T04:00:00.000Z',
+                            flight_time_end: '2023-09-01T04:00:00.000Z',
+                            dataValues: { inFlight: true, linked: false },
+                        },
+                    ],
+                },
+            ];
+            CampaignGroup.findAll.mockResolvedValue(data);
+
+            const response = await request.get(`/api/campaigns`);
+            expect(response.status).toBe(200);
+            expect(response.body.data).toEqual(expectedData);
             expect(response.body.message).toBe(
                 'Recent campaigns groups retrieved successfully'
             );
@@ -552,8 +708,6 @@ describe('Campaign Endpoints Test', () => {
             const response = await request
                 .post(`/api/clients/${clientId}/marketingcampaign`)
                 .send(sendData);
-
-            console.log(response.body);
 
             expect(response.status).toBe(201);
             expect(response.body.data).toEqual({
