@@ -2112,7 +2112,7 @@ describe('Campaign Endpoints Test', () => {
                     {
                         name: 'api-adset-test-1',
                         campaign_id: 'FACEBOOK_CAMPAIGN_ID',
-                        lifetime_budget: 425,
+                        lifetime_budget: 42500,
                         bid_amount: 200,
                         billing_event: 'PAGE_LIKES',
                         start_time: '2023-01-01T00:00:17+0000',
