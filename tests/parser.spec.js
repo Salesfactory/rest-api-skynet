@@ -1,5 +1,6 @@
 const {
     generateCampaignsWithTimePeriodsAndAdsets,
+    convertToCents,
 } = require('../src/utils/parsers');
 const orchestrationDataSample = require('./parser-sample-data/orchestration-adset-facebook.json');
 
@@ -390,5 +391,16 @@ describe('generateCampaignsWithTimePeriodsAndAdsets', () => {
         );
 
         expect(result).toEqual(expected);
+    });
+});
+
+describe('convert dollars to cents', () => {
+    it('convert dollars to cents', () => {
+        const dollar = 50;
+        const cents = 5000;
+
+        const expectedCents = convertToCents(dollar);
+
+        expect(cents).toEqual(expectedCents);
     });
 });

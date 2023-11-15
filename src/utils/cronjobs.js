@@ -73,13 +73,12 @@ function checkPacingOffPace({ pacing, currentDate }) {
         // this threshold needs to be configurable
         const threshold = 0.05;
         const month = currentDate
-            .toLocaleString('default', { month: 'long' })
+            .toLocaleString('en-us', { month: 'long' })
             .toLowerCase();
         const year = currentDate.getFullYear();
         const formattedDate = `${month}_${year}`;
         const { allocations } = pacing;
         const currentPeriod = allocations[formattedDate];
-
         // If for some reason the current period does not exist in the budget period, return null
         if (!currentPeriod) {
             return { overPaceCampaigns: null, underPaceCampaigns: null };

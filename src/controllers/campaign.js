@@ -26,6 +26,7 @@ const { send } = require('../utils/email');
 const {
     groupCampaignAllocationsByType,
     generateCampaignsWithTimePeriodsAndAdsets,
+    convertToCents,
 } = require('../utils/parsers');
 
 //creacion de reporte excel
@@ -672,7 +673,8 @@ const createMarketingCampaign = async (req, res) => {
                                                     name: adsetName,
                                                     bid_amount,
                                                     billing_event,
-                                                    lifetime_budget: budget,
+                                                    lifetime_budget:
+                                                        convertToCents(budget),
                                                     start_time,
                                                     end_time,
                                                     optimization_goal,
@@ -1273,9 +1275,55 @@ const getRecentCampaigns = async (req, res) => {
             delete campaign.dataValues.budgets;
         }
 
-        res.status(200).json({
+        // if request has search param, return latest 10 campaigns without grouping
+        if (search) {
+            return res.status(200).json({
+                message: 'Recent campaigns groups retrieved successfully',
+                data: campaigns,
+            });
+        }
+
+        // send grouped data into the frontend so test doesn't need to be changed every month
+        const oneDay = 24 * 60 * 60 * 1000;
+
+        const filteredData = campaigns.filter(item => {
+            const itemDate = new Date(item.createdAt);
+            const differenceInDays = Math.floor(
+                (currentDate.getTime() - itemDate.getTime()) / oneDay
+            );
+            return differenceInDays <= 30;
+        });
+
+        const groupedData = filteredData.reduce(
+            (acc, item) => {
+                const itemDate = new Date(item.createdAt);
+                const differenceInDays = Math.floor(
+                    (currentDate.getTime() - itemDate.getTime()) / oneDay
+                );
+                if (differenceInDays === 0) {
+                    acc.today.push(item);
+                } else if (differenceInDays === 1) {
+                    acc.yesterday.push(item);
+                } else if (differenceInDays <= 7) {
+                    acc.lastWeek.push(item);
+                } else {
+                    acc.lastMonth.push(item);
+                }
+                return acc;
+            },
+            { today: [], yesterday: [], lastWeek: [], lastMonth: [] }
+        );
+
+        const groupedDataArray = [
+            { title: 'Today', data: groupedData.today },
+            { title: 'Yesterday', data: groupedData.yesterday },
+            { title: 'Last Week', data: groupedData.lastWeek },
+            { title: 'Last Month', data: groupedData.lastMonth },
+        ];
+
+        return res.status(200).json({
             message: 'Recent campaigns groups retrieved successfully',
-            data: campaigns,
+            data: groupedDataArray,
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
