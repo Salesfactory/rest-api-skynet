@@ -2,15 +2,15 @@ const express = require('express');
 const router = express.Router();
 const { campaignController } = require('../controllers');
 const {
-    hasPermissions,
     hasRole,
+    hasOneOfRoles,
     validateAmazonToken,
 } = require('./middlewares');
 
 // campaigns routes
 router.get(
     '/',
-    [hasPermissions(['campaign-group-orchestration'])],
+    [hasOneOfRoles(['Super', 'Admin', 'DM'])],
     campaignController.getRecentCampaigns
 );
 // this is a temp route to test refresh budget pacing (must be deleted later)
@@ -29,12 +29,12 @@ router.get(
 // amazon DSP
 router.get(
     '/amazon-dsp',
-    [hasPermissions(['campaign-group-orchestration']), validateAmazonToken],
+    [hasOneOfRoles(['Super', 'Admin', 'DM']), validateAmazonToken],
     campaignController.getAmazonDSPCampaigns
 );
 router.post(
     '/amazon-dsp',
-    [hasPermissions(['campaign-group-orchestration']), validateAmazonToken],
+    [hasOneOfRoles(['Super', 'Admin', 'DM']), validateAmazonToken],
     campaignController.createAmazonDSPCampaigns
 );
 
