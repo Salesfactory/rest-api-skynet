@@ -1,18 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const { channelController } = require('../controllers');
-const { hasPermissions } = require('./middlewares');
+const { hasOneOfRoles } = require('./middlewares');
 
 // channels routes
 router.get(
     '/',
-    [hasPermissions(['campaign-group-orchestration'])],
+    [hasOneOfRoles(['Super', 'Admin', 'DM'])],
     channelController.getChannels
 );
 // channel campaign types
 router.get(
     '/campaignTypes',
-    [hasPermissions(['campaign-group-orchestration'])],
+    [hasOneOfRoles(['Super', 'Admin', 'DM'])],
     channelController.getChannelTypes
 );
 

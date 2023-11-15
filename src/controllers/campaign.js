@@ -492,8 +492,11 @@ const createMarketingCampaign = async (req, res) => {
             })
         ).get({ plain: true });
 
-        const amazonDSPCampaigns = [];
         const createdAmazonCampaignsResult = {
+            success: [],
+            fails: [],
+        };
+        const createdAmazonAdsetsResult = {
             success: [],
             fails: [],
         };
@@ -539,8 +542,59 @@ const createMarketingCampaign = async (req, res) => {
                                 access,
                                 profileId,
                             });
-                            createdAmazonCampaignsResult.success.push(response);
-                            console.log(response);
+
+                            if (
+                                response?.data?.some(data => data.errorDetails)
+                            ) {
+                                createdAmazonCampaignsResult.fails.push({
+                                    name: campaign.id,
+                                    ...response.data,
+                                });
+                            } else {
+                                const orderId = response.data[0]?.orderId;
+                                if (orderId) {
+                                    for (const adset of campaign.adsets) {
+                                        const adsetResponse =
+                                            await req.amazon.createAdset({
+                                                adset,
+                                                orderId,
+                                                type: 'Sponsored Ads',
+                                                access,
+                                                profileId,
+                                            });
+                                        if (
+                                            adsetResponse?.data?.some(
+                                                data => data.errorDetails
+                                            )
+                                        ) {
+                                            createdAmazonAdsetsResult.fails.push(
+                                                {
+                                                    name: adset.id,
+                                                    ...adsetResponse.data,
+                                                }
+                                            );
+                                        } else {
+                                            createdAmazonAdsetsResult.success.push(
+                                                {
+                                                    name: adset.id,
+                                                    ...adsetResponse.data,
+                                                }
+                                            );
+                                        }
+                                    }
+                                } else {
+                                    createdAmazonAdsetsResult.fails.push({
+                                        name: campaign.id,
+                                        ...response.data,
+                                    });
+                                }
+                                createdAmazonCampaignsResult.success.push({
+                                    name: campaign.id,
+                                    ...response.data,
+                                });
+                            }
+
+                            // create adsets
                         } catch (campaignError) {
                             console.error(
                                 'Error creating campaign:',
@@ -731,7 +785,8 @@ const createMarketingCampaign = async (req, res) => {
             message: 'Marketing campaign created successfully',
             data: campaignGroup,
             amazonData: {
-                amazonDSPCampaigns,
+                success: createdAmazonCampaignsResult.success,
+                error: createdAmazonCampaignsResult.fails,
             },
             facebook: {
                 success: createdfacebookCampaignsResult.success,

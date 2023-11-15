@@ -70,6 +70,9 @@ const getSecrets = jest.fn(() => ({
 const _createAmazonCampaign = jest.fn(() => {
     return Promise.resolve({ id: 'AMAZON_CAMPAIGN_ID' });
 });
+const _createAmazonAdset = jest.fn(() => {
+    return {};
+});
 const _createFacebookCampaign = jest.fn(() => {
     return Promise.resolve({ id: 'FACEBOOK_CAMPAIGN_ID' });
 });
@@ -81,6 +84,7 @@ const app = makeApp({
     getSecrets,
     amazon: {
         createCampaign: _createAmazonCampaign,
+        createAdset: _createAmazonAdset,
     },
     facebook: {
         createCampaign: _createFacebookCampaign,
@@ -1106,6 +1110,15 @@ describe('Campaign Endpoints Test', () => {
                     campaign: {
                         id: '2-Sponsored Ads-test-campaign',
                         name: 'test-campaign',
+                        adsets: [
+                            {
+                                budget: 2125,
+                                id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                name: 'test-campaign-adset',
+                                percentage: 100,
+                                type: 'ADSET',
+                            },
+                        ],
                         advertiserId: 'ADVERTISING_ID',
                         budget: 4250,
                         endDate: '2023-02-01',
@@ -1377,17 +1390,11 @@ describe('Campaign Endpoints Test', () => {
                                         statusText: 'Bad Request',
                                     },
                                 },
-                            ],
-                            success: [
                                 {
-                                    data: {
-                                        id: 'AMAZON_CAMPAIGN_ID',
-                                    },
-                                    headers: {},
-                                    status: 200,
-                                    statusText: 'OK',
+                                    name: 'test-campaign-3',
                                 },
                             ],
+                            success: [],
                         },
                     },
                     message: 'Marketing campaign created with errors',

@@ -305,6 +305,30 @@ const getSponsoredAdsCreateData = ({ campaign }) => {
     return JSON.stringify(order);
 };
 
+const getSponsoredAdsLineItemCreateData = ({ adset, orderId }) => {
+    const { lineItemType, name, startDate, endDate } = adset;
+    return {
+        lineItemType: lineItemType || 'STANDARD_DISPLAY', // "STANDARD_DISPLAY" "AMAZON_MOBILE_DISPLAY" "AAP_MOBILE_APP" "VIDEO"
+        name,
+        orderId,
+        startDateTime: formatDateString(startDate),
+        endDateTime: formatDateString(endDate),
+        lineItemClassification: {
+            productCategories: [],
+        },
+        frequencyCap: {
+            type: 'UNCAPPED',
+        },
+        bidding: {
+            baseSupplyBid: 1.5,
+            maxSupplyBid: 5.0,
+        },
+        optimization: {
+            budgetOptimization: true,
+        },
+    };
+};
+
 // Get campaigns from Amazon DSP
 const getDSPCampaigns = async ({ config, advertiserId }) => {
     return new Promise(async (resolve, reject) => {
@@ -334,4 +358,5 @@ module.exports = {
     isValidDate,
     formatDateString,
     getSponsoredAdsCreateData,
+    getSponsoredAdsLineItemCreateData,
 };
