@@ -211,7 +211,7 @@ async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
         const user = usernames[id];
         const campaigns = usersToNotify[id];
 
-        logMessage('Sending email to user: ' + user.name);
+        logMessage('Sending email to user: ' + user.name + ' ' + user.email);
         const html = emailTemplate({
             user: user.name,
             campaigns,
