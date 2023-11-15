@@ -220,6 +220,7 @@ function getUsersToNotifyWithCampaigns({ campaigngroups, currentDate }) {
                         usernames[campaign.user.id] = {
                             name: campaign.user.name,
                             email: campaign.user.email,
+                            roleId: campaign.user.roleId,
                         };
                     }
 
@@ -229,6 +230,8 @@ function getUsersToNotifyWithCampaigns({ campaigngroups, currentDate }) {
                         user: {
                             id: campaign.user.id,
                             name: campaign.user.name,
+                            email: campaign.user.email,
+                            roleId: campaign.user.roleId,
                         },
                         client: {
                             id: campaign.client.id,
@@ -248,13 +251,9 @@ function getUsersToNotifyWithCampaigns({ campaigngroups, currentDate }) {
  * Sends a notification to the user inserted in the database
  */
 async function sendNotification({ campaign, subject, message, type }) {
-    const roleId = User.findOne({
-        where: { id: campaign.user.id },
-        attributes: ['roleId'],
-    });
     await Notification.create({
         user_id: campaign.user.id,
-        roleId: roleId,
+        roleId: campaign.user.roleId,
         title: subject,
         message: message,
         campaign_group_info: {
@@ -307,7 +306,7 @@ async function fetchCampaignsWithPacings() {
             {
                 model: User,
                 as: 'user',
-                attributes: ['id', 'name', 'email'],
+                attributes: ['id', 'name', 'email', 'roleId'],
             },
             {
                 model: Client,
