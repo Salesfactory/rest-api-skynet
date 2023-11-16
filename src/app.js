@@ -59,7 +59,7 @@ module.exports = function ({ getSecrets, amazon, amazonDSP, facebook }) {
     app.use(session(sess));
 
     // parse requests
-    app.use(bodyParser.json());
+    app.use(bodyParser.json({ limit: '5mb' }));
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
