@@ -1,9 +1,8 @@
 const supertest = require('supertest');
 const makeApp = require('../src/app');
-const app = makeApp({});
-const request = supertest(app);
 
-// mock const response = await client.send(command);
+jest.mock('../src/models', () => ({}));
+
 jest.mock('@aws-sdk/client-s3', () => {
     return {
         S3Client: jest.fn().mockImplementation(() => {
@@ -41,6 +40,13 @@ jest.mock('@aws-sdk/s3-request-presigner', () => {
         }),
     };
 });
+
+const getSecrets = jest.fn(() => ({
+    CLIENT_ID: 'TEST',
+}));
+
+const app = makeApp({ getSecrets });
+const request = supertest(app);
 
 describe('S3 API Endpoints', () => {
     const originalBase64Image =
