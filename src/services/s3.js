@@ -4,12 +4,12 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 /**
  * @returns an AWS S3 client
  */
-const getClient = () => {
+const getClient = ({ secrets }) => {
     return new S3Client({
-        region: process.env.S3_REGION,
+        region: secrets.S3_REGION,
         credentials: {
-            accessKeyId: process.env.S3_ACCESS_KEY,
-            secretAccessKey: process.env.S3_SECRET_KEY,
+            accessKeyId: secrets.S3_ACCESS_KEY,
+            secretAccessKey: secrets.S3_SECRET_KEY,
         },
     });
 };
@@ -38,9 +38,9 @@ const detectMimeType = b64 => {
 /**
  * This function is used to get a signed url from AWS S3
  */
-const getS3SignedUrl = async ({ filename }) => {
+const getS3SignedUrl = async ({ filename, secrets }) => {
     try {
-        const client = getClient();
+        const client = getClient({ secrets });
         const command = new GetObjectCommand({
             Bucket: process.env.S3_BUCKET_NAME,
             Key: filename,

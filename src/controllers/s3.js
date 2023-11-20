@@ -6,6 +6,8 @@ const { detectMimeType, getS3SignedUrl, getClient } = require('../services/s3');
  * This function is used to upload an image to AWS S3
  */
 const uploadImage = async (req, res) => {
+    const secrets = await req.getSecrets();
+
     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
     let { base64File } = req.body;
@@ -50,7 +52,7 @@ const uploadImage = async (req, res) => {
     });
 
     try {
-        const client = getClient();
+        const client = getClient({ secrets });
 
         const response = await client.send(command);
 
@@ -60,6 +62,7 @@ const uploadImage = async (req, res) => {
 
         const url = await getS3SignedUrl({
             filename: imageKey,
+            secrets,
         });
 
         res.json({
@@ -81,12 +84,14 @@ const uploadImage = async (req, res) => {
 const getFileLink = async (req, res) => {
     const { filename } = req.query;
 
+    const secrets = await req.getSecrets();
+
     if (!filename) {
         return res.status(400).json({ message: 'Filename is required.' });
     }
 
     try {
-        const url = await getS3SignedUrl({ filename });
+        const url = await getS3SignedUrl({ filename, secrets });
 
         if (!url) {
             return res.status(400).json({ message: 'File not found.' });
