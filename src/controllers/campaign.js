@@ -644,7 +644,9 @@ const createMarketingCampaign = async (req, res) => {
                                     name,
                                     objective: campaignObjective,
                                     special_ad_categories: specialAdCategories,
-                                    special_ad_category_country: [country], // verificar si se manda como array o sin array
+                                    special_ad_category_country: country
+                                        ? [country]
+                                        : null, // verificar si se manda como array o sin array
                                     status: status || 'PAUSED',
                                     buying_type: buyingType,
                                 }
