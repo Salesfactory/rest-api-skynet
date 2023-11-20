@@ -629,9 +629,11 @@ const createMarketingCampaign = async (req, res) => {
                     try {
                         const {
                             name,
-                            objective,
+                            campaignObjective,
                             specialAdCategories,
                             timePeriods,
+                            buyingType,
+                            status,
                         } = campaign;
                         const facebookCampaign =
                             await req.facebook.createCampaign(
@@ -639,9 +641,10 @@ const createMarketingCampaign = async (req, res) => {
                                 facebookAdAccountId,
                                 {
                                     name,
-                                    objective,
+                                    objective: campaignObjective,
                                     special_ad_categories: specialAdCategories,
-                                    status: 'PAUSED',
+                                    status,
+                                    buying_type: buyingType,
                                 }
                             );
 
@@ -655,13 +658,16 @@ const createMarketingCampaign = async (req, res) => {
                                     try {
                                         const {
                                             name: adsetName,
+                                            bid_strategy,
                                             bid_amount,
                                             billing_event,
                                             budget,
-                                            start_time,
-                                            end_time,
+                                            daily_budget, // revisar si se debe pasar en centimos o en doalres
+                                            startTime,
+                                            endTime,
                                             optimization_goal,
                                             targeting,
+                                            status,
                                         } = adset;
                                         const adsetResponse =
                                             await req.facebook.createAdset(
@@ -675,11 +681,13 @@ const createMarketingCampaign = async (req, res) => {
                                                     billing_event,
                                                     lifetime_budget:
                                                         convertToCents(budget),
-                                                    start_time,
-                                                    end_time,
+                                                    bid_strategy,
+                                                    daily_budget,
+                                                    start_time: startTime,
+                                                    end_time: endTime,
                                                     optimization_goal,
                                                     targeting,
-                                                    status: 'PAUSED',
+                                                    status,
                                                 }
                                             );
                                         createdFacebookAdsetResult.success.push(
