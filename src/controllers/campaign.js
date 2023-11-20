@@ -634,6 +634,7 @@ const createMarketingCampaign = async (req, res) => {
                             timePeriods,
                             buyingType,
                             status,
+                            country,
                         } = campaign;
                         const facebookCampaign =
                             await req.facebook.createCampaign(
@@ -643,7 +644,8 @@ const createMarketingCampaign = async (req, res) => {
                                     name,
                                     objective: campaignObjective,
                                     special_ad_categories: specialAdCategories,
-                                    status,
+                                    special_ad_category_country: [country], // verificar si se manda como array o sin array
+                                    status: status || 'PAUSED',
                                     buying_type: buyingType,
                                 }
                             );
@@ -662,9 +664,9 @@ const createMarketingCampaign = async (req, res) => {
                                             bid_amount,
                                             billing_event,
                                             budget,
-                                            daily_budget, // revisar si se debe pasar en centimos o en doalres
-                                            startTime,
-                                            endTime,
+                                            daily_budget,
+                                            startDate: startTime,
+                                            endDate: endTime,
                                             optimization_goal,
                                             targeting,
                                             status,
@@ -687,7 +689,7 @@ const createMarketingCampaign = async (req, res) => {
                                                     end_time: endTime,
                                                     optimization_goal,
                                                     targeting,
-                                                    status,
+                                                    status: status || 'PAUSED',
                                                 }
                                             );
                                         createdFacebookAdsetResult.success.push(
