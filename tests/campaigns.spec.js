@@ -1972,6 +1972,11 @@ describe('Campaign Endpoints Test', () => {
                         objective: 'OUTCOME_AWARENESS',
                         special_ad_categories: 'NONE',
                         status: 'PAUSED',
+                        buying_type: undefined,
+                        name: 'test-api-2',
+                        objective: undefined,
+                        special_ad_categories: 'NONE',
+                        special_ad_category_country: null,
                     }
                 );
             });
@@ -2271,6 +2276,8 @@ describe('Campaign Endpoints Test', () => {
                         billing_event: 'PAGE_LIKES',
                         start_time: '2023-01-01T00:00:17+0000',
                         end_time: '2023-02-01T00:00:17+0000',
+                        bid_strategy: undefined,
+                        daily_budget: undefined,
                         optimization_goal: 'REACH',
                         targeting: { geo_locations: { countries: ['US'] } },
                         status: 'PAUSED',
