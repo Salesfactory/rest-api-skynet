@@ -105,8 +105,10 @@ const updateNotification = async (req, res) => {
     const { title, message, campaign_group_info, client_info, type, status } =
         req.body;
     try {
+        const user = await getUser(res);
+
         const notification = await Notification.findOne({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(id), user_id: user.id },
         });
         if (!notification)
             return res.status(404).json({
@@ -138,17 +140,26 @@ const markAsRead = async (req, res) => {
     const id = req.params.id;
 
     try {
+        const user = await getUser(res);
+
         const notification = await Notification.findOne({
-            where: { id: parseInt(id), status: 'unread' },
+            where: {
+                id: parseInt(id),
+                status: 'unread',
+                user_id: user.id,
+            },
         });
+
         if (!notification)
             return res.status(404).json({
                 message: `Notification not found or already marked as read`,
             });
+
         await Notification.update(
             { status: 'read' },
             { where: { id: parseInt(id) } }
         );
+
         return res.status(200).json({
             data: await Notification.findOne({
                 where: { id: parseInt(id) },

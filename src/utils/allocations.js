@@ -28,6 +28,10 @@ const HEADER_CONFIG = {
     'Sponsored Display': {
         'Content-Type': 'application/json',
     },
+    'Sponsored Ads': {
+        'Content-Type': 'application/json',
+        Accept: 'application/vnd.dsporders.v2.3+json',
+    },
 };
 
 const getAxiosHeaders = ({ clientId, accessToken, profileId, type }) => {
@@ -50,9 +54,9 @@ const getAxiosHeaders = ({ clientId, accessToken, profileId, type }) => {
 };
 
 // Get configuration for API request
-const getConfig = (type, access, profileId) => {
+const getConfig = ({ type, access, profileId, method }) => {
     const config = {
-        method: 'post',
+        method: method || 'post',
         maxBodyLength: Infinity,
     };
 
@@ -220,6 +224,126 @@ const getSponsoredDisplayCreateData = ({ campaigns, state }) => {
     return JSON.stringify(formattedCampaigns);
 };
 
+// goals and kpis for sponsored ads
+
+function isValidDate(dateString) {
+    const parsedDate = new Date(dateString);
+    return !isNaN(parsedDate) && parsedDate instanceof Date;
+}
+
+function formatDateString(inputDate) {
+    const parsedDate = new Date(inputDate);
+    const year = parsedDate.getFullYear();
+    const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(parsedDate.getDate()).padStart(2, '0');
+    const hours = String(parsedDate.getHours()).padStart(2, '0');
+    const minutes = String(parsedDate.getMinutes()).padStart(2, '0');
+    const seconds = String(parsedDate.getSeconds()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`;
+
+    return isValidDate(formattedDate) ? formattedDate : null;
+}
+
+const getSponsoredAdsCreateData = ({ campaign }) => {
+    const {
+        advertiserId,
+        name,
+        startDate,
+        endDate,
+        budget,
+        recurrenceTimePeriod,
+        frequencyCapType,
+        frequencyCapMaxImpressions,
+        frequencyCapTimeUnitCount,
+        frequencyCapTimeUnit,
+        productLocation,
+        goal,
+        goalKpi,
+    } = campaign;
+
+    const frequencyCap = {
+        type: frequencyCapType || 'UNCAPPED', // "UNCAPPED" "CUSTOM" If UNCAPPED, no other fields are used.
+        ...(frequencyCapType === 'CUSTOM'
+            ? {
+                  maxImpressions: frequencyCapMaxImpressions || 1,
+                  timeUnitCount: frequencyCapTimeUnitCount || 1,
+                  timeUnit: frequencyCapTimeUnit || 'DAYS', // "DAYS" "HOURS"
+              }
+            : {}),
+    };
+
+    const optimization = {
+        productLocation: productLocation || 'SOLD_ON_AMAZON', //"SOLD_ON_AMAZON" "NOT_SOLD_ON_AMAZON"
+        goal: goal || 'AWARENESS',
+        goalKpi: goalKpi || 'REACH',
+    };
+
+    const order = [
+        {
+            advertiserId,
+            name,
+            budget: {
+                budgetCaps: [
+                    {
+                        recurrenceTimePeriod: recurrenceTimePeriod || 'DAILY', // "UNCAPPED" "DAILY" "MONTHLY"
+                        amount: budget || 1,
+                    },
+                ],
+                flights: [
+                    {
+                        startDateTime: formatDateString(startDate),
+                        endDateTime: formatDateString(endDate),
+                        amount: budget || 1,
+                    },
+                ],
+            },
+            frequencyCap,
+            optimization,
+        },
+    ];
+
+    return JSON.stringify(order);
+};
+
+const getSponsoredAdsLineItemCreateData = ({ adset, orderId }) => {
+    const { lineItemType, name, startDate, endDate } = adset;
+    return {
+        lineItemType: lineItemType || 'STANDARD_DISPLAY', // "STANDARD_DISPLAY" "AMAZON_MOBILE_DISPLAY" "AAP_MOBILE_APP" "VIDEO"
+        name,
+        orderId,
+        startDateTime: formatDateString(startDate),
+        endDateTime: formatDateString(endDate),
+        lineItemClassification: {
+            productCategories: [],
+        },
+        frequencyCap: {
+            type: 'UNCAPPED',
+        },
+        bidding: {
+            baseSupplyBid: 1.5,
+            maxSupplyBid: 5.0,
+        },
+        optimization: {
+            budgetOptimization: true,
+        },
+    };
+};
+
+// Get campaigns from Amazon DSP
+const getDSPCampaigns = async ({ config, advertiserId }) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            config.url = `https://advertising-api.amazon.com/dsp/orders?advertiserIdFilter=${advertiserId}`;
+
+            const response = await axios.request(config);
+
+            resolve({ data: response.data });
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
 module.exports = {
     validateCredentials,
     validateCampaignsArray,
@@ -229,4 +353,10 @@ module.exports = {
     getSponsoredBrandsCreateData,
     getSponsoredDisplayCreateData,
     createCampaigns,
+    getDSPCampaigns,
+
+    isValidDate,
+    formatDateString,
+    getSponsoredAdsCreateData,
+    getSponsoredAdsLineItemCreateData,
 };

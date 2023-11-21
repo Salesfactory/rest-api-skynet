@@ -1,6 +1,6 @@
 const cron = require('node-cron');
 const { Channel, Client } = require('./models');
-const { channelController } = require('./controllers');
+const { channelController, clientController } = require('./controllers');
 const { computeAndStoreMetrics } = require('./utils/bq_spend');
 const {
     sendNotification,
@@ -211,7 +211,7 @@ async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
         const user = usernames[id];
         const campaigns = usersToNotify[id];
 
-        logMessage('Sending email to user: ' + user.name);
+        logMessage('Sending email to user: ' + user.name + ' ' + user.email);
         const html = emailTemplate({
             user: user.name,
             campaigns,

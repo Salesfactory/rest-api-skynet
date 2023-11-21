@@ -10,7 +10,7 @@ const session = require('express-session');
 // api router
 const apiRouter = require('./routes');
 
-module.exports = function ({ getSecrets, amazon, facebook }) {
+module.exports = function ({ getSecrets, amazon, amazonDSP, facebook }) {
     const app = express();
 
     // override the default json response
@@ -59,7 +59,7 @@ module.exports = function ({ getSecrets, amazon, facebook }) {
     app.use(session(sess));
 
     // parse requests
-    app.use(bodyParser.json());
+    app.use(bodyParser.json({ limit: '5mb' }));
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
@@ -74,6 +74,7 @@ module.exports = function ({ getSecrets, amazon, facebook }) {
             // Attach the getSecrets function to the request object
             req.getSecrets = getSecrets;
             req.amazon = amazon;
+            req.amazonDSP = amazonDSP;
             req.facebook = facebook;
             next();
         },

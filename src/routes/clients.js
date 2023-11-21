@@ -1,84 +1,72 @@
 const express = require('express');
 const router = express.Router();
 const { clientController, campaignController } = require('../controllers');
-const { hasPermissions, validateAmazonToken } = require('./middlewares');
+const { validateAmazonToken, hasOneOfRoles } = require('./middlewares');
 
 // client routes
 router.get(
     '/',
-    [hasPermissions(['campaign-group-orchestration'])],
+    [hasOneOfRoles(['Super', 'Admin', 'DM'])],
     clientController.getClients
 );
 router.get(
     '/:clientId',
-    [hasPermissions(['campaign-group-orchestration'])],
+    [hasOneOfRoles(['Super', 'Admin', 'DM'])],
     clientController.getClient
 );
 // non orchestrated campaign advertisements
 router.get(
     '/:id/non-orchestrated/campaigns',
-    [hasPermissions(['campaign-group-orchestration'])],
+    [hasOneOfRoles(['Super', 'Admin', 'DM'])],
     campaignController.getClientBigqueryCampaigns
 );
 router.get(
     '/:id/non-orchestrated/adsets',
-    [hasPermissions(['campaign-group-orchestration'])],
+    [hasOneOfRoles(['Super', 'Admin', 'DM'])],
     campaignController.getClientBigqueryAdsets
 );
 // marketing campaigns routes
 router.get(
     '/:id/marketingcampaign',
-    [hasPermissions(['campaign-group-orchestration'])],
+    [hasOneOfRoles(['Super', 'Admin', 'DM'])],
     campaignController.getMarketingCampaignsByClient
 );
 router.get(
     '/:id/marketingcampaign/:cid',
-    [hasPermissions(['campaign-group-orchestration'])],
+    [hasOneOfRoles(['Super', 'Admin', 'DM'])],
     campaignController.getMarketingCampaignsById
 );
 router.post(
     '/:id/marketingcampaign',
-    [hasPermissions(['campaign-group-orchestration']), validateAmazonToken],
+    [hasOneOfRoles(['Super', 'Admin', 'DM']), validateAmazonToken],
     campaignController.createMarketingCampaign
 );
 router.put(
     '/:id/marketingcampaign/:cid',
-    [hasPermissions(['campaign-group-orchestration']), validateAmazonToken],
+    [hasOneOfRoles(['Super', 'Admin', 'DM']), validateAmazonToken],
     campaignController.updateMarketingCampaign
 );
 router.delete(
     '/:id/marketingcampaign/:cid',
-    [hasPermissions(['campaign-group-orchestration'])],
+    [hasOneOfRoles(['Super', 'Admin', 'DM'])],
     campaignController.deleteMarketingCampaign
 );
 // get campaigngroup monthly budget spreadsheet
 router.get(
     '/:id/marketingcampaign/:cid/generate-spreadsheet',
-    [hasPermissions(['campaign-group-orchestration', 'reporting'])],
+    [hasOneOfRoles(['Super', 'Admin', 'DM', 'Analyst'])],
     campaignController.createReport
 );
 // get campaigngroup pacing spreadsheet
 router.get(
     '/:id/marketingcampaign/:cid/generate-pacings-spreadsheet',
-    [
-        hasPermissions([
-            'campaign-group-orchestration',
-            'budget-pacing',
-            'reporting',
-        ]),
-    ],
+    [hasOneOfRoles(['Super', 'Admin', 'DM', 'Analyst'])],
     campaignController.generatePacingReport
 );
 // get campaigngrop pacing
 router.get(
     '/:id/marketingcampaign/:cid/spending',
-    [
-        hasPermissions([
-            'campaign-group-orchestration',
-            'budget-pacing',
-            'reporting',
-        ]),
-    ],
+    [hasOneOfRoles(['Super', 'Admin', 'DM', 'Analyst'])],
     campaignController.getCampaignGroupPacing
 );
 

@@ -1,4 +1,4 @@
-const { Role, Permission } = require('../models');
+const { Role, User, Permission } = require('../models');
 
 const getRoles = async (req, res) => {
     try {
@@ -149,6 +149,33 @@ const getPermission = async (req, res) => {
     }
 };
 
+const assignRole = async (req, res) => {
+    const { roleId, userId } = req.params;
+    try {
+        const roleInstance = await Role.findOne({ where: { id: roleId } });
+        if (!roleInstance)
+            return res.status(404).json({
+                message: `Role not found`,
+            });
+
+        const userInstance = await User.findOne({ where: { id: userId } });
+
+        if (!userInstance)
+            return res.status(404).json({
+                message: `User not found`,
+            });
+
+        userInstance.roleId = roleInstance.id;
+        await userInstance.save();
+
+        return res.status(200).json({
+            message: `Role with id ${roleId} assigned to user with id ${userId} successfully`,
+        });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getRoles,
     getRole,
@@ -157,4 +184,5 @@ module.exports = {
     deleteRole,
     getPermissions,
     getPermission,
+    assignRole,
 };

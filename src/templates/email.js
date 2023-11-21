@@ -26,7 +26,7 @@ const emailTemplate = ({ user, campaigns, baseUrl }) => {
             </style>
         </head>
         <body>
-        <p>Hello ${user},</p>
+        <p>Hello ${user ?? ''}</p>
         <p>Your campaign groups have triggered at least one critical alarm. To see the details, please log in to the app.</p>
     `;
 

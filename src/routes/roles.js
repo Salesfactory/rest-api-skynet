@@ -1,20 +1,39 @@
 const express = require('express');
 const router = express.Router();
 const { roleController } = require('../controllers');
-const { hasRole } = require('./middlewares');
+const { hasOneOfRoles } = require('./middlewares');
 
-router.get('/permissions', [hasRole('Super')], roleController.getPermissions);
+router.get(
+    '/permissions',
+    [hasOneOfRoles('Super')],
+    roleController.getPermissions
+);
 router.get(
     '/permissions/:id',
-    [hasRole('Super')],
+    [hasOneOfRoles('Super')],
     roleController.getPermission
 );
-//TODO FIX ADD MIDDLEWARES FOR ROLE VALIDATION
-router.get('/', roleController.getRoles);
-router.get('/:id', roleController.getRole);
-
-router.post('/', roleController.createRole);
-router.patch('/:id', roleController.updateRole);
-router.delete('/:id', roleController.deleteRole);
+router.get('/', [hasOneOfRoles(['Super', 'Admin'])], roleController.getRoles);
+router.get('/:id', [hasOneOfRoles(['Super', 'Admin'])], roleController.getRole);
+router.post(
+    '/',
+    [hasOneOfRoles(['Super', 'Admin'])],
+    roleController.createRole
+);
+router.patch(
+    '/:id',
+    [hasOneOfRoles(['Super', 'Admin'])],
+    roleController.updateRole
+);
+router.delete(
+    '/:id',
+    [hasOneOfRoles(['Super', 'Admin'])],
+    roleController.deleteRole
+);
+router.put(
+    '/user/:userId/assign/:roleId',
+    [hasOneOfRoles(['Super', 'Admin'])],
+    roleController.assignRole
+);
 
 module.exports = router;

@@ -1,12 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const { campaignController } = require('../controllers');
-const { hasPermissions, hasRole } = require('./middlewares');
+const {
+    hasRole,
+    hasOneOfRoles,
+    validateAmazonToken,
+} = require('./middlewares');
 
 // campaigns routes
 router.get(
     '/',
-    [hasPermissions(['campaign-group-orchestration'])],
+    [hasOneOfRoles(['Super', 'Admin', 'DM'])],
     campaignController.getRecentCampaigns
 );
 // this is a temp route to test refresh budget pacing (must be deleted later)
@@ -20,6 +24,18 @@ router.get(
     '/check-and-notify-email',
     [hasRole('Super')],
     campaignController.checkAndNotifyUnlinkedOrOffPaceCampaigns
+);
+
+// amazon DSP
+router.get(
+    '/amazon-dsp',
+    [hasOneOfRoles(['Super', 'Admin', 'DM']), validateAmazonToken],
+    campaignController.getAmazonDSPCampaigns
+);
+router.post(
+    '/amazon-dsp',
+    [hasOneOfRoles(['Super', 'Admin', 'DM']), validateAmazonToken],
+    campaignController.createAmazonDSPCampaigns
 );
 
 module.exports = router;

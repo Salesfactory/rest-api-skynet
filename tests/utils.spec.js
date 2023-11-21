@@ -8,9 +8,15 @@ const {
     getSponsoredProductsCreateData,
     getSponsoredBrandsCreateData,
     getSponsoredDisplayCreateData,
-    createCampaigns,
+    isValidDate,
+    formatDateString,
 } = require('../src/utils/allocations');
-const { groupCampaignAllocationsByType } = require('../src/utils/parsers');
+const {
+    groupCampaignAllocationsByType,
+    transformBudgetData,
+} = require('../src/utils/parsers');
+const orchestrationDataSample = require('./parser-sample-data/orchestration-adset-facebook.json');
+const expectedCampaigns = require('./parser-sample-data/expected-campaigns.json');
 jest.mock('../src/models', () => ({
     User: {
         findOne: jest.fn(),
@@ -485,7 +491,7 @@ describe('getConfig', () => {
         const profileId = 'your-profile-id';
 
         // Act: Call the getConfig function
-        const config = getConfig(type, access, profileId);
+        const config = getConfig({ type, access, profileId });
 
         // Assert: Check if the returned config object matches the expected structure
         expect(config).toEqual({
@@ -854,101 +860,139 @@ describe('getSponsoredDisplayCreateData', () => {
     // Add more test cases as needed to cover edge cases and scenarios.
 });
 
-describe('createCampaigns', () => {
-    it('should resolve with errors and successes for Sponsored Products', async () => {
-        // Mock axios request for testing
-        axios.request = jest.fn().mockResolvedValue({
-            data: {
-                campaigns: {
-                    error: [{ code: 'ERROR1' }],
-                    success: [{ code: 'SUCCESS1' }],
-                },
+describe('isValidDate function', () => {
+    it('valid date in "yyyy-MM-dd" format', () => {
+        expect(isValidDate('2023-11-11')).toBe(true);
+    });
+
+    it('valid date in different format', () => {
+        expect(isValidDate('November 11, 2023')).toBe(true);
+    });
+
+    it('invalid date', () => {
+        expect(isValidDate('Invalid Date')).toBe(false);
+    });
+
+    it('empty string input', () => {
+        expect(isValidDate('')).toBe(false);
+    });
+
+    it('undefined input', () => {
+        expect(isValidDate(undefined)).toBe(false);
+    });
+});
+
+describe('formatDateString function', () => {
+    it('valid input date in "yyyy-MM-dd" format', () => {
+        const inputDate = '2023-11-11';
+        const formattedDate = formatDateString(inputDate);
+        expect(isValidDate(formattedDate)).toBe(true);
+    });
+
+    it('valid input date in different format', () => {
+        const inputDate = 'November 11, 2023';
+        const formattedDate = formatDateString(inputDate);
+        expect(isValidDate(formattedDate)).toBe(true);
+    });
+
+    it('invalid input date', () => {
+        const inputDate = 'Invalid Date';
+        const formattedDate = formatDateString(inputDate);
+        expect(formattedDate).toBeNull();
+    });
+
+    it('empty string input', () => {
+        const inputDate = '';
+        const formattedDate = formatDateString(inputDate);
+        expect(formattedDate).toBeNull();
+    });
+
+    it('undefined input', () => {
+        const inputDate = undefined;
+        const formattedDate = formatDateString(inputDate);
+        expect(formattedDate).toBeNull();
+    });
+});
+
+describe('transformBudgetData', () => {
+    it('should return an array with one element for a single channel', () => {
+        const result = transformBudgetData(orchestrationDataSample);
+
+        // Assert that the result is an array
+        expect(Array.isArray(result)).toBe(true);
+
+        // Assert that the array contains one element
+        expect(result).toHaveLength(1);
+    });
+    test('transformBudgetData returns the expected channel array with time periods', () => {
+        const expectedOutput = [
+            {
+                id: '4',
+                name: 'Facebook',
+                isApiEnabled: false,
+                timePeriods: [
+                    {
+                        id: 'january_2023',
+                        label: 'January 2023',
+                        days: 31,
+                        campaigns: expect.any(Array),
+                    },
+                    {
+                        id: 'february_2023',
+                        label: 'February 2023',
+                        days: 28,
+                        campaigns: expect.any(Array),
+                    },
+                    {
+                        id: 'march_2023',
+                        label: 'March 2023',
+                        days: 31,
+                        campaigns: expect.any(Array),
+                    },
+                    {
+                        id: 'april_2023',
+                        label: 'April 2023',
+                        days: 30,
+                        campaigns: expect.any(Array),
+                    },
+                    {
+                        id: 'may_2023',
+                        label: 'May 2023',
+                        days: 31,
+                        campaigns: expect.any(Array),
+                    },
+                    {
+                        id: 'june_2023',
+                        label: 'June 2023',
+                        days: 30,
+                        campaigns: expect.any(Array),
+                    },
+                ],
             },
-        });
+        ];
 
-        const config = {};
-        const type = 'Sponsored Products';
-        const campaignsArray = [];
-        const state = 'ACTIVE';
+        const result = transformBudgetData(orchestrationDataSample);
 
-        const result = await createCampaigns(
-            type,
-            campaignsArray,
-            config,
-            state
-        );
-
-        expect(result).toEqual({
-            errors: [{ code: 'ERROR1' }],
-            successes: [{ code: 'SUCCESS1' }],
-        });
+        expect(result).toEqual(expectedOutput);
     });
+    test('time periods should contain an array of campaigns', () => {
+        // Replace 'yourChannelId' and 'yourPeriodId' with the channel and period you want to test
+        const yourChannelId = '4'; // Replace with your channel ID
+        // You can use this expectedAdsets object for your test purposes.
 
-    it('should resolve with errors and successes for Sponsored Brands', async () => {
-        // Mock axios request for testing
-        axios.request = jest.fn().mockResolvedValue({
-            data: {
-                campaigns: {
-                    error: [{ code: 'ERROR2' }],
-                    success: [{ code: 'SUCCESS2' }],
-                },
-            },
-        });
+        const transformedData = transformBudgetData(orchestrationDataSample);
+        // Find the channel and period in the transformed data
+        const channel = transformedData.find(ch => ch.id === yourChannelId);
 
-        const config = {};
-        const type = 'Sponsored Brands';
-        const campaignsArray = [];
-        const state = 'PAUSED';
+        // Assert that the channel and period exist
+        expect(channel).toBeDefined();
 
-        const result = await createCampaigns(
-            type,
-            campaignsArray,
-            config,
-            state
-        );
+        for (const period of orchestrationDataSample.periods) {
+            const { campaigns } = channel.timePeriods.find(
+                p => p.id === period.id
+            );
 
-        expect(result).toEqual({
-            errors: [{ code: 'ERROR2' }],
-            successes: [{ code: 'SUCCESS2' }],
-        });
-    });
-
-    it('should resolve with errors and successes for Sponsored Display', async () => {
-        // Mock axios request for testing
-        axios.request = jest.fn().mockResolvedValue({
-            data: [
-                { code: 'SUCCESS' },
-                { code: 'ERROR3' },
-                { code: 'SUCCESS' },
-            ],
-        });
-
-        const config = {};
-        const type = 'Sponsored Display';
-        const campaignsArray = [];
-        const state = 'PAUSED';
-
-        const result = await createCampaigns(
-            type,
-            campaignsArray,
-            config,
-            state
-        );
-
-        expect(result).toEqual({
-            errors: [{ code: 'ERROR3' }],
-            successes: [{ code: 'SUCCESS' }, { code: 'SUCCESS' }],
-        });
-    });
-
-    it('should reject with an error for an unknown type', async () => {
-        const config = {};
-        const type = 'Unknown Type';
-        const campaignsArray = [];
-        const state = 'PAUSED';
-
-        await expect(
-            createCampaigns(type, campaignsArray, config, state)
-        ).rejects.toThrow('Unknown type');
+            expect(campaigns).toEqual(expectedCampaigns[period.id]);
+        }
     });
 });
