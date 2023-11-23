@@ -11,6 +11,8 @@ router.get('/:id', userController.getUserById);
 router.post('/', userController.createUser);
 // this endpoint is being used by the user to update his own data
 router.put('/:id', userController.updateUser);
+// this endpoint is used to update the user role
+router.patch('/:id', userController.updateUserRole);
 
 // user won't be able to delete his own account
 router.delete(

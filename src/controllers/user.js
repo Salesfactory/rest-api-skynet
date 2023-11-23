@@ -179,6 +179,48 @@ const updateUser = async (req, res) => {
     }
 };
 
+const updateUserRole = async (req, res) => {
+    const id = req.params.id;
+    const isUUID = validateUUID(id);
+    const searchParams = {
+        ...(isUUID ? { uid: id } : { id: parseInt(id) }),
+    };
+    const { roleId } = req.body;
+    const uniqueFields = ['uid'];
+
+    try {
+        const user = await User.findOne({ where: searchParams });
+        if (!user)
+            return res.status(404).json({
+                message: `User not found`,
+            });
+
+        const userData = await User.update(
+            {
+                roleId,
+            },
+            { where: searchParams }
+        );
+
+        return res.status(201).json({
+            data: userData,
+            message: `User updated successfully`,
+        });
+    } catch (error) {
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            if (error.fields && Object.keys(error.fields).length > 0) {
+                const field = Object.keys(error.fields)[0];
+                if (uniqueFields.includes(field)) {
+                    return res.status(400).json({
+                        message: `${field} already exists`,
+                    });
+                }
+            }
+        }
+        return res.status(500).json({ message: error.message });
+    }
+};
+
 const deleteUser = async (req, res) => {
     const id = req.params.id;
     const isUUID = validateUUID(id);
@@ -208,5 +250,6 @@ module.exports = {
     getUserById,
     createUser,
     updateUser,
+    updateUserRole,
     deleteUser,
 };
