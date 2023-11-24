@@ -519,6 +519,9 @@ const createMarketingCampaign = async (req, res) => {
         };
 
         if (campaignGroup) {
+            let amazonCampaigns = [];
+            let facebookCampaigns = [];
+
             if (isAmazonAdvertisingSponsoredAdsNotEmpty) {
                 if (isAccessInvalid) {
                     createdAmazonCampaignsResult.fails.push({
@@ -532,6 +535,7 @@ const createMarketingCampaign = async (req, res) => {
                     for (const campaign of campaignDataByChannel[
                         'Amazon Advertising'
                     ]['Sponsored Ads']) {
+                        let amazonAdset = [];
                         try {
                             const response = await req.amazon.createCampaign({
                                 campaign: {
@@ -574,6 +578,9 @@ const createMarketingCampaign = async (req, res) => {
                                                 }
                                             );
                                         } else {
+                                            amazonAdset.push(
+                                                adsetResponse.data
+                                            );
                                             createdAmazonAdsetsResult.success.push(
                                                 {
                                                     name: adset.id,
@@ -588,6 +595,12 @@ const createMarketingCampaign = async (req, res) => {
                                         ...response.data,
                                     });
                                 }
+                                amazonCampaigns = push({
+                                    name: campaign.id,
+                                    ...response.data,
+                                    amazonAdset,
+                                });
+
                                 createdAmazonCampaignsResult.success.push({
                                     name: campaign.id,
                                     ...response.data,
@@ -626,6 +639,7 @@ const createMarketingCampaign = async (req, res) => {
                 );
 
                 for (const campaign of campaigns) {
+                    let facebookAdset = [];
                     try {
                         const {
                             name,
@@ -694,6 +708,7 @@ const createMarketingCampaign = async (req, res) => {
                                                     status: status || 'PAUSED',
                                                 }
                                             );
+                                        facebookAdset.push(adsetResponse);
                                         createdFacebookAdsetResult.success.push(
                                             adsetResponse
                                         );
@@ -735,6 +750,10 @@ const createMarketingCampaign = async (req, res) => {
                                 }
                             }
                         }
+                        facebookCampaigns.push({
+                            facebookCampaign,
+                            facebookAdset,
+                        });
                     } catch (campaignError) {
                         console.error(
                             'Error creating campaign:',
@@ -753,6 +772,8 @@ const createMarketingCampaign = async (req, res) => {
                 campaign_group_id: campaignGroup.id,
                 periods,
                 allocations,
+                amazonCampaigns,
+                facebookCampaigns,
             });
             campaignGroup.budgets = newBudget;
         }
