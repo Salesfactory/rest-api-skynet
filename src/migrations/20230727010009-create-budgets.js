@@ -28,6 +28,14 @@ module.exports = {
                 type: Sequelize.JSON,
                 allowNull: false,
             },
+            amazonCampaigns: {
+                type: Sequelize.JSON,
+                allowNull: true,
+            },
+            facebookCampaigns: {
+                type: Sequelize.JSON,
+                allowNull: true,
+            },
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE,
