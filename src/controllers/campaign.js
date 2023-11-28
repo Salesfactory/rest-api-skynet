@@ -507,8 +507,6 @@ const createMarketingCampaign = async (req, res) => {
                 .length > 0;
         const isAccessInvalid = !access?.CLIENT_ID || !access?.ACCESS_TOKEN;
 
-        let successCampaigns = null;
-        let errorCampaigns = null;
         const createdfacebookCampaignsResult = {
             success: [],
             fails: [],
@@ -548,6 +546,7 @@ const createMarketingCampaign = async (req, res) => {
                             });
 
                             if (
+                                Array.isArray(response?.data) &&
                                 response?.data?.some(data => data.errorDetails)
                             ) {
                                 createdAmazonCampaignsResult.fails.push({
@@ -567,6 +566,9 @@ const createMarketingCampaign = async (req, res) => {
                                                 profileId,
                                             });
                                         if (
+                                            Array.isArray(
+                                                adsetResponse?.data
+                                            ) &&
                                             adsetResponse?.data?.some(
                                                 data => data.errorDetails
                                             )
@@ -595,7 +597,7 @@ const createMarketingCampaign = async (req, res) => {
                                         ...response.data,
                                     });
                                 }
-                                amazonCampaigns = push({
+                                amazonCampaigns.push({
                                     name: campaign.id,
                                     ...response.data,
                                     amazonAdset,
@@ -777,53 +779,40 @@ const createMarketingCampaign = async (req, res) => {
             });
             campaignGroup.budgets = newBudget;
         }
+
+        let returnStatus = 201;
+        let returnMessage = 'Marketing campaign created successfully';
+
         if (
             createdfacebookCampaignsResult.fails.length > 0 ||
-            createdFacebookAdsetResult.fails.length > 0
+            createdFacebookAdsetResult.fails.length > 0 ||
+            createdAmazonCampaignsResult.fails.length > 0 ||
+            createdAmazonAdsetsResult.fails.length > 0
         ) {
-            return res.status(207).json({
-                message: 'Marketing campaign created with errors',
-                data: {
-                    ...campaignGroup,
-                    amazonData: {
-                        success: successCampaigns,
-                        error: errorCampaigns,
-                    },
-                    facebook: {
-                        success: createdfacebookCampaignsResult.success,
-                        error: createdfacebookCampaignsResult.fails,
-                        adsets: {
-                            success: [],
-                            error: createdFacebookAdsetResult.fails,
-                        },
-                    },
-                },
-            });
+            returnStatus = 207;
+            returnMessage = 'Marketing campaign created with errors';
         }
 
-        if (createdAmazonCampaignsResult.fails.length > 0) {
-            return res.status(207).json({
-                message: 'Marketing campaign created with errors',
-                data: {
-                    ...campaignGroup,
-                    amazonData: {
-                        success: createdAmazonCampaignsResult.success,
-                        error: createdAmazonCampaignsResult.fails,
+        res.status(returnStatus).json({
+            message: returnMessage,
+            data: {
+                ...campaignGroup,
+                amazonData: {
+                    success: createdAmazonCampaignsResult.success,
+                    error: createdAmazonCampaignsResult.fails,
+                    adsets: {
+                        success: createdAmazonAdsetsResult.success,
+                        error: createdAmazonAdsetsResult.fails,
                     },
                 },
-            });
-        }
-
-        res.status(201).json({
-            message: 'Marketing campaign created successfully',
-            data: campaignGroup,
-            amazonData: {
-                success: createdAmazonCampaignsResult.success,
-                error: createdAmazonCampaignsResult.fails,
-            },
-            facebook: {
-                success: createdfacebookCampaignsResult.success,
-                error: createdfacebookCampaignsResult.fails,
+                facebook: {
+                    success: createdfacebookCampaignsResult.success,
+                    error: createdfacebookCampaignsResult.fails,
+                    adsets: {
+                        success: createdFacebookAdsetResult.success,
+                        error: createdFacebookAdsetResult.fails,
+                    },
+                },
             },
         });
     } catch (error) {
