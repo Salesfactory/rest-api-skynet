@@ -50,6 +50,21 @@ const start = () => {
             { timezone: 'America/New_York' }
         );
 
+        cron.schedule(
+            '0 1 * * *',
+            async () => {
+                try {
+                    await deleteReadNotifications();
+                } catch (error) {
+                    console.log(error);
+                    logMessage(
+                        'Error while deleting old read notifications: ' + error
+                    );
+                }
+            },
+            { timezone: 'America/New_York' }
+        );
+
         // update all budget metrics every day at 2 hours 0 minutes
         cron.schedule(
             '0 2 * * *',
@@ -102,6 +117,19 @@ const start = () => {
  * Checks if there are new channels in bigquery and inserts them in the database
  * Also checks if there are new advertisers for the channels and inserts them in the database
  */
+async function deleteReadNotifications() {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    await Notification.destroy({
+        where: {
+            status: 'read',
+            updatedAt: {
+                [Op.lte]: sevenDaysAgo,
+            },
+        },
+    });
+}
 async function checkAndInsertNewChannels() {
     logMessage('Starting daily check for new channels');
     // get channels and clients from bigquery
