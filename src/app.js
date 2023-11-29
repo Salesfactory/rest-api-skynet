@@ -9,11 +9,15 @@ const cronjobs = require('./cronjobs');
 const session = require('express-session');
 // api router
 const apiRouter = require('./routes');
-const { addJobToQueue } = require('./services/queue/addJob');
-const { processNextJob } = require('./services/queue/processJob');
 const IORedis = require('ioredis');
 
-module.exports = function ({ getSecrets, amazon, amazonDSP, facebook }) {
+module.exports = function ({
+    getSecrets,
+    amazon,
+    amazonDSP,
+    facebook,
+    amzQueue,
+}) {
     const app = express();
 
     // override the default json response
@@ -74,8 +78,7 @@ module.exports = function ({ getSecrets, amazon, amazonDSP, facebook }) {
     app.post('/add-job', async (req, res) => {
         try {
             const jobData = req.body;
-            console.log(jobData);
-            const jobId = await addJobToQueue(jobData);
+            const jobId = await amzQueue.addJobToQueue(jobData);
             res.status(200).json({ message: `Job added with ID: ${jobId}` });
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -94,7 +97,6 @@ module.exports = function ({ getSecrets, amazon, amazonDSP, facebook }) {
             const connection = new IORedis(redisConfig);
 
             async function storeResultinRedis(job) {
-                console.log(job);
                 const result = `Processed job ${
                     job.id
                 } with data: ${JSON.stringify(job.data)}`;
@@ -102,7 +104,7 @@ module.exports = function ({ getSecrets, amazon, amazonDSP, facebook }) {
                 return result;
             }
 
-            await processNextJob(storeResultinRedis);
+            await amzQueue.startProcessingtJobs(storeResultinRedis);
 
             res.status(200).json({ message: 'Job processing initiated' });
         } catch (error) {
@@ -123,14 +125,11 @@ module.exports = function ({ getSecrets, amazon, amazonDSP, facebook }) {
 
             // Fetch all keys that match job results
             const keys = await connection.keys('jobResult:*');
-            console.log(keys);
 
             // Retrieve all job results
             const results = await Promise.all(
                 keys.map(key => connection.get(key))
             );
-
-            console.log(results);
 
             res.status(200).json({ data: results });
         } catch (error) {
