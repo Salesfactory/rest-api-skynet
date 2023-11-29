@@ -344,6 +344,40 @@ const getDSPCampaigns = async ({ config, advertiserId }) => {
     });
 };
 
+const findIdInAllocations = ({ allocations, periods, id }) => {
+    let found = false;
+    for (const [index, period] of periods.entries()) {
+        const periodAllocations = allocations[period.id];
+
+        if (!Array.isArray(periodAllocations.allocations)) continue;
+
+        for (const channel of periodAllocations.allocations) {
+            if (!Array.isArray(channel.allocations)) continue;
+
+            for (const campaignType of channel.allocations) {
+                if (!Array.isArray(campaignType.allocations)) continue;
+
+                for (const campaign of campaignType.allocations) {
+                    if (campaign.id === id) {
+                        found = true;
+                        break;
+                    }
+
+                    if (!Array.isArray(campaign.allocations)) continue;
+
+                    for (const adset of campaign.allocations) {
+                        if (adset.id === id) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return found;
+};
+
 module.exports = {
     validateCredentials,
     validateCampaignsArray,
@@ -354,6 +388,8 @@ module.exports = {
     getSponsoredDisplayCreateData,
     createCampaigns,
     getDSPCampaigns,
+
+    findIdInAllocations,
 
     isValidDate,
     formatDateString,
