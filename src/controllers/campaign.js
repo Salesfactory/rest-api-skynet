@@ -838,6 +838,7 @@ const updateMarketingCampaign = async (req, res) => {
         allocations,
         comments,
         change_reason_log,
+        facebookAdAccountId,
     } = req.body;
     try {
         const secret = await req.getSecrets();
@@ -1027,12 +1028,14 @@ const updateMarketingCampaign = async (req, res) => {
                     ]['Sponsored Ads']) {
                         let amazonAdset = [];
                         // check for non previously added campaigns
-                        const campaingFoundInAllocations = findIdInAllocations({
-                            allocations: cgAllocations,
-                            periods: cgPeriods,
-                            id: campaign.id,
-                        });
-                        if (campaingFoundInAllocations) {
+                        const campaingFoundInAllocations =
+                            await findIdInAllocations({
+                                allocations: cgAllocations,
+                                periods: cgPeriods,
+                                id: campaign.id,
+                            });
+
+                        if (!campaingFoundInAllocations) {
                             try {
                                 const response =
                                     await req.amazon.createCampaign({
@@ -1058,16 +1061,16 @@ const updateMarketingCampaign = async (req, res) => {
                                 } else {
                                     const orderId = response.data[0]?.orderId;
                                     if (orderId) {
-                                        for (const adset of campaignGroup.adsets) {
+                                        for (const adset of campaign.adsets) {
                                             // check for non previously added adsets
                                             const adsetFoundInAllocations =
-                                                findIdInAllocations({
+                                                await findIdInAllocations({
                                                     allocations: cgAllocations,
                                                     periods: cgPeriods,
                                                     id: adset.id,
                                                 });
 
-                                            if (adsetFoundInAllocations) {
+                                            if (!adsetFoundInAllocations) {
                                                 const adsetResponse =
                                                     await req.amazon.createAdset(
                                                         {
@@ -1112,7 +1115,7 @@ const updateMarketingCampaign = async (req, res) => {
                                             ...response.data,
                                         });
                                     }
-                                    amazonCampaigns = push({
+                                    amazonCampaigns.push({
                                         name: campaignGroup.id,
                                         ...response.data,
                                         amazonAdset,
@@ -1159,13 +1162,14 @@ const updateMarketingCampaign = async (req, res) => {
                 for (const campaign of campaigns) {
                     let facebookAdset = [];
 
-                    const campaingFoundInAllocations = findIdInAllocations({
-                        allocations: cgAllocations,
-                        periods: cgPeriods,
-                        id: campaign.id,
-                    });
+                    const campaingFoundInAllocations =
+                        await findIdInAllocations({
+                            allocations: cgAllocations,
+                            periods: cgPeriods,
+                            id: campaign.id,
+                        });
 
-                    if (campaingFoundInAllocations) {
+                    if (!campaingFoundInAllocations) {
                         try {
                             const {
                                 name,
@@ -1201,13 +1205,13 @@ const updateMarketingCampaign = async (req, res) => {
                                 for (const timePeriod of timePeriods) {
                                     for (const adset of timePeriod.adsets) {
                                         const adsetFoundInAllocations =
-                                            findIdInAllocations({
+                                            await findIdInAllocations({
                                                 allocations: cgAllocations,
                                                 periods: cgPeriods,
                                                 id: adset.id,
                                             });
 
-                                        if (adsetFoundInAllocations) {
+                                        if (!adsetFoundInAllocations) {
                                             try {
                                                 const {
                                                     name: adsetName,
@@ -1327,7 +1331,7 @@ const updateMarketingCampaign = async (req, res) => {
             message: 'Marketing campaign updated successfully',
         });
     } catch (error) {
-        console.log('ERROR', error);
+        console.log(error);
         res.status(500).json({ message: error.message });
     }
 };

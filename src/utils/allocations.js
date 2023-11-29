@@ -344,7 +344,7 @@ const getDSPCampaigns = async ({ config, advertiserId }) => {
     });
 };
 
-const findIdInAllocations = ({ allocations, periods, id }) => {
+const findIdInAllocations = async ({ allocations, periods, id }) => {
     let found = false;
     for (const [index, period] of periods.entries()) {
         const periodAllocations = allocations[period.id];
