@@ -9,6 +9,9 @@ const cronjobs = require('./cronjobs');
 const session = require('express-session');
 // api router
 const apiRouter = require('./routes');
+const { addJobToQueue } = require('./services/queue/addJob');
+const { processNextJob } = require('./services/queue/processJob');
+const IORedis = require('ioredis');
 
 module.exports = function ({ getSecrets, amazon, amazonDSP, facebook }) {
     const app = express();
@@ -65,6 +68,78 @@ module.exports = function ({ getSecrets, amazon, amazonDSP, facebook }) {
 
     app.get('/', (req, res) => {
         res.send('Hello!');
+    });
+
+    // Endpoint to add a job to the queue
+    app.post('/add-job', async (req, res) => {
+        try {
+            const jobData = req.body;
+            console.log(jobData);
+            const jobId = await addJobToQueue(jobData);
+            res.status(200).json({ message: `Job added with ID: ${jobId}` });
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    });
+
+    // Endpoint to manually trigger job processing
+    app.post('/process-job', async (req, res) => {
+        try {
+            const redisConfig = {
+                host: process.env.REDIS_HOST || '127.0.0.1', // Set these in the Elastic Beanstalk environment
+                port: process.env.REDIS_PORT || 6379,
+                password: process.env.REDIS_PASSWORD || undefined, // If your ElastiCache Redis has a password
+                maxRetriesPerRequest: null,
+            };
+            const connection = new IORedis(redisConfig);
+
+            async function storeResultinRedis(job) {
+                console.log(job);
+                const result = `Processed job ${
+                    job.id
+                } with data: ${JSON.stringify(job.data)}`;
+                await connection.set(`jobResult:${job.id}`, result);
+                return result;
+            }
+
+            await processNextJob(storeResultinRedis);
+
+            res.status(200).json({ message: 'Job processing initiated' });
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    });
+
+    // GET endpoint to retrieve all processed job results
+    app.get('/get-job-results', async (req, res) => {
+        try {
+            const redisConfig = {
+                host: process.env.REDIS_HOST || '127.0.0.1', // Set these in the Elastic Beanstalk environment
+                port: process.env.REDIS_PORT || 6379,
+                password: process.env.REDIS_PASSWORD || undefined, // If your ElastiCache Redis has a password
+                maxRetriesPerRequest: null,
+            };
+            const connection = new IORedis(redisConfig);
+
+            // Fetch all keys that match job results
+            const keys = await connection.keys('jobResult:*');
+            console.log(keys);
+
+            // Retrieve all job results
+            const results = await Promise.all(
+                keys.map(key => connection.get(key))
+            );
+
+            console.log(results);
+
+            res.status(200).json({ data: results });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                message: 'Error retrieving job results',
+                error: error.message,
+            });
+        }
     });
 
     // api routes
