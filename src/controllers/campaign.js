@@ -507,8 +507,6 @@ const createMarketingCampaign = async (req, res) => {
                 .length > 0;
         const isAccessInvalid = !access?.CLIENT_ID || !access?.ACCESS_TOKEN;
 
-        let successCampaigns = null;
-        let errorCampaigns = null;
         const createdfacebookCampaignsResult = {
             success: [],
             fails: [],
@@ -519,6 +517,9 @@ const createMarketingCampaign = async (req, res) => {
         };
 
         if (campaignGroup) {
+            let amazonCampaigns = [];
+            let facebookCampaigns = [];
+
             if (isAmazonAdvertisingSponsoredAdsNotEmpty) {
                 if (isAccessInvalid) {
                     createdAmazonCampaignsResult.fails.push({
@@ -532,6 +533,7 @@ const createMarketingCampaign = async (req, res) => {
                     for (const campaign of campaignDataByChannel[
                         'Amazon Advertising'
                     ]['Sponsored Ads']) {
+                        let amazonAdset = [];
                         try {
                             const response = await req.amazon.createCampaign({
                                 campaign: {
@@ -544,6 +546,7 @@ const createMarketingCampaign = async (req, res) => {
                             });
 
                             if (
+                                Array.isArray(response?.data) &&
                                 response?.data?.some(data => data.errorDetails)
                             ) {
                                 createdAmazonCampaignsResult.fails.push({
@@ -563,6 +566,9 @@ const createMarketingCampaign = async (req, res) => {
                                                 profileId,
                                             });
                                         if (
+                                            Array.isArray(
+                                                adsetResponse?.data
+                                            ) &&
                                             adsetResponse?.data?.some(
                                                 data => data.errorDetails
                                             )
@@ -574,6 +580,9 @@ const createMarketingCampaign = async (req, res) => {
                                                 }
                                             );
                                         } else {
+                                            amazonAdset.push(
+                                                adsetResponse.data
+                                            );
                                             createdAmazonAdsetsResult.success.push(
                                                 {
                                                     name: adset.id,
@@ -588,6 +597,12 @@ const createMarketingCampaign = async (req, res) => {
                                         ...response.data,
                                     });
                                 }
+                                amazonCampaigns.push({
+                                    name: campaign.id,
+                                    ...response.data,
+                                    amazonAdset,
+                                });
+
                                 createdAmazonCampaignsResult.success.push({
                                     name: campaign.id,
                                     ...response.data,
@@ -626,6 +641,7 @@ const createMarketingCampaign = async (req, res) => {
                 );
 
                 for (const campaign of campaigns) {
+                    let facebookAdset = [];
                     try {
                         const {
                             name,
@@ -694,6 +710,7 @@ const createMarketingCampaign = async (req, res) => {
                                                     status: status || 'PAUSED',
                                                 }
                                             );
+                                        facebookAdset.push(adsetResponse);
                                         createdFacebookAdsetResult.success.push(
                                             adsetResponse
                                         );
@@ -735,6 +752,10 @@ const createMarketingCampaign = async (req, res) => {
                                 }
                             }
                         }
+                        facebookCampaigns.push({
+                            facebookCampaign,
+                            facebookAdset,
+                        });
                     } catch (campaignError) {
                         console.error(
                             'Error creating campaign:',
@@ -753,56 +774,45 @@ const createMarketingCampaign = async (req, res) => {
                 campaign_group_id: campaignGroup.id,
                 periods,
                 allocations,
+                amazonCampaigns,
+                facebookCampaigns,
             });
             campaignGroup.budgets = newBudget;
         }
+
+        let returnStatus = 201;
+        let returnMessage = 'Marketing campaign created successfully';
+
         if (
             createdfacebookCampaignsResult.fails.length > 0 ||
-            createdFacebookAdsetResult.fails.length > 0
+            createdFacebookAdsetResult.fails.length > 0 ||
+            createdAmazonCampaignsResult.fails.length > 0 ||
+            createdAmazonAdsetsResult.fails.length > 0
         ) {
-            return res.status(207).json({
-                message: 'Marketing campaign created with errors',
-                data: {
-                    ...campaignGroup,
-                    amazonData: {
-                        success: successCampaigns,
-                        error: errorCampaigns,
-                    },
-                    facebook: {
-                        success: createdfacebookCampaignsResult.success,
-                        error: createdfacebookCampaignsResult.fails,
-                        adsets: {
-                            success: [],
-                            error: createdFacebookAdsetResult.fails,
-                        },
-                    },
-                },
-            });
+            returnStatus = 207;
+            returnMessage = 'Marketing campaign created with errors';
         }
 
-        if (createdAmazonCampaignsResult.fails.length > 0) {
-            return res.status(207).json({
-                message: 'Marketing campaign created with errors',
-                data: {
-                    ...campaignGroup,
-                    amazonData: {
-                        success: createdAmazonCampaignsResult.success,
-                        error: createdAmazonCampaignsResult.fails,
+        res.status(returnStatus).json({
+            message: returnMessage,
+            data: {
+                ...campaignGroup,
+                amazonData: {
+                    success: createdAmazonCampaignsResult.success,
+                    error: createdAmazonCampaignsResult.fails,
+                    adsets: {
+                        success: createdAmazonAdsetsResult.success,
+                        error: createdAmazonAdsetsResult.fails,
                     },
                 },
-            });
-        }
-
-        res.status(201).json({
-            message: 'Marketing campaign created successfully',
-            data: campaignGroup,
-            amazonData: {
-                success: createdAmazonCampaignsResult.success,
-                error: createdAmazonCampaignsResult.fails,
-            },
-            facebook: {
-                success: createdfacebookCampaignsResult.success,
-                error: createdfacebookCampaignsResult.fails,
+                facebook: {
+                    success: createdfacebookCampaignsResult.success,
+                    error: createdfacebookCampaignsResult.fails,
+                    adsets: {
+                        success: createdFacebookAdsetResult.success,
+                        error: createdFacebookAdsetResult.fails,
+                    },
+                },
             },
         });
     } catch (error) {

@@ -23,6 +23,14 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.JSON,
                 allowNull: false,
             },
+            amazonCampaigns: {
+                type: DataTypes.JSON,
+                allowNull: true,
+            },
+            facebookCampaigns: {
+                type: DataTypes.JSON,
+                allowNull: true,
+            },
         },
         {
             sequelize,
