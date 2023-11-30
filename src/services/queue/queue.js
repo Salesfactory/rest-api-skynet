@@ -5,11 +5,12 @@ const IORedis = require('ioredis');
 
 function createQueue() {
     const redisConfig = {
-        host: process.env.REDIS_HOST || '127.0.0.1', // Set these in the Elastic Beanstalk environment
-        port: process.env.REDIS_PORT || 6379,
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT,
         password: process.env.REDIS_PASSWORD || undefined, // If your ElastiCache Redis has a password
         maxRetriesPerRequest: null,
     };
+    console.log(JSON.stringify(redisConfig, null, 2));
     const connection = new IORedis(redisConfig);
     const amzQueue = new Queue('AmzQueue', connection);
 
