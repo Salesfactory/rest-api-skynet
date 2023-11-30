@@ -50,7 +50,9 @@ describe('createQueue', () => {
         const jobProcessingLogic = jest.fn();
         queue.startProcessingtJobs(jobProcessingLogic);
 
-        expect(Worker).toHaveBeenCalledWith('AmzQueue', expect.any(Function));
+        expect(Worker).toHaveBeenCalledWith('AmzQueue', expect.any(Function), {
+            connection: expect.anything(),
+        });
         expect(mockWorkerInstance.on).toHaveBeenCalledWith(
             'completed',
             expect.any(Function)

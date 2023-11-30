@@ -12,7 +12,7 @@ function createQueue() {
     };
     console.log(JSON.stringify(redisConfig, null, 2));
     const connection = new IORedis(redisConfig);
-    const amzQueue = new Queue('AmzQueue', connection);
+    const amzQueue = new Queue('AmzQueue', { connection });
 
     return {
         addJobToQueue: async jobData => {
@@ -26,10 +26,14 @@ function createQueue() {
             }
         },
         startProcessingtJobs: async jobProcessingLogic => {
-            const worker = new Worker('AmzQueue', async job => {
-                console.log(`Processing job ${job.id} with data`, job.data);
-                await jobProcessingLogic(job);
-            });
+            const worker = new Worker(
+                'AmzQueue',
+                async job => {
+                    console.log(`Processing job ${job.id} with data`, job.data);
+                    await jobProcessingLogic(job);
+                },
+                { connection }
+            );
 
             worker.on('completed', job => {
                 console.log(`Job ${job.id} has completed!`);
