@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const { Channel, Client } = require('./models');
+const { Channel, Client, Notification } = require('./models');
 const { channelController, clientController } = require('./controllers');
 const { computeAndStoreMetrics } = require('./utils/bq_spend');
 const {
@@ -14,6 +14,7 @@ const {
 const { checkInFlight } = require('./utils');
 const { emailTemplate } = require('./templates/email');
 const { send } = require('./utils/email');
+const { Op } = require('sequelize');
 
 const formattedTime = time => {
     return (
@@ -125,7 +126,7 @@ async function deleteReadNotifications() {
         where: {
             status: 'read',
             updatedAt: {
-                [Op.lte]: sevenDaysAgo,
+                [Op.lt]: sevenDaysAgo,
             },
         },
     });
