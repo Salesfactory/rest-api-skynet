@@ -1,65 +1,59 @@
-jest.mock('bullmq'); // Mock the bull library
-const { createQueue } = require('./queue'); // Adjust the import path as needed
-const { Queue, Worker } = require('bullmq');
+const { createQueue } = require('./queue');
+const jobs = require('../../../__mocks__/jobs');
 
-jest.mock('ioredis'); // Mock the IORedis module
+describe('Queue Module', () => {
+    const mockQueue = createQueue(jobs);
 
-describe('createQueue', () => {
-    let originalConsoleLog;
-
-    beforeAll(() => {
-        // Spy on console.log and store the original implementation
-        originalConsoleLog = console.log;
-        console.log = jest.fn();
-    });
-
-    afterEach(() => {
-        console.log = originalConsoleLog;
+    beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    it('should create a queue object with addJobToQueue method', async () => {
-        // Mock the Queue constructor
-        const mockQueueInstance = {
-            add: jest.fn().mockResolvedValue({ id: '123' }),
-        };
-        Queue.mockImplementationOnce(() => mockQueueInstance);
+    describe('addJobToQueue', () => {
+        it('should add a job to the queue', async () => {
+            const mockJobData = { task: 'test' };
+            jobs.create.mockResolvedValue({ id: '123', data: mockJobData });
 
-        const queue = createQueue();
+            const jobId = await mockQueue.addJobToQueue(mockJobData);
 
-        expect(queue.addJobToQueue).toBeDefined();
-        const jobData = { text: 'Test job' };
-        const jobId = await queue.addJobToQueue(jobData);
+            expect(jobs.create).toHaveBeenCalledWith({ data: mockJobData });
+            expect(jobId).toBe('123');
+        });
 
-        expect(Queue).toHaveBeenCalledWith('AmzQueue', expect.anything());
-        expect(mockQueueInstance.add).toHaveBeenCalledWith('myJob', jobData);
-        expect(jobId).toBe('123');
+        it('should throw an error if job creation fails', async () => {
+            jobs.create.mockRejectedValue(new Error('Failed to create job'));
+
+            await expect(mockQueue.addJobToQueue({})).rejects.toThrow(
+                'Failed to create job'
+            );
+        });
     });
 
-    it('should create a queue object with startProcessingtJobs method', async () => {
-        // Mock the Worker constructor
-        const mockWorkerInstance = {
-            on: jest.fn(),
-        };
-        Worker.mockImplementationOnce(() => mockWorkerInstance);
+    describe('startProcessingJobs', () => {
+        it('should process a pending job', async () => {
+            const mockJob = { id: '123', update: jest.fn() };
+            jobs.findOne.mockResolvedValue(mockJob);
 
-        const queue = createQueue();
+            await mockQueue.startProcessingtJobs(jest.fn());
 
-        expect(queue.startProcessingtJobs).toBeDefined();
-
-        const jobProcessingLogic = jest.fn();
-        queue.startProcessingtJobs(jobProcessingLogic);
-
-        expect(Worker).toHaveBeenCalledWith('AmzQueue', expect.any(Function), {
-            connection: expect.anything(),
+            expect(jobs.findOne).toHaveBeenCalledWith({
+                where: { status: 'pending' },
+            });
+            expect(mockJob.update).toHaveBeenCalledTimes(2);
         });
-        expect(mockWorkerInstance.on).toHaveBeenCalledWith(
-            'completed',
-            expect.any(Function)
-        );
-        expect(mockWorkerInstance.on).toHaveBeenCalledWith(
-            'failed',
-            expect.any(Function)
-        );
+    });
+
+    describe('getCompletedJobs', () => {
+        it('should return completed jobs', async () => {
+            const mockCompletedJobs = [{ id: '123', processedAt: new Date() }];
+            jobs.findAll.mockResolvedValue(mockCompletedJobs);
+
+            const completedJobs = await mockQueue.getCompletedJobs();
+
+            expect(jobs.findAll).toHaveBeenCalledWith({
+                where: { status: 'completed' },
+                attributes: ['id', 'processedAt'],
+            });
+            expect(completedJobs).toEqual(mockCompletedJobs);
+        });
     });
 });

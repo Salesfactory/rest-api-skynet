@@ -88,20 +88,8 @@ module.exports = function ({
     // Endpoint to manually trigger job processing
     app.post('/process-job', async (req, res) => {
         try {
-            const redisConfig = {
-                host: process.env.REDIS_HOST || '127.0.0.1', // Set these in the Elastic Beanstalk environment
-                port: process.env.REDIS_PORT || 6379,
-                password: process.env.REDIS_PASSWORD || undefined, // If your ElastiCache Redis has a password
-                maxRetriesPerRequest: null,
-            };
-            const connection = new IORedis(redisConfig);
-
             async function storeResultinRedis(job) {
-                const result = `Processed job ${
-                    job.id
-                } with data: ${JSON.stringify(job.data)}`;
-                await connection.set(`jobResult:${job.id}`, result);
-                return result;
+                return null;
             }
 
             await amzQueue.startProcessingtJobs(storeResultinRedis);
@@ -115,23 +103,8 @@ module.exports = function ({
     // GET endpoint to retrieve all processed job results
     app.get('/get-job-results', async (req, res) => {
         try {
-            const redisConfig = {
-                host: process.env.REDIS_HOST || '127.0.0.1', // Set these in the Elastic Beanstalk environment
-                port: process.env.REDIS_PORT || 6379,
-                password: process.env.REDIS_PASSWORD || undefined, // If your ElastiCache Redis has a password
-                maxRetriesPerRequest: null,
-            };
-            const connection = new IORedis(redisConfig);
-
-            // Fetch all keys that match job results
-            const keys = await connection.keys('jobResult:*');
-
-            // Retrieve all job results
-            const results = await Promise.all(
-                keys.map(key => connection.get(key))
-            );
-
-            res.status(200).json({ data: results });
+            const completedJobs = await amzQueue.getCompletedJobs();
+            res.status(200).json({ data: completedJobs });
         } catch (error) {
             console.log(error);
             res.status(500).json({
