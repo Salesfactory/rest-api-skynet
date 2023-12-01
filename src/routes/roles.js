@@ -35,5 +35,10 @@ router.put(
     [hasOneOfRoles(['Super', 'Admin'])],
     roleController.assignRole
 );
+router.put(
+    '/:id/permissions',
+    [hasOneOfRoles(['Super', 'Admin'])],
+    roleController.updateRolePermissions
+);
 
 module.exports = router;

@@ -1,4 +1,5 @@
-const { Role, User, Permission } = require('../models');
+const { Role, User, Permission, RolePermission, sequelize } = require('../models');
+// const sequelize = require('sequelize');
 
 const getRoles = async (req, res) => {
     try {
@@ -76,6 +77,60 @@ const updateRole = async (req, res) => {
         await role.update({ name });
         return res.status(200).json({
             message: `Role with id ${id} updated successfully`,
+        });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+const updateRolePermissions = async (req, res) => {
+    const roleId = req.params.id;
+    const { permissionIds } = req.body;
+
+    try {
+        // Verificar si el rol existe
+        const role = await Role.findOne({ where: { id: roleId } });
+        // console.log(role);
+        if (!role)
+            return res.status(404).json({
+                message: `Role not found`,
+            });
+
+        // Obtener los permisos actuales del rol
+        const currentPermissions = await sequelize.query(
+            `SELECT * FROM rolePermissions WHERE roleId = ${roleId}`
+        );
+        console.log(currentPermissions);
+
+        // Convertir los permisos actuales a un array de IDs
+        const currentPermissionIds = currentPermissions.map(
+            permission => permission.permissionId
+        );
+
+        // Calcular los permisos que se deben agregar y eliminar
+        const permissionsToAdd = permissionIds.filter(
+            id => !currentPermissionIds.includes(id)
+        );
+        const permissionsToRemove = currentPermissionIds.filter(
+            id => !permissionIds.includes(id)
+        );
+
+        // Eliminar permisos no seleccionados
+        await RolePermission.destroy({
+            where: {
+                roleId: roleId,
+                permissionId: permissionsToRemove,
+            },
+        });
+
+        // Agregar nuevos permisos
+        const newRolePermissions = permissionsToAdd.map(permissionId => {
+            return { roleId: roleId, permissionId: permissionId };
+        });
+        await RolePermission.bulkCreate(newRolePermissions);
+
+        return res.status(200).json({
+            message: `Role with id ${roleId} updated successfully`,
         });
     } catch (error) {
         return res.status(500).json({ message: error.message });
@@ -181,6 +236,7 @@ module.exports = {
     getRole,
     createRole,
     updateRole,
+    updateRolePermissions,
     deleteRole,
     getPermissions,
     getPermission,
