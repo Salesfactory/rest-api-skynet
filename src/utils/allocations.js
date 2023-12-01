@@ -32,6 +32,10 @@ const HEADER_CONFIG = {
         'Content-Type': 'application/json',
         Accept: 'application/vnd.dsporders.v2.3+json',
     },
+    'Sponsored Ads Line Item': {
+        'Content-Type': 'application/json',
+        Accept: 'application/vnd.dsplineitems.v3.3+json',
+    },
 };
 
 const getAxiosHeaders = ({ clientId, accessToken, profileId, type }) => {
