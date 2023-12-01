@@ -6,7 +6,6 @@ const adsetAmazonDSPPayload = require('./controllers-sample-data/orchestration-a
 const campaignOrchestrationAmazonDSPPayloadData = require('./controllers-sample-data/orchestration-amazon-dsp.json');
 const { Budget, Channel, CampaignGroup, Client } = require('../src/models');
 const { getUser } = require('../src/utils');
-const util = require('util');
 
 // Mocked utility functions
 jest.mock('../src/utils/allocations', () => ({
