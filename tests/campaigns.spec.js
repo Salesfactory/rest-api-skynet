@@ -2837,7 +2837,158 @@ describe('Campaign Endpoints Test', () => {
                 expect(_createAmazonCampaign).not.toHaveBeenCalled();
                 expect(_addJobToQueue).not.toHaveBeenCalled();
             });
-            test('Given the payload contain 2 Amazon campaign, the Amazon API campaign should be called 2 times and adsets 2 times', async () => {
+            test('Given the payload contain 2 new Amazon campaign, the Amazon API campaign should be called 2 times and addJobToQueue 2 times', async () => {
+                const campaignOrchestrationSavedData = {
+                    name: 'AMZ Manuel test 4',
+                    goals: 'Sale More',
+                    total_gross_budget: 10000,
+                    margin: 0.15,
+                    flight_time_start: '2023-01-01T04:00:00.000Z',
+                    flight_time_end: '2023-02-01T04:00:00.000Z',
+                    net_budget: '8500.00',
+                    change_reason_log: '',
+                    channels: [
+                        {
+                            id: '2',
+                            name: 'Amazon Advertising DSP',
+                            isApiEnabled: true,
+                        },
+                    ],
+                    allocations: {
+                        january_2023: {
+                            budget: 4250,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '2',
+                                    name: 'Amazon Advertising DSP',
+                                    isApiEnabled: true,
+                                    budget: 2125,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '2-Sponsored Ads',
+                                            name: 'Responsive eCommerce',
+                                            budget: 2125,
+                                            percentage: 100,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '2-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    id: '3-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign-3',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                        february_2023: {
+                            budget: 4250,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '2',
+                                    name: 'Amazon Advertising DSP',
+                                    isApiEnabled: true,
+                                    budget: 2125,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '2-Sponsored Ads',
+                                            name: 'Responsive eCommerce',
+                                            budget: 2125,
+                                            percentage: 100,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '2-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    id: '3-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign-3',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                    periods: [
+                        {
+                            id: 'january_2023',
+                            label: 'January 2023',
+                            days: 31,
+                        },
+                        {
+                            id: 'february_2023',
+                            label: 'February 2023',
+                            days: 28,
+                        },
+                    ],
+                    status: 'Not tracking',
+                };
+
                 const campaignOrchestrationPayloadData = {
                     name: 'AMZ Manuel test 4',
                     goals: 'Sale More',
@@ -2900,7 +3051,41 @@ describe('Campaign Endpoints Test', () => {
                                                     type: 'CAMPAIGN',
                                                     allocations: [
                                                         {
-                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    id: '4-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign-4',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '4-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    id: '5-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign-5',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '5-Sponsored Ads-test-campaign-test-campaign-adset',
                                                             name: 'test-campaign-adset',
                                                             budget: 2125,
                                                             percentage: 100,
@@ -2959,7 +3144,41 @@ describe('Campaign Endpoints Test', () => {
                                                     type: 'CAMPAIGN',
                                                     allocations: [
                                                         {
-                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    id: '4-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign-4',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '4-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    id: '5-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign-5',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '5-Sponsored Ads-test-campaign-test-campaign-adset',
                                                             name: 'test-campaign-adset',
                                                             budget: 2125,
                                                             percentage: 100,
@@ -2991,7 +3210,7 @@ describe('Campaign Endpoints Test', () => {
 
                 const data = {
                     id: 1,
-                    ...campaignOrchestrationPayloadData,
+                    ...campaignOrchestrationSavedData,
                     createdAt: '2023-07-07 18:13:23.552748-04',
                     updatedAt: '2023-07-07 18:13:23.552748-04',
                     get: jest.fn().mockResolvedValue({
@@ -3009,6 +3228,7 @@ describe('Campaign Endpoints Test', () => {
                         },
                     ],
                 };
+
                 const user = {
                     id: 1,
                     username: '123',
@@ -3034,36 +3254,40 @@ describe('Campaign Endpoints Test', () => {
                 Budget.create.mockResolvedValue(data.budgets);
                 Job.findAll.mockResolvedValue([
                     {
-                        id: 15,
-                        data: {
-                            type: 'Sponsored Ads Line Item',
-                            adset: {
-                                id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
-                                name: 'test-campaign-adset',
-                                budget: 2125,
-                                percentage: 100,
-                                type: 'ADSET',
+                        dataValues: {
+                            id: 15,
+                            data: {
+                                type: 'Sponsored Ads Line Item',
+                                adset: {
+                                    id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                    name: 'test-campaign-adset',
+                                    budget: 2125,
+                                    percentage: 100,
+                                    type: 'ADSET',
+                                },
+                                campaignId: '2-Sponsored Ads-test-campaign',
                             },
-                            campaignId: '2-Sponsored Ads-test-campaign',
+                            status: 'completed',
+                            batchId: 16,
                         },
-                        status: 'completed',
-                        batchId: 16,
                     },
                     {
-                        id: 15,
-                        data: {
-                            type: 'Sponsored Ads Line Item',
-                            adset: {
-                                id: '4-Sponsored Ads-test-campaign-test-campaign-adset',
-                                name: 'test-campaign-adset',
-                                budget: 2125,
-                                percentage: 100,
-                                type: 'ADSET',
+                        dataValues: {
+                            id: 15,
+                            data: {
+                                type: 'Sponsored Ads Line Item',
+                                adset: {
+                                    id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
+                                    name: 'test-campaign-adset',
+                                    budget: 2125,
+                                    percentage: 100,
+                                    type: 'ADSET',
+                                },
+                                campaignId: '3-Sponsored Ads-test-campaign',
                             },
-                            campaignId: '3-Sponsored Ads-test-campaign',
+                            status: 'completed',
+                            batchId: 16,
                         },
-                        status: 'completed',
-                        batchId: 16,
                     },
                 ]);
 
@@ -3274,24 +3498,40 @@ describe('Campaign Endpoints Test', () => {
                 Budget.create.mockResolvedValue(data.budget);
                 Job.findAll.mockResolvedValue([
                     {
-                        id: 15,
-                        data: {
-                            type: 'Sponsored Ads Line Item',
-                            adset: {},
-                            campaignId: '2-Sponsored Ads-test-campaign',
+                        dataValues: {
+                            id: 15,
+                            data: {
+                                type: 'Sponsored Ads Line Item',
+                                adset: {
+                                    id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                    name: 'test-campaign-adset',
+                                    budget: 2125,
+                                    percentage: 100,
+                                    type: 'ADSET',
+                                },
+                                campaignId: '2-Sponsored Ads-test-campaign',
+                            },
+                            status: 'completed',
+                            batchId: 16,
                         },
-                        status: 'completed',
-                        batchId: 16,
                     },
                     {
-                        id: 15,
-                        data: {
-                            type: 'Sponsored Ads Line Item',
-                            adset: {},
-                            campaignId: '3-Sponsored Ads-test-campaign',
+                        dataValues: {
+                            id: 15,
+                            data: {
+                                type: 'Sponsored Ads Line Item',
+                                adset: {
+                                    id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                    name: 'test-campaign-adset',
+                                    budget: 2125,
+                                    percentage: 100,
+                                    type: 'ADSET',
+                                },
+                                campaignId: '3-Sponsored Ads-test-campaign',
+                            },
+                            status: 'completed',
+                            batchId: 16,
                         },
-                        status: 'completed',
-                        batchId: 16,
                     },
                 ]);
                 await request
@@ -3304,13 +3544,527 @@ describe('Campaign Endpoints Test', () => {
                 expect(_addJobToQueue).not.toHaveBeenCalled();
                 expect(_createAmazonAdset).toHaveBeenCalledTimes(0);
             });
+            test('Given the payload contain previus saved Amazon campaign and 2 new adset, the Amazon API campaign should NOT be called  addJobToQueue 2 times', async () => {
+                const campaignOrchestrationSavedData = {
+                    name: 'AMZ Manuel test 4',
+                    goals: 'Sale More',
+                    total_gross_budget: 10000,
+                    margin: 0.15,
+                    flight_time_start: '2023-01-01T04:00:00.000Z',
+                    flight_time_end: '2023-02-01T04:00:00.000Z',
+                    net_budget: '8500.00',
+                    change_reason_log: '',
+                    channels: [
+                        {
+                            id: '2',
+                            name: 'Amazon Advertising DSP',
+                            isApiEnabled: true,
+                        },
+                    ],
+                    allocations: {
+                        january_2023: {
+                            budget: 4250,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '2',
+                                    name: 'Amazon Advertising DSP',
+                                    isApiEnabled: true,
+                                    budget: 2125,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '2-Sponsored Ads',
+                                            name: 'Responsive eCommerce',
+                                            budget: 2125,
+                                            percentage: 100,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '2-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    id: '3-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign-3',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                        february_2023: {
+                            budget: 4250,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '2',
+                                    name: 'Amazon Advertising DSP',
+                                    isApiEnabled: true,
+                                    budget: 2125,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '2-Sponsored Ads',
+                                            name: 'Responsive eCommerce',
+                                            budget: 2125,
+                                            percentage: 100,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '2-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    id: '3-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign-3',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                    periods: [
+                        {
+                            id: 'january_2023',
+                            label: 'January 2023',
+                            days: 31,
+                        },
+                        {
+                            id: 'february_2023',
+                            label: 'February 2023',
+                            days: 28,
+                        },
+                    ],
+                    status: 'Not tracking',
+                };
+
+                const campaignOrchestrationPayloadData = {
+                    name: 'AMZ Manuel test 4',
+                    goals: 'Sale More',
+                    total_gross_budget: 10000,
+                    margin: 0.15,
+                    flight_time_start: '2023-01-01T04:00:00.000Z',
+                    flight_time_end: '2023-02-01T04:00:00.000Z',
+                    net_budget: '8500.00',
+                    change_reason_log: '',
+                    channels: [
+                        {
+                            id: '2',
+                            name: 'Amazon Advertising DSP',
+                            isApiEnabled: true,
+                        },
+                    ],
+                    allocations: {
+                        january_2023: {
+                            budget: 4250,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '2',
+                                    name: 'Amazon Advertising DSP',
+                                    isApiEnabled: true,
+                                    budget: 2125,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '2-Sponsored Ads',
+                                            name: 'Responsive eCommerce',
+                                            budget: 2125,
+                                            percentage: 100,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '2-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset-2',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    id: '3-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign-3',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                        {
+                                                            id: '3-Sponsored Ads-test-campaign-test-campaign-adset-1',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                        february_2023: {
+                            budget: 4250,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '2',
+                                    name: 'Amazon Advertising DSP',
+                                    isApiEnabled: true,
+                                    budget: 2125,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '2-Sponsored Ads',
+                                            name: 'Responsive eCommerce',
+                                            budget: 2125,
+                                            percentage: 100,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '2-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset-2',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    id: '3-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign-3',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                        {
+                                                            id: '3-Sponsored Ads-test-campaign-test-campaign-adset-1',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                    periods: [
+                        {
+                            id: 'january_2023',
+                            label: 'January 2023',
+                            days: 31,
+                        },
+                        {
+                            id: 'february_2023',
+                            label: 'February 2023',
+                            days: 28,
+                        },
+                    ],
+                    status: 'Not tracking',
+                };
+
+                const data = {
+                    id: 1,
+                    ...campaignOrchestrationSavedData,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                    budgets: [
+                        {
+                            facebookCampaigns: [],
+                            amazonCampaigns: [],
+                        },
+                    ],
+                };
+
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising DSP' },
+                    { id: 3, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                findIdInAllocations.mockResolvedValue(false);
+                CampaignGroup.findOne.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budgets);
+                Job.findAll.mockResolvedValue([
+                    {
+                        dataValues: {
+                            id: 15,
+                            data: {
+                                type: 'Sponsored Ads Line Item',
+                                adset: {
+                                    id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                    name: 'test-campaign-adset',
+                                    budget: 2125,
+                                    percentage: 100,
+                                    type: 'ADSET',
+                                },
+                                campaignId: '2-Sponsored Ads-test-campaign',
+                                orderId: 'order-2',
+                            },
+                            status: 'completed',
+                            batchId: 16,
+                        },
+                    },
+                    {
+                        dataValues: {
+                            id: 15,
+                            data: {
+                                type: 'Sponsored Ads Line Item',
+                                adset: {
+                                    id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
+                                    name: 'test-campaign-adset',
+                                    budget: 2125,
+                                    percentage: 100,
+                                    type: 'ADSET',
+                                },
+                                campaignId: '3-Sponsored Ads-test-campaign',
+                                orderId: 'order-2',
+                            },
+                            status: 'completed',
+                            batchId: 16,
+                        },
+                    },
+                ]);
+
+                await request
+                    .put(
+                        `/api/clients/${clientId}/marketingcampaign/${campaignId}`
+                    )
+                    .send(campaignOrchestrationPayloadData);
+
+                expect(_createAmazonCampaign).toHaveBeenCalledTimes(0);
+                expect(_addJobToQueue).toHaveBeenCalledTimes(2);
+                // expect(_createAmazonAdset).toHaveBeenCalledTimes(2);
+            });
         });
 
         describe('Test Facebook Campaigns and adsets Update', () => {
             test("Given the payload doesn't contain a Facebook campaign, the Facebook Adset API should not be called", async () => {
+                const payload = {
+                    name: 'Manuel Test Facebook API 2',
+                    goals: 'More Sales',
+                    total_gross_budget: 10000,
+                    margin: 0.15,
+                    flight_time_start: '2023-01-01T04:00:00.000Z',
+                    flight_time_end: '2023-05-01T04:00:00.000Z',
+                    net_budget: '8500.00',
+                    change_reason_log: '',
+                    channels: [
+                        {
+                            id: '1',
+                            name: 'Google Ads',
+                            isApiEnabled: false,
+                        },
+                        {
+                            id: '6',
+                            name: 'Reddit',
+                            isApiEnabled: false,
+                        },
+                    ],
+                    allocations: {
+                        january_2023: {
+                            budget: 1700,
+                            percentage: 20,
+                            allocations: [
+                                {
+                                    id: '1',
+                                    name: 'Google Ads',
+                                    isApiEnabled: false,
+                                    budget: 578,
+                                    percentage: 34,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+
+                                {
+                                    id: '6',
+                                    name: 'Reddit',
+                                    isApiEnabled: false,
+                                    budget: 561,
+                                    percentage: 33,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                            ],
+                        },
+                        february_2023: {
+                            budget: 1700,
+                            percentage: 20,
+                            allocations: [
+                                {
+                                    id: '1',
+                                    name: 'Google Ads',
+                                    isApiEnabled: false,
+                                    budget: 578,
+                                    percentage: 34,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+
+                                {
+                                    id: '6',
+                                    name: 'Reddit',
+                                    isApiEnabled: false,
+                                    budget: 561,
+                                    percentage: 33,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                            ],
+                        },
+                    },
+                    periods: [
+                        {
+                            id: 'january_2023',
+                            label: 'January 2023',
+                            days: 31,
+                        },
+                        {
+                            id: 'february_2023',
+                            label: 'February 2023',
+                            days: 28,
+                        },
+                    ],
+                    status: 'Not tracking',
+                    facebookAdAccountId: 'YOUR_AD_ACCOUNT_ID',
+                };
                 const data = {
                     id: 1,
-                    ...campaignOrchestrationFacebookPayloadData,
+                    ...payload,
                     createdAt: '2023-07-07 18:13:23.552748-04',
                     updatedAt: '2023-07-07 18:13:23.552748-04',
                     get: jest.fn().mockResolvedValue({
@@ -3345,11 +4099,11 @@ describe('Campaign Endpoints Test', () => {
                 CampaignGroup.findOne.mockResolvedValue(data);
                 Budget.create.mockResolvedValue(data.budget);
 
-                const response = await request
+                await request
                     .put(
                         `/api/clients/${clientId}/marketingcampaign/${campaignId}`
                     )
-                    .send(campaignOrchestrationFacebookPayloadData);
+                    .send(payload);
 
                 expect(_createFacebookCampaign).not.toHaveBeenCalled();
             });
