@@ -123,6 +123,7 @@ module.exports = function ({
             req.amazon = amazon;
             req.amazonDSP = amazonDSP;
             req.facebook = facebook;
+            req.amzQueue = amzQueue;
             next();
         },
         apiRouter

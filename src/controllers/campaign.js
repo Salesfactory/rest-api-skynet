@@ -528,7 +528,7 @@ const createMarketingCampaign = async (req, res) => {
                     });
                 } else if (!advertiserId) {
                     createdAmazonCampaignsResult.fails.push({
-                        error: 'Amazon DSP Advertising ID is require',
+                        error: 'Amazon DSP Advertising ID is required',
                     });
                 } else {
                     for (const campaign of campaignDataByChannel[
@@ -558,39 +558,49 @@ const createMarketingCampaign = async (req, res) => {
                                 const orderId = response.data[0]?.orderId;
                                 if (orderId) {
                                     for (const adset of campaign.adsets) {
-                                        const adsetResponse =
-                                            await req.amazon.createAdset({
+                                        const jobId =
+                                            await req.amzQueue.addJobToQueue({
                                                 adset,
                                                 orderId,
                                                 type: 'Sponsored Ads',
                                                 access,
                                                 profileId,
+                                                campaignId: campaign.id,
                                             });
-                                        if (
-                                            Array.isArray(
-                                                adsetResponse?.data
-                                            ) &&
-                                            adsetResponse?.data?.some(
-                                                data => data.errorDetails
-                                            )
-                                        ) {
-                                            createdAmazonAdsetsResult.fails.push(
-                                                {
-                                                    name: adset.id,
-                                                    ...adsetResponse.data,
-                                                }
-                                            );
-                                        } else {
-                                            amazonAdset.push(
-                                                adsetResponse.data
-                                            );
-                                            createdAmazonAdsetsResult.success.push(
-                                                {
-                                                    name: adset.id,
-                                                    ...adsetResponse.data,
-                                                }
-                                            );
-                                        }
+                                        // if (
+                                        //     Array.isArray(
+                                        //         adsetResponse?.data
+                                        //     ) &&
+                                        //     adsetResponse?.data?.some(
+                                        //         data => data.errorDetails
+                                        //     )
+                                        // ) {
+                                        //     createdAmazonAdsetsResult.fails.push(
+                                        //         {
+                                        //             name: adset.id,
+                                        //             ...adsetResponse.data,
+                                        //         }
+                                        //     );
+                                        // } else {
+                                        //     amazonAdset.push(
+                                        //         adsetResponse.data
+                                        //     );
+                                        //     createdAmazonAdsetsResult.success.push(
+                                        //         {
+                                        //             name: adset.id,
+                                        //             ...adsetResponse.data,
+                                        //         }
+                                        //     );
+                                        // }
+                                        amazonAdset.push({
+                                            jobId,
+                                            adset: null,
+                                        });
+                                        createdAmazonAdsetsResult.success.push({
+                                            name: adset.id,
+                                            ...adsetResponse.data,
+                                            status: 'queue',
+                                        });
                                     }
                                 } else {
                                     createdAmazonAdsetsResult.fails.push({
