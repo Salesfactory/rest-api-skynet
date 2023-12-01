@@ -528,7 +528,7 @@ const createMarketingCampaign = async (req, res) => {
                     });
                 } else if (!advertiserId) {
                     createdAmazonCampaignsResult.fails.push({
-                        error: 'Amazon DSP Advertising ID is require',
+                        error: 'Amazon DSP Advertising ID is required',
                     });
                 } else {
                     for (const campaign of campaignDataByChannel[
@@ -548,21 +548,27 @@ const createMarketingCampaign = async (req, res) => {
 
                             if (
                                 Array.isArray(response?.data) &&
-                                response?.data?.some(data => data.errorDetails)
+                                response.data.length > 0
                             ) {
-                                createdAmazonCampaignsResult.fails.push({
-                                    name: campaign.id,
-                                    ...response.data,
-                                });
-                            } else {
-                                const orderId = response.data[0]?.orderId;
-                                if (orderId) {
+                                if (
+                                    response.data.some(
+                                        data => data.errorDetails
+                                    ) ||
+                                    !response.data[0].orderId
+                                ) {
+                                    createdAmazonCampaignsResult.fails.push({
+                                        name: campaign.id,
+                                        ...response.data[0],
+                                    });
+                                } else {
+                                    const orderId = response.data[0].orderId;
+
                                     for (const adset of campaign.adsets) {
                                         const adsetResponse =
                                             await req.amazon.createAdset({
                                                 adset,
                                                 orderId,
-                                                type: 'Sponsored Ads',
+                                                type: 'Sponsored Ads Line Item',
                                                 access,
                                                 profileId,
                                             });
@@ -570,47 +576,66 @@ const createMarketingCampaign = async (req, res) => {
                                             Array.isArray(
                                                 adsetResponse?.data
                                             ) &&
-                                            adsetResponse?.data?.some(
-                                                data => data.errorDetails
-                                            )
+                                            adsetResponse.data.length > 0
                                         ) {
+                                            if (
+                                                adsetResponse.data.some(
+                                                    data => data.errorDetails
+                                                ) ||
+                                                !adsetResponse.data[0]
+                                                    .lineItemId
+                                            ) {
+                                                createdAmazonAdsetsResult.fails.push(
+                                                    {
+                                                        name: adset.id,
+                                                        ...adsetResponse
+                                                            .data[0],
+                                                    }
+                                                );
+                                            } else {
+                                                amazonAdset.push(
+                                                    adsetResponse.data
+                                                );
+                                                createdAmazonAdsetsResult.success.push(
+                                                    {
+                                                        name: adset.id,
+                                                        ...adsetResponse
+                                                            .data[0],
+                                                    }
+                                                );
+                                            }
+                                        } else {
                                             createdAmazonAdsetsResult.fails.push(
                                                 {
                                                     name: adset.id,
-                                                    ...adsetResponse.data,
-                                                }
-                                            );
-                                        } else {
-                                            amazonAdset.push(
-                                                adsetResponse.data
-                                            );
-                                            createdAmazonAdsetsResult.success.push(
-                                                {
-                                                    name: adset.id,
-                                                    ...adsetResponse.data,
+                                                    errorDetails: {
+                                                        message:
+                                                            'Invalid adset response',
+                                                    },
                                                 }
                                             );
                                         }
                                     }
-                                } else {
-                                    createdAmazonAdsetsResult.fails.push({
+
+                                    amazonCampaigns.push({
                                         name: campaign.id,
-                                        ...response.data,
+                                        ...response.data[0],
+                                        amazonAdset,
+                                    });
+
+                                    createdAmazonCampaignsResult.success.push({
+                                        name: campaign.id,
+                                        ...response.data[0],
                                     });
                                 }
-                                amazonCampaigns.push({
+                            } else {
+                                createdAmazonCampaignsResult.fails.push({
                                     name: campaign.id,
-                                    ...response.data,
-                                    amazonAdset,
-                                });
-
-                                createdAmazonCampaignsResult.success.push({
-                                    name: campaign.id,
-                                    ...response.data,
+                                    errorDetails: {
+                                        message: 'Invalid campaign response',
+                                    },
                                 });
                             }
-
-                            // create adsets
                         } catch (campaignError) {
                             console.error(
                                 'Error creating campaign:',
@@ -618,7 +643,10 @@ const createMarketingCampaign = async (req, res) => {
                             );
                             createdAmazonCampaignsResult.fails.push({
                                 name: campaign.name,
-                                ...campaignError,
+                                errorDetails: {
+                                    message: campaignError.message,
+                                    errors: [campaignError],
+                                },
                             });
                         }
                     }
@@ -1020,7 +1048,7 @@ const updateMarketingCampaign = async (req, res) => {
                     });
                 } else if (!advertiserId) {
                     createdAmazonCampaignsResult.fails.push({
-                        error: 'Amazon DSP Advertising ID is require',
+                        error: 'Amazon DSP Advertising ID is required',
                     });
                 } else {
                     for (const campaign of campaignDataByChannel[
@@ -1050,17 +1078,24 @@ const updateMarketingCampaign = async (req, res) => {
 
                                 if (
                                     Array.isArray(response?.data) &&
-                                    response?.data?.some(
-                                        data => data.errorDetails
-                                    )
+                                    response.data.length > 0
                                 ) {
-                                    createdAmazonCampaignsResult.fails.push({
-                                        name: campaign.id,
-                                        ...response.data,
-                                    });
-                                } else {
-                                    const orderId = response.data[0]?.orderId;
-                                    if (orderId) {
+                                    if (
+                                        response.data.some(
+                                            data => data.errorDetails
+                                        ) ||
+                                        !response.data[0].orderId
+                                    ) {
+                                        createdAmazonCampaignsResult.fails.push(
+                                            {
+                                                name: campaign.id,
+                                                ...response.data[0],
+                                            }
+                                        );
+                                    } else {
+                                        const orderId =
+                                            response.data[0].orderId;
+
                                         for (const adset of campaign.adsets) {
                                             // check for non previously added adsets
                                             const adsetFoundInAllocations =
@@ -1076,7 +1111,7 @@ const updateMarketingCampaign = async (req, res) => {
                                                         {
                                                             adset,
                                                             orderId,
-                                                            type: 'Sponsored Ads',
+                                                            type: 'Sponsored Ads Line Item',
                                                             access,
                                                             profileId,
                                                         }
@@ -1085,49 +1120,72 @@ const updateMarketingCampaign = async (req, res) => {
                                                     Array.isArray(
                                                         adsetResponse?.data
                                                     ) &&
-                                                    adsetResponse?.data?.some(
-                                                        data =>
-                                                            data.errorDetails
-                                                    )
+                                                    adsetResponse.data.length >
+                                                        0
                                                 ) {
+                                                    if (
+                                                        adsetResponse.data.some(
+                                                            data =>
+                                                                data.errorDetails
+                                                        ) ||
+                                                        !adsetResponse.data[0]
+                                                            .lineItemId
+                                                    ) {
+                                                        createdAmazonAdsetsResult.fails.push(
+                                                            {
+                                                                name: adset.id,
+                                                                ...adsetResponse
+                                                                    .data[0],
+                                                            }
+                                                        );
+                                                    } else {
+                                                        amazonAdset.push(
+                                                            adsetResponse.data
+                                                        );
+                                                        createdAmazonAdsetsResult.success.push(
+                                                            {
+                                                                name: adset.id,
+                                                                ...adsetResponse
+                                                                    .data[0],
+                                                            }
+                                                        );
+                                                    }
+                                                } else {
                                                     createdAmazonAdsetsResult.fails.push(
                                                         {
                                                             name: adset.id,
-                                                            ...adsetResponse.data,
-                                                        }
-                                                    );
-                                                } else {
-                                                    amazonAdset.push(
-                                                        adsetResponse.data
-                                                    );
-                                                    createdAmazonAdsetsResult.success.push(
-                                                        {
-                                                            name: adset.id,
-                                                            ...adsetResponse.data,
+                                                            errorDetails: {
+                                                                message:
+                                                                    'Invalid adset response',
+                                                            },
                                                         }
                                                     );
                                                 }
                                             }
                                         }
-                                    } else {
-                                        createdAmazonAdsetsResult.fails.push({
-                                            name: campaignGroup.id,
-                                            ...response.data,
-                                        });
-                                    }
-                                    amazonCampaigns.push({
-                                        name: campaignGroup.id,
-                                        ...response.data,
-                                        amazonAdset,
-                                    });
 
-                                    createdAmazonCampaignsResult.success.push({
-                                        name: campaignGroup.id,
-                                        ...response.data,
+                                        amazonCampaigns.push({
+                                            name: campaignGroup.id,
+                                            ...response.data[0],
+                                            amazonAdset,
+                                        });
+
+                                        createdAmazonCampaignsResult.success.push(
+                                            {
+                                                name: campaignGroup.id,
+                                                ...response.data[0],
+                                            }
+                                        );
+                                    }
+                                } else {
+                                    createdAmazonCampaignsResult.fails.push({
+                                        name: campaign.id,
+                                        errorDetails: {
+                                            message:
+                                                'Invalid campaign response',
+                                        },
                                     });
                                 }
-
-                                // create adsets
                             } catch (campaignError) {
                                 console.error(
                                     'Error creating campaign:',
@@ -1135,7 +1193,10 @@ const updateMarketingCampaign = async (req, res) => {
                                 );
                                 createdAmazonCampaignsResult.fails.push({
                                     name: campaign.name,
-                                    ...campaignError,
+                                    errorDetails: {
+                                        message: campaignError.message,
+                                        errors: [campaignError],
+                                    },
                                 });
                             }
                         }
