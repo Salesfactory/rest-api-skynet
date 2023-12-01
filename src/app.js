@@ -92,7 +92,7 @@ module.exports = function ({
                 return null;
             }
 
-            await amzQueue.startProcessingtJobs(storeResultinRedis);
+            await amzQueue.startProcessingJobs(storeResultinRedis);
 
             res.status(200).json({ message: 'Job processing initiated' });
         } catch (error) {

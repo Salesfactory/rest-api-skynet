@@ -29,14 +29,26 @@ describe('Queue Module', () => {
     });
 
     describe('startProcessingJobs', () => {
-        it('should process a pending job', async () => {
+        it('should process a pending job with a delay', async () => {
             const mockJob = { id: '123', update: jest.fn() };
-            jobs.findOne.mockResolvedValue(mockJob);
+            jobs.findOne
+                .mockResolvedValueOnce(mockJob) // First call for finding the job
+                .mockResolvedValueOnce(null); // Second call returns null to exit loop
 
-            await mockQueue.startProcessingtJobs(jest.fn());
+            const mockJobProcessingLogic = jest.fn();
+
+            await mockQueue.startProcessingJobs(mockJobProcessingLogic);
 
             expect(jobs.findOne).toHaveBeenCalledWith({
                 where: { status: 'pending' },
+            });
+            expect(mockJob.update).toHaveBeenCalledWith({
+                status: 'processing',
+            });
+            expect(mockJobProcessingLogic).toHaveBeenCalledWith(mockJob);
+            expect(mockJob.update).toHaveBeenCalledWith({
+                status: 'completed',
+                processedAt: expect.any(Date),
             });
             expect(mockJob.update).toHaveBeenCalledTimes(2);
         });

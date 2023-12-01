@@ -1,4 +1,5 @@
 function createQueue(jobs) {
+    let isProcessing = false;
     return {
         addJobToQueue: async jobData => {
             try {
@@ -12,21 +13,35 @@ function createQueue(jobs) {
                 throw new Error(error);
             }
         },
-        startProcessingtJobs: async jobProcessingLogic => {
-            const job = await jobs.findOne({ where: { status: 'pending' } });
+        startProcessingJobs: async jobProcessingLogic => {
+            if (isProcessing) {
+                return;
+            }
+            isProcessing = true;
 
-            if (job) {
+            let job = await jobs.findOne({ where: { status: 'pending' } });
+
+            while (job) {
                 await job.update({ status: 'processing' });
 
-                jobProcessingLogic(job);
-                console.log(`Processing job: ${job.id}`);
+                try {
+                    await jobProcessingLogic(job);
+                    await job.update({
+                        status: 'completed',
+                        processedAt: new Date(),
+                    });
+                } catch (error) {
+                    await job.update({
+                        status: 'failed',
+                        processedAt: new Date(),
+                    });
+                    console.error(`Error processing job ${job.id}:`, error);
+                }
 
-                // Update status to 'completed'
-                await job.update({
-                    status: 'completed',
-                    processedAt: new Date(),
-                });
+                job = await jobs.findOne({ where: { status: 'pending' } });
             }
+
+            isProcessing = false;
         },
         getCompletedJobs: async () => {
             const completedJobs = await jobs.findAll({
