@@ -563,7 +563,6 @@ const createMarketingCampaign = async (req, res) => {
                                                 adset,
                                                 orderId,
                                                 type: 'Sponsored Ads',
-                                                access,
                                                 profileId,
                                                 campaignId: campaign.id,
                                             });
@@ -803,6 +802,18 @@ const createMarketingCampaign = async (req, res) => {
             returnStatus = 207;
             returnMessage = 'Marketing campaign created with errors';
         }
+
+        req.amzQueue.startProcessingJobs(async job => {
+            const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+            await delay(1000); // Wait for one second
+            const adsetResponse = await req.amazon.createAdset({
+                ...job.data,
+                access,
+            });
+            console.log(`Processing job data: ${JSON.stringify(job.data)}`);
+
+            return adsetResponse;
+        });
 
         res.status(returnStatus).json({
             message: returnMessage,

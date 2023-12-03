@@ -35,7 +35,7 @@ describe('Queue Module', () => {
                 .mockResolvedValueOnce(mockJob) // First call for finding the job
                 .mockResolvedValueOnce(null); // Second call returns null to exit loop
 
-            const mockJobProcessingLogic = jest.fn();
+            const mockJobProcessingLogic = jest.fn(() => {});
 
             await mockQueue.startProcessingJobs(mockJobProcessingLogic);
 
