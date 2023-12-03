@@ -1573,37 +1573,38 @@ describe('Campaign Endpoints Test', () => {
                 expect(_createAmazonCampaign).toHaveBeenCalledTimes(2);
                 expect(response.body).toEqual({
                     code: 207,
+                    message: 'Marketing campaign created with errors',
                     data: {
                         amazonData: {
-                            success: [
-                                {
-                                    name: '3-Sponsored Ads-test-campaign',
-                                    id: 'AMAZON_CAMPAIGN_ID',
-                                },
-                            ],
+                            success: [],
                             error: [
                                 {
                                     name: 'test-campaign',
-                                    response: {
-                                        data: {
-                                            error: 'Bad Request',
-                                            message: 'Invalid campaign data',
-                                        },
-                                        status: 400,
-                                        statusText: 'Bad Request',
-                                        headers: {},
+                                    errorDetails: {
+                                        errors: [
+                                            {
+                                                response: {
+                                                    data: {
+                                                        error: 'Bad Request',
+                                                        message:
+                                                            'Invalid campaign data',
+                                                    },
+                                                    status: 400,
+                                                    statusText: 'Bad Request',
+                                                    headers: {},
+                                                },
+                                            },
+                                        ],
+                                    },
+                                },
+                                {
+                                    name: '3-Sponsored Ads-test-campaign',
+                                    errorDetails: {
+                                        message: 'Invalid campaign response',
                                     },
                                 },
                             ],
-                            adsets: {
-                                success: [],
-                                error: [
-                                    {
-                                        name: '3-Sponsored Ads-test-campaign',
-                                        id: 'AMAZON_CAMPAIGN_ID',
-                                    },
-                                ],
-                            },
+                            adsets: { success: [], error: [] },
                         },
                         facebook: {
                             success: [],
@@ -1611,7 +1612,6 @@ describe('Campaign Endpoints Test', () => {
                             adsets: { success: [], error: [] },
                         },
                     },
-                    message: 'Marketing campaign created with errors',
                 });
 
                 _createAmazonCampaign.mockClear();
@@ -1764,8 +1764,8 @@ describe('Campaign Endpoints Test', () => {
                     },
                     orderId: 2,
                     profileId: 'DSP_PROFILE_ID',
-                    type: 'Sponsored Ads',
                     campaignId: '1-SEARCH-dfsdfsd1',
+                    type: 'Sponsored Ads Line Item',
                 });
 
                 expect(_startProcessingJobs).toHaveBeenCalledTimes(1);
