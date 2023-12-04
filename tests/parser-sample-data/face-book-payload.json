@@ -1,0 +1,419 @@
+{
+    "name": "JB-Test FB Link 2",
+    "goals": "Awareness",
+    "total_gross_budget": 12547,
+    "margin": 0.15,
+    "flight_time_start": "2023-12-01T05:00:00.000Z",
+    "flight_time_end": "2024-05-01T04:00:00.000Z",
+    "net_budget": "10664.95",
+    "change_reason_log": "",
+    "channels": [
+        {
+            "id": "4",
+            "name": "Facebook",
+            "isApiEnabled": true
+        }
+    ],
+    "allocations": {
+        "december_2023": {
+            "budget": 2132.9900000000002,
+            "percentage": 20,
+            "allocations": [
+                {
+                    "id": "4",
+                    "name": "Facebook",
+                    "isApiEnabled": true,
+                    "budget": 2132.9900000000002,
+                    "percentage": 100,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "4-OUTCOME_AWARENESS",
+                            "name": "OUTCOME_AWARENESS",
+                            "budget": 2132.9900000000002,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-OUTCOME_AWARENESS-Camp 1",
+                                    "name": "202312|OUTCOME_AWARENESS|AWARENESS|FB LINK|WINTER",
+                                    "budget": 2132.9900000000002,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "4-OUTCOME_AWARENESS-Camp 1-Adset 1",
+                                            "name": "202312|OUTCOME_AWARENESS|AWARENESS|FB LINK|WINTER|DADS|VIDEO",
+                                            "budget": 2132.9900000000002,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "startDate": "2023-12-01T05:00:00.000Z",
+                                            "endDate": "2023-12-31T05:00:00.000Z",
+                                            "status": "PAUSED",
+                                            "daily_budget": "68.81",
+                                            "billing_event": "POST_ENGAGEMENT",
+                                            "bid_strategy": "LOWEST_COST_WITH_BID_CAP",
+                                            "bid_amount": "5",
+                                            "optimization_goal": "REACH",
+                                            "targeting": "DADS",
+                                            "format": "VIDEO"
+                                        }
+                                    ],
+                                    "status": "PAUSED",
+                                    "campaignObjective": "OUTCOME_AWARENESS",
+                                    "buyingType": "AUCTION",
+                                    "specialAdCategories": "NONE",
+                                    "country": "",
+                                    "apiCampaign": true,
+                                    "objective": "AWARENESS",
+                                    "nameFragment": "FB LINK",
+                                    "scope": "WINTER"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "january_2024": {
+            "budget": 1706.392,
+            "percentage": 16,
+            "allocations": [
+                {
+                    "id": "4",
+                    "name": "Facebook",
+                    "isApiEnabled": true,
+                    "budget": 1706.392,
+                    "percentage": 100,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "4-OUTCOME_AWARENESS",
+                            "name": "OUTCOME_AWARENESS",
+                            "budget": 1706.392,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-OUTCOME_AWARENESS-Camp 1",
+                                    "name": "202312|OUTCOME_AWARENESS|AWARENESS|FB LINK|WINTER",
+                                    "budget": 1706.392,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "4-OUTCOME_AWARENESS-Camp 1-Adset 1",
+                                            "name": "202312|OUTCOME_AWARENESS|AWARENESS|FB LINK|WINTER|DADS|VIDEO",
+                                            "budget": 1706.392,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "startDate": "2024-01-01T05:00:00.000Z",
+                                            "endDate": "2024-01-31T05:00:00.000Z",
+                                            "status": "PAUSED",
+                                            "daily_budget": "68.81",
+                                            "billing_event": "POST_ENGAGEMENT",
+                                            "bid_strategy": "LOWEST_COST_WITH_BID_CAP",
+                                            "bid_amount": "5",
+                                            "optimization_goal": "REACH",
+                                            "targeting": "DADS",
+                                            "format": "VIDEO"
+                                        }
+                                    ],
+                                    "status": "PAUSED",
+                                    "campaignObjective": "OUTCOME_AWARENESS",
+                                    "buyingType": "AUCTION",
+                                    "specialAdCategories": "NONE",
+                                    "country": "",
+                                    "apiCampaign": true,
+                                    "objective": "AWARENESS",
+                                    "nameFragment": "FB LINK",
+                                    "scope": "WINTER"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "february_2024": {
+            "budget": 1706.392,
+            "percentage": 16,
+            "allocations": [
+                {
+                    "id": "4",
+                    "name": "Facebook",
+                    "isApiEnabled": true,
+                    "budget": 1706.392,
+                    "percentage": 100,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "4-OUTCOME_AWARENESS",
+                            "name": "OUTCOME_AWARENESS",
+                            "budget": 1706.392,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-OUTCOME_AWARENESS-Camp 1",
+                                    "name": "202312|OUTCOME_AWARENESS|AWARENESS|FB LINK|WINTER",
+                                    "budget": 1706.392,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "4-OUTCOME_AWARENESS-Camp 1-Adset 1",
+                                            "name": "202312|OUTCOME_AWARENESS|AWARENESS|FB LINK|WINTER|DADS|VIDEO",
+                                            "budget": 1706.392,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "startDate": "2024-02-01T05:00:00.000Z",
+                                            "endDate": "2024-02-29T05:00:00.000Z",
+                                            "status": "PAUSED",
+                                            "daily_budget": "68.81",
+                                            "billing_event": "POST_ENGAGEMENT",
+                                            "bid_strategy": "LOWEST_COST_WITH_BID_CAP",
+                                            "bid_amount": "5",
+                                            "optimization_goal": "REACH",
+                                            "targeting": "DADS",
+                                            "format": "VIDEO"
+                                        }
+                                    ],
+                                    "status": "PAUSED",
+                                    "campaignObjective": "OUTCOME_AWARENESS",
+                                    "buyingType": "AUCTION",
+                                    "specialAdCategories": "NONE",
+                                    "country": "",
+                                    "apiCampaign": true,
+                                    "objective": "AWARENESS",
+                                    "nameFragment": "FB LINK",
+                                    "scope": "WINTER"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "march_2024": {
+            "budget": 1706.392,
+            "percentage": 16,
+            "allocations": [
+                {
+                    "id": "4",
+                    "name": "Facebook",
+                    "isApiEnabled": true,
+                    "budget": 1706.392,
+                    "percentage": 100,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "4-OUTCOME_AWARENESS",
+                            "name": "OUTCOME_AWARENESS",
+                            "budget": 1706.392,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-OUTCOME_AWARENESS-Camp 1",
+                                    "name": "202312|OUTCOME_AWARENESS|AWARENESS|FB LINK|WINTER",
+                                    "budget": 1706.392,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "4-OUTCOME_AWARENESS-Camp 1-Adset 1",
+                                            "name": "202312|OUTCOME_AWARENESS|AWARENESS|FB LINK|WINTER|DADS|VIDEO",
+                                            "budget": 1706.392,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "startDate": "2024-03-01T05:00:00.000Z",
+                                            "endDate": "2024-03-31T04:00:00.000Z",
+                                            "status": "PAUSED",
+                                            "daily_budget": "68.81",
+                                            "billing_event": "POST_ENGAGEMENT",
+                                            "bid_strategy": "LOWEST_COST_WITH_BID_CAP",
+                                            "bid_amount": "5",
+                                            "optimization_goal": "REACH",
+                                            "targeting": "DADS",
+                                            "format": "VIDEO"
+                                        }
+                                    ],
+                                    "status": "PAUSED",
+                                    "campaignObjective": "OUTCOME_AWARENESS",
+                                    "buyingType": "AUCTION",
+                                    "specialAdCategories": "NONE",
+                                    "country": "",
+                                    "apiCampaign": true,
+                                    "objective": "AWARENESS",
+                                    "nameFragment": "FB LINK",
+                                    "scope": "WINTER"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "april_2024": {
+            "budget": 1706.392,
+            "percentage": 16,
+            "allocations": [
+                {
+                    "id": "4",
+                    "name": "Facebook",
+                    "isApiEnabled": true,
+                    "budget": 1706.392,
+                    "percentage": 100,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "4-OUTCOME_AWARENESS",
+                            "name": "OUTCOME_AWARENESS",
+                            "budget": 1706.392,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-OUTCOME_AWARENESS-Camp 1",
+                                    "name": "202312|OUTCOME_AWARENESS|AWARENESS|FB LINK|WINTER",
+                                    "budget": 1706.392,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "4-OUTCOME_AWARENESS-Camp 1-Adset 1",
+                                            "name": "202312|OUTCOME_AWARENESS|AWARENESS|FB LINK|WINTER|DADS|VIDEO",
+                                            "budget": 1706.392,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "startDate": "2024-04-01T04:00:00.000Z",
+                                            "endDate": "2024-04-30T04:00:00.000Z",
+                                            "status": "PAUSED",
+                                            "daily_budget": "68.81",
+                                            "billing_event": "POST_ENGAGEMENT",
+                                            "bid_strategy": "LOWEST_COST_WITH_BID_CAP",
+                                            "bid_amount": "5",
+                                            "optimization_goal": "REACH",
+                                            "targeting": "DADS",
+                                            "format": "VIDEO"
+                                        }
+                                    ],
+                                    "status": "PAUSED",
+                                    "campaignObjective": "OUTCOME_AWARENESS",
+                                    "buyingType": "AUCTION",
+                                    "specialAdCategories": "NONE",
+                                    "country": "",
+                                    "apiCampaign": true,
+                                    "objective": "AWARENESS",
+                                    "nameFragment": "FB LINK",
+                                    "scope": "WINTER"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "may_2024": {
+            "budget": 1706.392,
+            "percentage": 16,
+            "allocations": [
+                {
+                    "id": "4",
+                    "name": "Facebook",
+                    "isApiEnabled": true,
+                    "budget": 1706.392,
+                    "percentage": 100,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "4-OUTCOME_AWARENESS",
+                            "name": "OUTCOME_AWARENESS",
+                            "budget": 1706.392,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-OUTCOME_AWARENESS-Camp 1",
+                                    "name": "202312|OUTCOME_AWARENESS|AWARENESS|FB LINK|WINTER",
+                                    "budget": 1706.392,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "4-OUTCOME_AWARENESS-Camp 1-Adset 1",
+                                            "name": "202312|OUTCOME_AWARENESS|AWARENESS|FB LINK|WINTER|DADS|VIDEO",
+                                            "budget": 1706.392,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "startDate": "2024-05-01T04:00:00.000Z",
+                                            "endDate": "2024-05-31T04:00:00.000Z",
+                                            "status": "PAUSED",
+                                            "daily_budget": "68.81",
+                                            "billing_event": "POST_ENGAGEMENT",
+                                            "bid_strategy": "LOWEST_COST_WITH_BID_CAP",
+                                            "bid_amount": "5",
+                                            "optimization_goal": "REACH",
+                                            "targeting": "DADS",
+                                            "format": "VIDEO"
+                                        }
+                                    ],
+                                    "status": "PAUSED",
+                                    "campaignObjective": "OUTCOME_AWARENESS",
+                                    "buyingType": "AUCTION",
+                                    "specialAdCategories": "NONE",
+                                    "country": "",
+                                    "apiCampaign": true,
+                                    "objective": "AWARENESS",
+                                    "nameFragment": "FB LINK",
+                                    "scope": "WINTER"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "periods": [
+        {
+            "id": "december_2023",
+            "label": "December 2023",
+            "days": 31
+        },
+        {
+            "id": "january_2024",
+            "label": "January 2024",
+            "days": 31
+        },
+        {
+            "id": "february_2024",
+            "label": "February 2024",
+            "days": 29
+        },
+        {
+            "id": "march_2024",
+            "label": "March 2024",
+            "days": 31
+        },
+        {
+            "id": "april_2024",
+            "label": "April 2024",
+            "days": 30
+        },
+        {
+            "id": "may_2024",
+            "label": "May 2024",
+            "days": 31
+        }
+    ],
+    "status": "Planning",
+    "facebookAdAccountId": 569377181360420
+}
