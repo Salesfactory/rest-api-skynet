@@ -1,4 +1,4 @@
-const emailAmzTemplate = ({ owner, campaigns }) => {
+const emailAmzTemplate = ({ owner, campaignGroup,campaigns }) => {
     let html = `
         <!DOCTYPE html>
         <html lang="en">
@@ -30,7 +30,7 @@ const emailAmzTemplate = ({ owner, campaigns }) => {
         </head>
         <body>
         <p>Hi ${owner?.name ?? 'Test'}, </p>
-        <p>Rede has finished creating the Amazon campaigns and adsets in your [Campaign Group Name] group. Please see below for the status of each creation attempt:</p>
+        <p>Rede has finished creating the Amazon campaigns and adsets in your ${campaignGroup.name ?? ''} group. Please see below for the status of each creation attempt:</p>
     `;
 
     campaigns.forEach(campaign => {
@@ -70,7 +70,7 @@ const emailAmzTemplate = ({ owner, campaigns }) => {
     });
 
     html += `
-        <p>This covers the entire [Campaign Group Name] group you submitted to the automated creation queue on [Date Submitted].</p>
+        <p>This covers the entire ${campaignGroup.name ?? ''} group you submitted to the automated creation queue on [Date Submitted].</p>
         <p>Thanks,</p>
         </body>
         </html>
