@@ -1,4 +1,4 @@
-const emailAmzTemplate = () => {
+const emailAmzTemplate = ({ owner, campaigns }) => {
     let html = `
         <!DOCTYPE html>
         <html lang="en">
@@ -29,9 +29,13 @@ const emailAmzTemplate = () => {
             </style>
         </head>
         <body>
-        <p>Hi [Campaign Owner Name], </p>
+        <p>Hi ${owner?.name ?? 'Test'}, </p>
         <p>Rede has finished creating the Amazon campaigns and adsets in your [Campaign Group Name] group. Please see below for the status of each creation attempt:</p>
-        <div>
+    `;
+
+    campaigns.forEach(campaign => {
+        html += `
+            <div>
                 <table>
                     <thead>
                         <tr>
@@ -41,57 +45,36 @@ const emailAmzTemplate = () => {
                         </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                        <td><b>Campaign 1</b></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>Adset 1</td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>Adset 2</td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    </tbody>
-                </table>
-        </div>
-        <div>
-                <table>
-                    <thead>
                         <tr>
-                            <th>Element</th>
-                            <th>Status</th>
-                            <th>Description</th>
+                            <td><b>${campaign.campaignName}</b></td>
+                            <td>${campaign.status}</td>
+                            <td>${campaign.description}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td><b>Campaign 1</b></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>Adset 1</td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>Adset 2</td>
-                        <td></td>
-                        <td></td>
-                    </tr>
+        `;
+
+        campaign.adsets.forEach(adset => {
+            html += `
+                        <tr>
+                            <td>${adset.adsetName}</td>
+                            <td>${adset.status}</td>
+                            <td>${adset.description}</td>
+                        </tr>
+            `;
+        });
+
+        html += `
                     </tbody>
                 </table>
-        </div>
+            </div>
+        `;
+    });
+
+    html += `
         <p>This covers the entire [Campaign Group Name] group you submitted to the automated creation queue on [Date Submitted].</p>
         <p>Thanks,</p>
         </body>
         </html>
-        `;
+    `;
 
     return html;
 };
