@@ -1441,13 +1441,35 @@ const updateMarketingCampaign = async (req, res) => {
                     }
                 }
             }
+
+            const appendMissingCampaigns = async (prevCampaigns, newCampaigns) => {
+                // ambos son arrays en la db, y como solo estamos creando campañas nuevas, no hay que preocuparse por actualizar campañas existentes
+                if (Array.isArray(prevCampaigns)) {
+                    const campaigns = [...prevCampaigns];
+                    campaigns.push(...newCampaigns);
+                    return campaigns;
+                } else {
+                    return newCampaigns;
+                }
+            }
+
+            const mergedAmazonCampaigns = appendMissingCampaigns(
+                campaignGroup.budgets[0].amazonCampaigns,
+                amazonCampaigns
+            );
+
+            const mergedFacebookCampaigns = appendMissingCampaigns(
+                campaignGroup.budgets[0].facebookCampaigns,
+                facebookCampaigns
+            );
+
             // insert budget
             await Budget.create({
                 campaign_group_id: campaignId,
                 periods,
                 allocations,
-                amazonCampaigns,
-                facebookCampaigns,
+                amazonCampaigns: mergedAmazonCampaigns,
+                facebookCampaigns: mergedFacebookCampaigns,
             });
         }
 
