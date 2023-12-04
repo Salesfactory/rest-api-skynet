@@ -583,17 +583,18 @@ const createMarketingCampaign = async (req, res) => {
                                         //     createdAmazonAdsetsResult.fails.push(
                                         //         {
                                         //             name: adset.id,
-                                        //             ...adsetResponse.data,
+                                        //             ...adsetResponse.data[0],
                                         //         }
                                         //     );
                                         // } else {
-                                        //     amazonAdset.push(
-                                        //         adsetResponse.data
-                                        //     );
+                                        //     amazonAdset.push({
+                                        //         name: adset.id,
+                                        //         data: adsetResponse.data[0].lineItemId
+                                        //     });
                                         //     createdAmazonAdsetsResult.success.push(
                                         //         {
                                         //             name: adset.id,
-                                        //             ...adsetResponse.data,
+                                        //             ...adsetResponse.data[0],
                                         //         }
                                         //     );
                                         // }
@@ -603,7 +604,7 @@ const createMarketingCampaign = async (req, res) => {
                                         });
                                         createdAmazonAdsetsResult.success.push({
                                             name: adset.id,
-                                            ...adsetResponse.data,
+                                            ...adsetResponse.data[0],
                                             status: 'queue',
                                         });
                                         //                                         if (
@@ -627,9 +628,10 @@ const createMarketingCampaign = async (req, res) => {
                                         //                                                     }
                                         //                                                 );
                                         //                                             } else {
-                                        //                                                 amazonAdset.push(
-                                        //                                                     adsetResponse.data
-                                        //                                                 );
+                                        //                                                 amazonAdset.push({
+                                        //                                                     name: adset.id,
+                                        //                                                     data: adsetResponse.data[0].lineItemId
+                                        //                                                 });
                                         //                                                 createdAmazonAdsetsResult.success.push(
                                         //                                                     {
                                         //                                                         name: adset.id,
@@ -1193,9 +1195,10 @@ const updateMarketingCampaign = async (req, res) => {
                                                             }
                                                         );
                                                     } else {
-                                                        amazonAdset.push(
-                                                            adsetResponse.data
-                                                        );
+                                                        amazonAdset.push({
+                                                            name: adset.id,
+                                                            data: adsetResponse.data[0].lineItemId,
+                                                        });
                                                         createdAmazonAdsetsResult.success.push(
                                                             {
                                                                 name: adset.id,
@@ -1220,8 +1223,8 @@ const updateMarketingCampaign = async (req, res) => {
 
                                         amazonCampaigns.push({
                                             name: campaignGroup.id,
-                                            ...response.data[0],
-                                            amazonAdset,
+                                            data: response.data[0],
+                                            adsets: amazonAdset,
                                         });
 
                                         createdAmazonCampaignsResult.success.push(
