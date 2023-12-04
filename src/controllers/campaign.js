@@ -775,7 +775,10 @@ const createMarketingCampaign = async (req, res) => {
                                                     status: status || 'PAUSED',
                                                 }
                                             );
-                                        facebookAdset.push(adsetResponse);
+                                        facebookAdset.push({
+                                            name: adset.id,
+                                            data: adsetResponse
+                                        });
                                         createdFacebookAdsetResult.success.push(
                                             adsetResponse
                                         );
@@ -818,8 +821,9 @@ const createMarketingCampaign = async (req, res) => {
                             }
                         }
                         facebookCampaigns.push({
-                            facebookCampaign,
-                            facebookAdset,
+                            name: campaign.id,
+                            data: facebookCampaign,
+                            adsets: facebookAdset,
                         });
                     } catch (campaignError) {
                         console.error(
@@ -1370,9 +1374,10 @@ const updateMarketingCampaign = async (req, res) => {
                                                                 'PAUSED',
                                                         }
                                                     );
-                                                facebookAdset.push(
-                                                    adsetResponse
-                                                );
+                                                facebookAdset.push({
+                                                    name: adset.id,
+                                                    data: adsetResponse,
+                                                });
                                                 createdFacebookAdsetResult.success.push(
                                                     adsetResponse
                                                 );
@@ -1419,8 +1424,9 @@ const updateMarketingCampaign = async (req, res) => {
                                 }
                             }
                             facebookCampaigns.push({
-                                facebookCampaign,
-                                facebookAdset,
+                                name: campaign.id,
+                                data: facebookCampaign,
+                                adsets: facebookAdset,
                             });
                         } catch (campaignError) {
                             console.error(
