@@ -70,7 +70,7 @@ describe('createCampaign function', () => {
             expect(true).toBe(false);
         } catch (error) {
             expect(error).toEqual({
-                error: 'Assess Token can not be undefined!',
+                error: 'Access Token can not be undefined!',
             });
         }
     });
