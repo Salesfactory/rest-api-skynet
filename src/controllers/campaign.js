@@ -731,7 +731,10 @@ const createMarketingCampaign = async (req, res) => {
                                                     lifetime_budget:
                                                         convertToCents(budget),
                                                     bid_strategy,
-                                                    daily_budget,
+                                                    daily_budget:
+                                                        convertToCents(
+                                                            daily_budget
+                                                        ),
                                                     start_time: startTime,
                                                     end_time: endTime,
                                                     optimization_goal,
@@ -1302,7 +1305,10 @@ const updateMarketingCampaign = async (req, res) => {
                                                                     budget
                                                                 ),
                                                             bid_strategy,
-                                                            daily_budget,
+                                                            daily_budget:
+                                                                convertToCents(
+                                                                    daily_budget
+                                                                ),
                                                             start_time:
                                                                 startTime,
                                                             end_time: endTime,

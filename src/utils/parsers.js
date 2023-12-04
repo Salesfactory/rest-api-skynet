@@ -191,12 +191,15 @@ function generateCampaignsWithTimePeriodsAndAdsets(inputData) {
                         const campaignData = {
                             objective: campaign.objective,
                             specialAdCategories: campaign.specialAdCategories,
+                            campaignObjective: campaign.campaignObjective,
                             id: campaign.id,
                             name: campaign.name,
                             goals: campaign.goals,
                             type: 'CAMPAIGN',
                             campaignType: campaignType.name,
                             timePeriods: [],
+                            buyingType: campaign.buyingType,
+                            country: campaign.country,
                         };
 
                         let adsets = [];
