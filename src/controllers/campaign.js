@@ -27,6 +27,7 @@ const {
     groupCampaignAllocationsByType,
     generateCampaignsWithTimePeriodsAndAdsets,
     convertToCents,
+    concatMissingCampaigns,
 } = require('../utils/parsers');
 const { findIdInAllocations } = require('../utils/allocations');
 
@@ -1442,23 +1443,12 @@ const updateMarketingCampaign = async (req, res) => {
                 }
             }
 
-            const appendMissingCampaigns = async (prevCampaigns, newCampaigns) => {
-                // ambos son arrays en la db, y como solo estamos creando campañas nuevas, no hay que preocuparse por actualizar campañas existentes
-                if (Array.isArray(prevCampaigns)) {
-                    const campaigns = [...prevCampaigns];
-                    campaigns.push(...newCampaigns);
-                    return campaigns;
-                } else {
-                    return newCampaigns;
-                }
-            }
-
-            const mergedAmazonCampaigns = appendMissingCampaigns(
+            const mergedAmazonCampaigns = await concatMissingCampaigns(
                 campaignGroup.budgets[0].amazonCampaigns,
                 amazonCampaigns
             );
 
-            const mergedFacebookCampaigns = appendMissingCampaigns(
+            const mergedFacebookCampaigns = await concatMissingCampaigns(
                 campaignGroup.budgets[0].facebookCampaigns,
                 facebookCampaigns
             );
