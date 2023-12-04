@@ -2542,6 +2542,7 @@ describe('Campaign Endpoints Test', () => {
                 const data = {
                     id: 1,
                     ...adsetFacebookPayload,
+
                     createdAt: '2023-07-07 18:13:23.552748-04',
                     updatedAt: '2023-07-07 18:13:23.552748-04',
                     get: jest.fn().mockResolvedValue({
@@ -2576,7 +2577,7 @@ describe('Campaign Endpoints Test', () => {
                 CampaignGroup.create.mockResolvedValue(data);
                 Budget.create.mockResolvedValue(data.budget);
 
-                const response = await request
+                await request
                     .post(`/api/clients/${clientId}/marketingcampaign`)
                     .send(adsetFacebookPayload);
 
@@ -2593,7 +2594,7 @@ describe('Campaign Endpoints Test', () => {
                         start_time: '2023-01-01T00:00:17+0000',
                         end_time: '2023-02-01T00:00:17+0000',
                         bid_strategy: undefined,
-                        daily_budget: undefined,
+                        daily_budget: 6881,
                         optimization_goal: 'REACH',
                         targeting: { geo_locations: { countries: ['US'] } },
                         status: 'PAUSED',
