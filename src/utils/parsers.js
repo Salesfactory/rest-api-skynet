@@ -40,6 +40,7 @@ function groupCampaignAllocationsByType({
                                     frequencyCapTimeUnit:
                                         campaign.frequencyCapTimeUnit,
                                     productLocation: campaign.productLocation,
+                                    biddingStrategy: campaign.biddingStrategy,
                                     goal: campaign.orderGoal,
                                     goalKpi: campaign.orderGoalKpi,
                                     adsets: campaign.allocations,
