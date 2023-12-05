@@ -239,7 +239,13 @@ function generateCampaignsWithTimePeriodsAndAdsets(inputData) {
 }
 
 function convertToCents(dollars) {
-    const cents = dollars * 100;
+    if (typeof dollars === 'string') {
+        dollarsAsNumber = parseFloat(dollars);
+    } else if (typeof dollars === 'number') {
+        dollarsAsNumber = dollars;
+    }
+    let _dollars = parseFloat(dollarsAsNumber.toFixed(2));
+    const cents = _dollars * 100;
     return cents;
 }
 
