@@ -43,16 +43,18 @@ function createAdset(accessToken, adAccountId, adsetData) {
         if (adsetData === undefined) {
             reject({ error: 'the Adset Data can not be undefined!' });
         }
+
+        const campaignUrl = `https://graph.facebook.com/v18.0/act_${adAccountId}/adsets`;
+
+        console.log(`Creating a Facebook adset at: ${campaignUrl}`);
+        console.log('Campaign Data:', JSON.stringify(adsetData, null, 2));
+
         axios
-            .post(
-                `https://graph.facebook.com/v18.0/act_${adAccountId}/adsets`,
-                adsetData,
-                {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                }
-            )
+            .post(campaignUrl, adsetData, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            })
             .then(response => {
                 resolve(response.data);
             })
