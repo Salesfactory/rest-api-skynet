@@ -29,7 +29,6 @@ const {
     convertToCents,
 } = require('../utils/parsers');
 const { findIdInAllocations } = require('../utils/allocations');
-const util = require('util');
 
 //creacion de reporte excel
 const createReport = async (req, res) => {

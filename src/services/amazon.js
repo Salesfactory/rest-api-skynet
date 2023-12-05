@@ -9,8 +9,6 @@ const {
     getSponsoredAdsLineItemCreateData,
 } = require('../utils/allocations');
 
-const util = require('util');
-
 const DSP_GOALS = {
     AWARENESS: ['REACH'],
     CONSIDERATIONS_ON_AMAZON: [
@@ -121,11 +119,6 @@ const createDSPAdset = async ({ adset, orderId, type, access, profileId }) => {
                     adset,
                     orderId,
                 });
-
-                console.log(
-                    typeof config.data,
-                    util.inspect(config, false, null, true /* enable colors */)
-                );
 
                 const response = await axios.request(config);
 
