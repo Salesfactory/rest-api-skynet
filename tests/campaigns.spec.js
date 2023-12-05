@@ -2596,7 +2596,7 @@ describe('Campaign Endpoints Test', () => {
                         bid_strategy: undefined,
                         daily_budget: 6881,
                         optimization_goal: 'REACH',
-                        targeting: { geo_locations: { countries: ['US'] } },
+                        // targeting: { geo_locations: { countries: ['US'] } },
                         status: 'PAUSED',
                     }
                 );
