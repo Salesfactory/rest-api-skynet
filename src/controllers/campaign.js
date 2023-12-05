@@ -715,7 +715,6 @@ const createMarketingCampaign = async (req, res) => {
                                             startDate: startTime,
                                             endDate: endTime,
                                             optimization_goal,
-                                            //targeting,
                                             status,
                                         } = adset;
                                         const adsetResponse =
@@ -738,7 +737,11 @@ const createMarketingCampaign = async (req, res) => {
                                                     start_time: startTime,
                                                     end_time: endTime,
                                                     optimization_goal,
-                                                    //targeting,
+                                                    targeting: {
+                                                        geo_locations: {
+                                                            countries: ['US'],
+                                                        },
+                                                    },
                                                     status: status || 'PAUSED',
                                                 }
                                             );
@@ -759,7 +762,6 @@ const createMarketingCampaign = async (req, res) => {
                                             start_time,
                                             end_time,
                                             optimization_goal,
-                                            //targeting,
                                         } = adset;
                                         createdFacebookAdsetResult.fails.push({
                                             facebookCampaignId:
@@ -776,7 +778,11 @@ const createMarketingCampaign = async (req, res) => {
                                                 start_time,
                                                 end_time,
                                                 optimization_goal,
-                                                //targeting,
+                                                targeting: {
+                                                    geo_locations: {
+                                                        countries: ['US'],
+                                                    },
+                                                },
                                                 status: 'PAUSED',
                                             },
                                         });
@@ -1287,7 +1293,6 @@ const updateMarketingCampaign = async (req, res) => {
                                                     startDate: startTime,
                                                     endDate: endTime,
                                                     optimization_goal,
-                                                    //targeting,
                                                     status,
                                                 } = adset;
                                                 const adsetResponse =
@@ -1313,7 +1318,13 @@ const updateMarketingCampaign = async (req, res) => {
                                                                 startTime,
                                                             end_time: endTime,
                                                             optimization_goal,
-                                                            //targeting,
+                                                            targeting: {
+                                                                geo_locations: {
+                                                                    countries: [
+                                                                        'US',
+                                                                    ],
+                                                                },
+                                                            },
                                                             status:
                                                                 status ||
                                                                 'PAUSED',
@@ -1338,7 +1349,6 @@ const updateMarketingCampaign = async (req, res) => {
                                                     start_time,
                                                     end_time,
                                                     optimization_goal,
-                                                    //targeting,
                                                 } = adset;
                                                 createdFacebookAdsetResult.fails.push(
                                                     {
@@ -1357,7 +1367,13 @@ const updateMarketingCampaign = async (req, res) => {
                                                             start_time,
                                                             end_time,
                                                             optimization_goal,
-                                                            //targeting,
+                                                            targeting: {
+                                                                geo_locations: {
+                                                                    countries: [
+                                                                        'US',
+                                                                    ],
+                                                                },
+                                                            },
                                                             status: 'PAUSED',
                                                         },
                                                     }
