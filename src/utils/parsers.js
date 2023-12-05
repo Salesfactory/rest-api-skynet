@@ -239,6 +239,7 @@ function generateCampaignsWithTimePeriodsAndAdsets(inputData) {
 }
 
 function convertToCents(dollars) {
+    dollars = parseFloat(dollars.toFixed(2));
     const cents = dollars * 100;
     return cents;
 }
