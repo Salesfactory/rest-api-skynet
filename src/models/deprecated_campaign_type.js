@@ -1,36 +1,35 @@
 'use strict';
 const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-    class Channel extends Model {
+    class DeprecatedCampaignType extends Model {
         /**
          * Helper method for defining associations.
          * This method is not a part of Sequelize lifecycle.
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            Channel.hasMany(models.DeprecatedCampaignType, {
+            DeprecatedCampaignType.belongsTo(models.Agency, {
                 foreignKey: 'channel_id',
-                as: 'deprecatedCampaignTypes',
+                as: 'channel',
             });
         }
     }
-    Channel.init(
+    DeprecatedCampaignType.init(
         {
+            channel_id: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+            },
             name: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-            isApiEnabled: {
-                type: DataTypes.BOOLEAN,
-                allowNull: false,
-                defaultValue: false,
-            },
         },
         {
             sequelize,
-            modelName: 'Channel',
-            tableName: 'channels',
+            modelName: 'DeprecatedCampaignType',
+            tableName: 'deprecated_campaign_types',
         }
     );
-    return Channel;
+    return DeprecatedCampaignType;
 };
