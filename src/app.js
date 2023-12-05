@@ -9,7 +9,6 @@ const cronjobs = require('./cronjobs');
 const session = require('express-session');
 // api router
 const apiRouter = require('./routes');
-const IORedis = require('ioredis');
 
 module.exports = function ({
     getSecrets,
@@ -74,47 +73,6 @@ module.exports = function ({
         res.send('Hello!');
     });
 
-    // Endpoint to add a job to the queue
-    app.post('/add-job', async (req, res) => {
-        try {
-            const jobData = req.body;
-            const jobId = await amzQueue.addJobToQueue(jobData);
-            res.status(200).json({ message: `Job added with ID: ${jobId}` });
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-        }
-    });
-
-    // Endpoint to manually trigger job processing
-    app.post('/process-job', async (req, res) => {
-        try {
-            async function storeResultinRedis(job) {
-                return null;
-            }
-
-            await amzQueue.startProcessingJobs(storeResultinRedis);
-
-            res.status(200).json({ message: 'Job processing initiated' });
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-        }
-    });
-
-    // GET endpoint to retrieve all processed job results
-    app.get('/get-job-results', async (req, res) => {
-        try {
-            const completedJobs = await amzQueue.getCompletedJobs();
-            res.status(200).json({ data: completedJobs });
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({
-                message: 'Error retrieving job results',
-                error: error.message,
-            });
-        }
-    });
-
-    // api routes
     app.use(
         '/api',
         (req, res, next) => {
