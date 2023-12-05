@@ -328,8 +328,6 @@ const getSponsoredAdsLineItemCreateData = ({ adset, orderId }) => {
         budget,
     } = adset;
 
-    console.log(adset);
-
     const lineItem = [
         {
             lineItemType: lineItemType || 'STANDARD_DISPLAY', // "STANDARD_DISPLAY" "AMAZON_MOBILE_DISPLAY" "AAP_MOBILE_APP" "VIDEO"
