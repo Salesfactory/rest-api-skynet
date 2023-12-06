@@ -125,7 +125,7 @@ async function deleteReadNotifications() {
     await Notification.destroy({
         where: {
             status: 'read',
-            updatedAt: {
+            createdAt: {
                 [Op.lt]: sevenDaysAgo,
             },
         },
