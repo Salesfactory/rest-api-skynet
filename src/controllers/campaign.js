@@ -722,33 +722,39 @@ const createMarketingCampaign = async (req, res) => {
                                             optimization_goal,
                                             status,
                                         } = adset;
+                                        const adsetPayload = {
+                                            campaign_id: facebookCampaign.id,
+                                            name: adsetName,
+                                            bid_amount,
+                                            billing_event,
+                                            lifetime_budget:
+                                                convertToCents(budget),
+                                            bid_strategy,
+                                            daily_budget:
+                                                convertToCents(daily_budget),
+                                            start_time: startTime,
+                                            end_time: endTime,
+                                            optimization_goal,
+                                            targeting: {
+                                                geo_locations: {
+                                                    countries: ['US'],
+                                                },
+                                            },
+                                            status: status || 'PAUSED',
+                                        };
+                                        // Check and remove 'bid_amount' based on the FB API allowed conditions
+                                        if (
+                                            adsetPayload.bid_amount === ' ' ||
+                                            adsetPayload.billing_event ===
+                                                'LOWEST_COST_WITHOUT_CAP'
+                                        ) {
+                                            delete adsetPayload.bid_amount;
+                                        }
                                         const adsetResponse =
                                             await req.facebook.createAdset(
                                                 secret.FACEBOOK_ACCESS_TOKEN,
                                                 facebookAdAccountId,
-                                                {
-                                                    campaign_id:
-                                                        facebookCampaign.id,
-                                                    name: adsetName,
-                                                    bid_amount,
-                                                    billing_event,
-                                                    lifetime_budget:
-                                                        convertToCents(budget),
-                                                    bid_strategy,
-                                                    daily_budget:
-                                                        convertToCents(
-                                                            daily_budget
-                                                        ),
-                                                    start_time: startTime,
-                                                    end_time: endTime,
-                                                    optimization_goal,
-                                                    targeting: {
-                                                        geo_locations: {
-                                                            countries: ['US'],
-                                                        },
-                                                    },
-                                                    status: status || 'PAUSED',
-                                                }
+                                                adsetPayload
                                             );
                                         facebookAdset.push(adsetResponse);
                                         createdFacebookAdsetResult.success.push(
