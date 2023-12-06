@@ -240,13 +240,16 @@ function generateCampaignsWithTimePeriodsAndAdsets(inputData) {
 }
 
 function convertToCents(dollars) {
+    let dollarsAsNumber;
+
     if (typeof dollars === 'string') {
         dollarsAsNumber = parseFloat(dollars);
     } else if (typeof dollars === 'number') {
         dollarsAsNumber = dollars;
     }
-    let _dollars = parseFloat(dollarsAsNumber.toFixed(2));
-    const cents = _dollars * 100;
+
+    // Use Math.round to handle floating point precision issues
+    const cents = Math.round(dollarsAsNumber * 100);
     return cents;
 }
 
