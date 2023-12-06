@@ -660,7 +660,7 @@ describe('Campaign Endpoints Test', () => {
                             },
                             {
                                 id: '2',
-                                name: 'Amazon Advertising',
+                                name: 'Amazon Advertising DSP',
                                 budget: 27.06,
                                 percentage: 50,
                                 type: 'CHANNEL',
@@ -682,7 +682,7 @@ describe('Campaign Endpoints Test', () => {
                             },
                             {
                                 id: '2',
-                                name: 'Amazon Advertising',
+                                name: 'Amazon Advertising DSP',
                                 budget: 27.06,
                                 percentage: 50,
                                 type: 'CHANNEL',
@@ -862,7 +862,7 @@ describe('Campaign Endpoints Test', () => {
                 };
 
                 Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 2, name: 'Amazon Advertising DSP' },
                     { id: 3, name: 'Facebook' },
                 ]);
 
@@ -903,7 +903,7 @@ describe('Campaign Endpoints Test', () => {
                         },
                         {
                             id: '2',
-                            name: 'Amazon Advertising',
+                            name: 'Amazon Advertising DSP',
                             isApiEnabled: true,
                         },
                     ],
@@ -923,7 +923,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -931,7 +931,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -991,7 +991,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -999,7 +999,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -1080,7 +1080,7 @@ describe('Campaign Endpoints Test', () => {
                 };
 
                 Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 2, name: 'Amazon Advertising DSP' },
                     { id: 3, name: 'Facebook' },
                 ]);
 
@@ -1097,7 +1097,7 @@ describe('Campaign Endpoints Test', () => {
                 CampaignGroup.create.mockResolvedValue(data);
                 Budget.create.mockResolvedValue(data.budget);
 
-                await request
+                const response = await request
                     .post(`/api/clients/${clientId}/marketingcampaign`)
                     .send(campaignOrchestrationPayloadData);
 
@@ -1121,7 +1121,7 @@ describe('Campaign Endpoints Test', () => {
                         },
                         {
                             id: '2',
-                            name: 'Amazon Advertising',
+                            name: 'Amazon Advertising DSP',
                             isApiEnabled: true,
                         },
                     ],
@@ -1141,7 +1141,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -1149,7 +1149,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -1201,7 +1201,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -1209,7 +1209,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -1281,7 +1281,7 @@ describe('Campaign Endpoints Test', () => {
                 };
 
                 Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 2, name: 'Amazon Advertising DSP' },
                     { id: 3, name: 'Facebook' },
                 ]);
 
@@ -1328,8 +1328,9 @@ describe('Campaign Endpoints Test', () => {
                         goalKpi: 'Revenue',
                         productLocation: 'New York',
                         recurrenceTimePeriod: 'Monthly',
-                        startDate: '2023-01-01',
-                        type: 'Sponsored Ads',
+                        startDate: "2023-01-01T04:00:00.000Z",
+                        endDate: "2023-02-01T04:00:00.000Z",
+                        type: 'Responsive eCommerce',
                     },
                     profileId: 'DSP_PROFILE_ID',
                     type: 'Sponsored Ads',
@@ -1353,7 +1354,7 @@ describe('Campaign Endpoints Test', () => {
                         },
                         {
                             id: '2',
-                            name: 'Amazon Advertising',
+                            name: 'Amazon Advertising DSP',
                             isApiEnabled: true,
                         },
                     ],
@@ -1373,7 +1374,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -1381,7 +1382,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -1441,7 +1442,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -1449,7 +1450,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -1529,7 +1530,7 @@ describe('Campaign Endpoints Test', () => {
                 };
 
                 Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 2, name: 'Amazon Advertising DSP' },
                     { id: 3, name: 'Facebook' },
                 ]);
 
@@ -1640,7 +1641,7 @@ describe('Campaign Endpoints Test', () => {
                 };
 
                 Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 2, name: 'Amazon Advertising DSP' },
                 ]);
 
                 getUser.mockResolvedValue(user);
@@ -1684,7 +1685,7 @@ describe('Campaign Endpoints Test', () => {
                 };
 
                 Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 2, name: 'Amazon Advertising DSP' },
                 ]);
 
                 getUser.mockResolvedValue(user);
@@ -1728,7 +1729,7 @@ describe('Campaign Endpoints Test', () => {
                 };
 
                 Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 2, name: 'Amazon Advertising DSP' },
                 ]);
 
                 getUser.mockResolvedValue(user);
@@ -1812,7 +1813,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     budget: 27.06,
                                     percentage: 50,
                                     type: 'CHANNEL',
@@ -1834,7 +1835,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     budget: 27.06,
                                     percentage: 50,
                                     type: 'CHANNEL',
@@ -2455,6 +2456,7 @@ describe('Campaign Endpoints Test', () => {
                 const data = {
                     id: 1,
                     ...adsetFacebookPayload,
+
                     createdAt: '2023-07-07 18:13:23.552748-04',
                     updatedAt: '2023-07-07 18:13:23.552748-04',
                     get: jest.fn().mockResolvedValue({
@@ -2489,7 +2491,7 @@ describe('Campaign Endpoints Test', () => {
                 CampaignGroup.create.mockResolvedValue(data);
                 Budget.create.mockResolvedValue(data.budget);
 
-                const response = await request
+                await request
                     .post(`/api/clients/${clientId}/marketingcampaign`)
                     .send(adsetFacebookPayload);
 
@@ -2506,7 +2508,7 @@ describe('Campaign Endpoints Test', () => {
                         start_time: '2023-01-01T00:00:17+0000',
                         end_time: '2023-02-01T00:00:17+0000',
                         bid_strategy: undefined,
-                        daily_budget: undefined,
+                        daily_budget: 6881,
                         optimization_goal: 'REACH',
                         targeting: { geo_locations: { countries: ['US'] } },
                         status: 'PAUSED',
@@ -2703,7 +2705,7 @@ describe('Campaign Endpoints Test', () => {
                             allocations: [
                                 {
                                     id: '1',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     budget: 27.06,
                                     percentage: 50,
                                     type: 'CHANNEL',
@@ -2717,7 +2719,7 @@ describe('Campaign Endpoints Test', () => {
                             allocations: [
                                 {
                                     id: '1',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     budget: 27.06,
                                     percentage: 50,
                                     type: 'CHANNEL',
@@ -2752,7 +2754,7 @@ describe('Campaign Endpoints Test', () => {
                 };
 
                 Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 2, name: 'Amazon Advertising DSP' },
                 ]);
 
                 getUser.mockResolvedValue(user);
@@ -2789,7 +2791,7 @@ describe('Campaign Endpoints Test', () => {
                     channels: [
                         {
                             id: '2',
-                            name: 'Amazon Advertising',
+                            name: 'Amazon Advertising DSP',
                             isApiEnabled: true,
                         },
                     ],
@@ -2800,7 +2802,7 @@ describe('Campaign Endpoints Test', () => {
                             allocations: [
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -2808,7 +2810,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -2859,7 +2861,7 @@ describe('Campaign Endpoints Test', () => {
                             allocations: [
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -2867,7 +2869,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -2948,7 +2950,7 @@ describe('Campaign Endpoints Test', () => {
                 };
 
                 Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 2, name: 'Amazon Advertising DSP' },
                     { id: 3, name: 'Facebook' },
                 ]);
 
@@ -2988,7 +2990,7 @@ describe('Campaign Endpoints Test', () => {
                     channels: [
                         {
                             id: '2',
-                            name: 'Amazon Advertising',
+                            name: 'Amazon Advertising DSP',
                             isApiEnabled: true,
                         },
                     ],
@@ -2999,7 +3001,7 @@ describe('Campaign Endpoints Test', () => {
                             allocations: [
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -3007,7 +3009,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -3058,7 +3060,7 @@ describe('Campaign Endpoints Test', () => {
                             allocations: [
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -3066,7 +3068,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -3147,7 +3149,7 @@ describe('Campaign Endpoints Test', () => {
                 };
 
                 Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 2, name: 'Amazon Advertising DSP' },
                     { id: 3, name: 'Facebook' },
                 ]);
 

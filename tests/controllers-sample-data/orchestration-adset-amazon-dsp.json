@@ -10,7 +10,7 @@
     "channels": [
         {
             "id": "1",
-            "name": "Amazon Advertising"
+            "name": "Amazon Advertising DSP"
         }
     ],
     "allocations": {
@@ -20,14 +20,14 @@
             "allocations": [
                 {
                     "id": "1",
-                    "name": "Amazon Advertising",
+                    "name": "Amazon Advertising DSP",
                     "budget": 2125,
                     "percentage": 100,
                     "type": "CHANNEL",
                     "allocations": [
                         {
                             "id": "1-SEARCH",
-                            "name": "Sponsored Ads",
+                            "name": "Responsive eCommerce",
                             "budget": 2125,
                             "percentage": 100,
                             "type": "CAMPAIGN_TYPE",
@@ -96,14 +96,14 @@
             "allocations": [
                 {
                     "id": "1",
-                    "name": "Amazon Advertising",
+                    "name": "Amazon Advertising DSP",
                     "budget": 2125,
                     "percentage": 100,
                     "type": "CHANNEL",
                     "allocations": [
                         {
                             "id": "1-SEARCH",
-                            "name": "Sponsored Ads",
+                            "name": "Responsive eCommerce",
                             "budget": 2125,
                             "percentage": 100,
                             "type": "CAMPAIGN_TYPE",

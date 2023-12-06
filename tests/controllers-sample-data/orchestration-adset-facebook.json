@@ -52,6 +52,7 @@
                                             "startDate": "2023-01-01T00:00:17+0000",
                                             "endDate": "2023-02-01T00:00:17+0000",
                                             "optimization_goal": "REACH",
+                                            "daily_budget": "68.81",
                                             "targeting": {
                                                 "geo_locations": {
                                                     "countries": ["US"]
@@ -69,6 +70,7 @@
                                             "startDate": "2023-01-01T00:00:17+0000",
                                             "endDate": "2023-02-01T00:00:17+0000",
                                             "optimization_goal": "REACH",
+                                            "daily_budget": "68.81",
                                             "targeting": {
                                                 "geo_locations": {
                                                     "countries": ["US"]
@@ -91,7 +93,8 @@
                                             "name": "adtest-test-4",
                                             "budget": 850,
                                             "percentage": 100,
-                                            "type": "ADSET"
+                                            "type": "ADSET",
+                                            "daily_budget": "68.81"
                                         }
                                     ]
                                 }
@@ -117,14 +120,16 @@
                                             "name": "adset-test-4",
                                             "budget": 425,
                                             "percentage": 50,
-                                            "type": "ADSET"
+                                            "type": "ADSET",
+                                            "daily_budget": "68.81"
                                         },
                                         {
                                             "id": "4-CONVERSIONS-campaign-3-test-adtes-test-5",
                                             "name": "adtes-test-5",
                                             "budget": 425,
                                             "percentage": 50,
-                                            "type": "ADSET"
+                                            "type": "ADSET",
+                                            "daily_budget": "68.81"
                                         }
                                     ]
                                 }
@@ -166,14 +171,16 @@
                                             "name": "api-adset-test-1",
                                             "budget": 680,
                                             "percentage": 50,
-                                            "type": "ADSET"
+                                            "type": "ADSET",
+                                            "daily_budget": "68.81"
                                         },
                                         {
                                             "id": "4-PAGE_LIKES-api-test-1-api-adset-test-2",
                                             "name": "api-adset-test-2",
                                             "budget": 680,
                                             "percentage": 50,
-                                            "type": "ADSET"
+                                            "type": "ADSET",
+                                            "daily_budget": "68.81"
                                         }
                                     ]
                                 },
@@ -190,7 +197,8 @@
                                             "name": "adtest-test-4",
                                             "budget": 680,
                                             "percentage": 100,
-                                            "type": "ADSET"
+                                            "type": "ADSET",
+                                            "daily_budget": "68.81"
                                         }
                                     ]
                                 }
@@ -216,14 +224,16 @@
                                             "name": "adset-test-4",
                                             "budget": 340,
                                             "percentage": 50,
-                                            "type": "ADSET"
+                                            "type": "ADSET",
+                                            "daily_budget": "68.81"
                                         },
                                         {
                                             "id": "4-CONVERSIONS-campaign-3-test-adtes-test-5",
                                             "name": "adtes-test-5",
                                             "budget": 340,
                                             "percentage": 50,
-                                            "type": "ADSET"
+                                            "type": "ADSET",
+                                            "daily_budget": "68.81"
                                         }
                                     ]
                                 }

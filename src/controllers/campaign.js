@@ -503,10 +503,13 @@ const createMarketingCampaign = async (req, res) => {
             fails: [],
         };
         const isAmazonAdvertisingSponsoredAdsNotEmpty =
-            campaignDataByChannel['Amazon Advertising'] &&
-            campaignDataByChannel['Amazon Advertising']['Sponsored Ads'] &&
-            campaignDataByChannel['Amazon Advertising']['Sponsored Ads']
-                .length > 0;
+            campaignDataByChannel['Amazon Advertising DSP'] &&
+            campaignDataByChannel['Amazon Advertising DSP'][
+                'Responsive eCommerce'
+            ] &&
+            campaignDataByChannel['Amazon Advertising DSP'][
+                'Responsive eCommerce'
+            ].length > 0;
         const isAccessInvalid = !access?.CLIENT_ID || !access?.ACCESS_TOKEN;
 
         const createdfacebookCampaignsResult = {
@@ -533,14 +536,16 @@ const createMarketingCampaign = async (req, res) => {
                     });
                 } else {
                     for (const campaign of campaignDataByChannel[
-                        'Amazon Advertising'
-                    ]['Sponsored Ads']) {
+                        'Amazon Advertising DSP'
+                    ]['Responsive eCommerce']) {
                         let amazonAdset = [];
                         try {
                             const response = await req.amazon.createCampaign({
                                 campaign: {
                                     ...campaign,
                                     advertiserId,
+                                    startDate: flight_time_start,
+                                    endDate: flight_time_end,
                                 },
                                 type: 'Sponsored Ads',
                                 access,
@@ -562,6 +567,11 @@ const createMarketingCampaign = async (req, res) => {
                                         ...response.data[0],
                                     });
                                 } else {
+                                    createdAmazonCampaignsResult.success.push({
+                                        name: campaign.id,
+                                        ...response.data[0],
+                                    });
+
                                     const orderId = response.data[0].orderId;
 
                                     for (const adset of campaign.adsets) {
@@ -659,11 +669,6 @@ const createMarketingCampaign = async (req, res) => {
                                         data: response.data[0],
                                         adsets: amazonAdset,
                                     });
-
-                                    createdAmazonCampaignsResult.success.push({
-                                        name: campaign.id,
-                                        ...response.data[0],
-                                    });
                                 }
                             } else {
                                 createdAmazonCampaignsResult.fails.push({
@@ -752,7 +757,6 @@ const createMarketingCampaign = async (req, res) => {
                                             startDate: startTime,
                                             endDate: endTime,
                                             optimization_goal,
-                                            targeting,
                                             status,
                                         } = adset;
                                         const adsetResponse =
@@ -768,11 +772,18 @@ const createMarketingCampaign = async (req, res) => {
                                                     lifetime_budget:
                                                         convertToCents(budget),
                                                     bid_strategy,
-                                                    daily_budget,
+                                                    daily_budget:
+                                                        convertToCents(
+                                                            daily_budget
+                                                        ),
                                                     start_time: startTime,
                                                     end_time: endTime,
                                                     optimization_goal,
-                                                    targeting,
+                                                    targeting: {
+                                                        geo_locations: {
+                                                            countries: ['US'],
+                                                        },
+                                                    },
                                                     status: status || 'PAUSED',
                                                 }
                                             );
@@ -796,7 +807,6 @@ const createMarketingCampaign = async (req, res) => {
                                             start_time,
                                             end_time,
                                             optimization_goal,
-                                            targeting,
                                         } = adset;
                                         createdFacebookAdsetResult.fails.push({
                                             facebookCampaignId:
@@ -813,7 +823,11 @@ const createMarketingCampaign = async (req, res) => {
                                                 start_time,
                                                 end_time,
                                                 optimization_goal,
-                                                targeting,
+                                                targeting: {
+                                                    geo_locations: {
+                                                        countries: ['US'],
+                                                    },
+                                                },
                                                 status: 'PAUSED',
                                             },
                                         });
@@ -1065,10 +1079,13 @@ const updateMarketingCampaign = async (req, res) => {
         });
 
         const isAmazonAdvertisingSponsoredAdsNotEmpty =
-            campaignDataByChannel['Amazon Advertising'] &&
-            campaignDataByChannel['Amazon Advertising']['Sponsored Ads'] &&
-            campaignDataByChannel['Amazon Advertising']['Sponsored Ads']
-                .length > 0;
+            campaignDataByChannel['Amazon Advertising DSP'] &&
+            campaignDataByChannel['Amazon Advertising DSP'][
+                'Responsive eCommerce'
+            ] &&
+            campaignDataByChannel['Amazon Advertising DSP'][
+                'Responsive eCommerce'
+            ].length > 0;
 
         const createdAmazonCampaignsResult = {
             success: [],
@@ -1113,8 +1130,8 @@ const updateMarketingCampaign = async (req, res) => {
                     });
                 } else {
                     for (const campaign of campaignDataByChannel[
-                        'Amazon Advertising'
-                    ]['Sponsored Ads']) {
+                        'Amazon Advertising DSP'
+                    ]['Responsive eCommerce']) {
                         let amazonAdset = [];
                         // check for non previously added campaigns
                         const campaingFoundInAllocations =
@@ -1131,6 +1148,8 @@ const updateMarketingCampaign = async (req, res) => {
                                         campaign: {
                                             ...campaign,
                                             advertiserId,
+                                            startDate: flight_time_start,
+                                            endDate: flight_time_end,
                                         },
                                         type: 'Sponsored Ads',
                                         access,
@@ -1154,6 +1173,13 @@ const updateMarketingCampaign = async (req, res) => {
                                             }
                                         );
                                     } else {
+                                        createdAmazonCampaignsResult.success.push(
+                                            {
+                                                name: campaignGroup.id,
+                                                ...response.data[0],
+                                            }
+                                        );
+
                                         const orderId =
                                             response.data[0].orderId;
 
@@ -1231,13 +1257,6 @@ const updateMarketingCampaign = async (req, res) => {
                                             data: response.data[0],
                                             adsets: amazonAdset,
                                         });
-
-                                        createdAmazonCampaignsResult.success.push(
-                                            {
-                                                name: campaignGroup.id,
-                                                ...response.data[0],
-                                            }
-                                        );
                                     }
                                 } else {
                                     createdAmazonCampaignsResult.fails.push({
@@ -1346,7 +1365,6 @@ const updateMarketingCampaign = async (req, res) => {
                                                     startDate: startTime,
                                                     endDate: endTime,
                                                     optimization_goal,
-                                                    targeting,
                                                     status,
                                                 } = adset;
                                                 const adsetResponse =
@@ -1364,12 +1382,21 @@ const updateMarketingCampaign = async (req, res) => {
                                                                     budget
                                                                 ),
                                                             bid_strategy,
-                                                            daily_budget,
+                                                            daily_budget:
+                                                                convertToCents(
+                                                                    daily_budget
+                                                                ),
                                                             start_time:
                                                                 startTime,
                                                             end_time: endTime,
                                                             optimization_goal,
-                                                            targeting,
+                                                            targeting: {
+                                                                geo_locations: {
+                                                                    countries: [
+                                                                        'US',
+                                                                    ],
+                                                                },
+                                                            },
                                                             status:
                                                                 status ||
                                                                 'PAUSED',
@@ -1395,7 +1422,6 @@ const updateMarketingCampaign = async (req, res) => {
                                                     start_time,
                                                     end_time,
                                                     optimization_goal,
-                                                    targeting,
                                                 } = adset;
                                                 createdFacebookAdsetResult.fails.push(
                                                     {
@@ -1414,7 +1440,13 @@ const updateMarketingCampaign = async (req, res) => {
                                                             start_time,
                                                             end_time,
                                                             optimization_goal,
-                                                            targeting,
+                                                            targeting: {
+                                                                geo_locations: {
+                                                                    countries: [
+                                                                        'US',
+                                                                    ],
+                                                                },
+                                                            },
                                                             status: 'PAUSED',
                                                         },
                                                     }

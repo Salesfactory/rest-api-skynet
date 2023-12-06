@@ -40,6 +40,7 @@ function groupCampaignAllocationsByType({
                                     frequencyCapTimeUnit:
                                         campaign.frequencyCapTimeUnit,
                                     productLocation: campaign.productLocation,
+                                    biddingStrategy: campaign.biddingStrategy,
                                     goal: campaign.orderGoal,
                                     goalKpi: campaign.orderGoalKpi,
                                     adsets: campaign.allocations,
@@ -239,7 +240,16 @@ function generateCampaignsWithTimePeriodsAndAdsets(inputData) {
 }
 
 function convertToCents(dollars) {
-    const cents = dollars * 100;
+    let dollarsAsNumber;
+
+    if (typeof dollars === 'string') {
+        dollarsAsNumber = parseFloat(dollars);
+    } else if (typeof dollars === 'number') {
+        dollarsAsNumber = dollars;
+    }
+
+    // Use Math.round to handle floating point precision issues
+    const cents = Math.round(dollarsAsNumber * 100);
     return cents;
 }
 

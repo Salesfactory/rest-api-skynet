@@ -210,6 +210,30 @@ describe('convert dollars to cents', () => {
 
         expect(cents).toEqual(expectedCents);
     });
+    it('convert dollars to cents 2 decimals', () => {
+        const dollar = 1053.252;
+        const cents = 105325;
+
+        const expectedCents = convertToCents(dollar);
+
+        expect(cents).toEqual(expectedCents);
+    });
+    it('convert dollars to cents 2 decimals string', () => {
+        const dollar = '1053.252';
+        const cents = 105325;
+
+        const expectedCents = convertToCents(dollar);
+
+        expect(cents).toEqual(expectedCents);
+    });
+    it('convert dollars to cents N decimals string', () => {
+        const dollar = '73.84999999999999';
+        const cents = 7385;
+
+        const expectedCents = convertToCents(dollar);
+
+        expect(cents).toEqual(expectedCents);
+    });
 });
 
 describe('concatMissingCampaigns', () => {
