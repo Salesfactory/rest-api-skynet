@@ -1,0 +1,565 @@
+{
+    "id": 218,
+    "client_id": 3,
+    "name": "JB - Test Multi-Channel 1",
+    "company_name": "Channellock",
+    "goals": "Awareness",
+    "total_gross_budget": 9427,
+    "margin": 0.15,
+    "flight_time_start": "2023-12-01 05:00:00+00",
+    "flight_time_end": "2024-02-01 05:00:00+00",
+    "net_budget": 8012.95,
+    "comments": null,
+    "deleted": false,
+    "createdAt": "2023-12-06 18:11:16.931+00",
+    "updatedAt": "2023-12-06 18:23:28.215+00",
+    "deletedAt": "2023-12-06 18:11:16.933103+00",
+    "channels": [
+        {
+            "id": "4",
+            "name": "Facebook",
+            "isApiEnabled": true,
+            "deprecatedCampaignTypes": [
+                { "id": 1, "name": "POST_ENGAGEMENT" },
+                { "id": 2, "name": "REACH" },
+                { "id": 3, "name": "PAGE_LIKES" },
+                { "id": 4, "name": "BRAND_AWARENESS" },
+                { "id": 5, "name": "CONVERSIONS" },
+                { "id": 6, "name": "LINK_CLICKS" }
+            ]
+        },
+        {
+            "id": "8",
+            "name": "Amazon Advertising DSP",
+            "isApiEnabled": true,
+            "deprecatedCampaignTypes": []
+        },
+        {
+            "id": "1",
+            "name": "Google Ads",
+            "isApiEnabled": false,
+            "deprecatedCampaignTypes": []
+        }
+    ],
+    "change_reason_log": "",
+    "status": "Planning",
+    "user_id": 1,
+    "linked": false,
+    "allocations": {
+        "december_2023": {
+            "budget": 2724.4030000000002,
+            "percentage": 34,
+            "allocations": [
+                {
+                    "id": "4",
+                    "name": "Facebook",
+                    "isApiEnabled": true,
+                    "deprecatedCampaignTypes": [
+                        { "id": 1, "name": "POST_ENGAGEMENT" },
+                        { "id": 2, "name": "REACH" },
+                        { "id": 3, "name": "PAGE_LIKES" },
+                        { "id": 4, "name": "BRAND_AWARENESS" },
+                        { "id": 5, "name": "CONVERSIONS" },
+                        { "id": 6, "name": "LINK_CLICKS" }
+                    ],
+                    "budget": 926.2970200000001,
+                    "percentage": 34,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "4-OUTCOME_ENGAGEMENT",
+                            "name": "OUTCOME_ENGAGEMENT",
+                            "budget": 926.2970200000001,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-OUTCOME_ENGAGEMENT-Camp 1",
+                                    "name": "202312|OUTCOME_ENGAGEMENT|MULITI LINK|FB LINK|WINTER",
+                                    "budget": 926.2970200000001,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "4-OUTCOME_ENGAGEMENT-Camp 1-Adset 1",
+                                            "name": "202312|OUTCOME_ENGAGEMENT|MULITI LINK|FB LINK|WINTER|MOMS|VIDEO",
+                                            "budget": 926.2970200000001,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "startDate": "2023-12-01T05:00:00.000Z",
+                                            "endDate": "2024-02-01T05:00:00.000Z",
+                                            "status": "PAUSED",
+                                            "daily_budget": "926.30",
+                                            "billing_event": "IMPRESSIONS",
+                                            "bid_strategy": "LOWEST_COST_WITH_BID_CAP",
+                                            "bid_amount": "3",
+                                            "optimization_goal": "POST_ENGAGEMENT",
+                                            "targeting": "MOMS",
+                                            "format": "VIDEO"
+                                        }
+                                    ],
+                                    "status": "PAUSED",
+                                    "campaignObjective": "OUTCOME_ENGAGEMENT",
+                                    "buyingType": "AUCTION",
+                                    "specialAdCategories": "NONE",
+                                    "country": "",
+                                    "apiCampaign": true,
+                                    "objective": "MULITI LINK",
+                                    "nameFragment": "FB LINK",
+                                    "scope": "WINTER"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "name": "Amazon Advertising DSP",
+                    "isApiEnabled": true,
+                    "deprecatedCampaignTypes": [],
+                    "budget": 899.0529900000001,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "8-Responsive eCommerce",
+                            "name": "Responsive eCommerce",
+                            "budget": 899.0529900000001,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "8-Responsive eCommerce-Camp 2",
+                                    "name": "202312|Responsive eCommerce|MULTI LINK2|AMZ LINK|WINTER",
+                                    "budget": 899.0529900000001,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "8-Responsive eCommerce-Camp 2-Adset 2",
+                                            "name": "202312|Responsive eCommerce|MULTI LINK2|AMZ LINK|WINTER|DADS|VIDEO",
+                                            "budget": 899.0529900000001,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "startDate": "2023-12-01T05:00:00.000Z",
+                                            "endDate": "2024-02-01T05:00:00.000Z",
+                                            "lineItemType": "VIDEO",
+                                            "frequencyCap": "UNCAPPED",
+                                            "timeUnit": "",
+                                            "maximumImpressions": "",
+                                            "timeUnitCount": "",
+                                            "targeting": "DADS",
+                                            "format": "VIDEO"
+                                        }
+                                    ],
+                                    "status": "PAUSED",
+                                    "productLocation": "SOLD_ON_AMAZON",
+                                    "orderGoal": "ENGAGEMENT_WITH_MY_AD",
+                                    "orderGoalKpi": "DETAIL_PAGE_VIEW_RATE",
+                                    "recurrenceTimePeriod": "UNCAPPED",
+                                    "amount": "",
+                                    "autoOptimizations": "BUDGET",
+                                    "biddingStrategy": "MAXIMIZE_PERFOMANCE",
+                                    "frequencyCap": "UNCAPPED",
+                                    "timeUnit": "DAYS",
+                                    "maximumImpressions": "5",
+                                    "timeUnitCount": "2",
+                                    "apiCampaign": true,
+                                    "objective": "MULTI LINK2",
+                                    "nameFragment": "AMZ LINK",
+                                    "scope": "WINTER"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "1",
+                    "name": "Google Ads",
+                    "isApiEnabled": false,
+                    "deprecatedCampaignTypes": [],
+                    "budget": 899.0529900000001,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "1-SEARCH",
+                            "name": "SEARCH",
+                            "budget": 899.0529900000001,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "1-SEARCH-Camp 3",
+                                    "name": "Camp 3",
+                                    "budget": 899.0529900000001,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "1-SEARCH-Camp 3-Adset 3",
+                                            "name": "Adset 3",
+                                            "budget": 899.0529900000001,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "startDate": "2023-12-01T05:00:00.000Z",
+                                            "endDate": "2024-02-01T05:00:00.000Z"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "january_2024": {
+            "budget": 2644.2735000000002,
+            "percentage": 33,
+            "allocations": [
+                {
+                    "id": "4",
+                    "name": "Facebook",
+                    "isApiEnabled": true,
+                    "deprecatedCampaignTypes": [
+                        { "id": 1, "name": "POST_ENGAGEMENT" },
+                        { "id": 2, "name": "REACH" },
+                        { "id": 3, "name": "PAGE_LIKES" },
+                        { "id": 4, "name": "BRAND_AWARENESS" },
+                        { "id": 5, "name": "CONVERSIONS" },
+                        { "id": 6, "name": "LINK_CLICKS" }
+                    ],
+                    "budget": 899.0529900000001,
+                    "percentage": 34,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "4-OUTCOME_ENGAGEMENT",
+                            "name": "OUTCOME_ENGAGEMENT",
+                            "budget": 899.0529900000001,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-OUTCOME_ENGAGEMENT-Camp 1",
+                                    "name": "202312|OUTCOME_ENGAGEMENT|MULITI LINK|FB LINK|WINTER",
+                                    "budget": 899.0529900000001,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "4-OUTCOME_ENGAGEMENT-Camp 1-Adset 1",
+                                            "name": "202312|OUTCOME_ENGAGEMENT|MULITI LINK|FB LINK|WINTER|MOMS|VIDEO",
+                                            "budget": 899.0529900000001,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "startDate": "2023-12-01T05:00:00.000Z",
+                                            "endDate": "2024-02-01T05:00:00.000Z",
+                                            "status": "PAUSED",
+                                            "daily_budget": "926.30",
+                                            "billing_event": "IMPRESSIONS",
+                                            "bid_strategy": "LOWEST_COST_WITH_BID_CAP",
+                                            "bid_amount": "3",
+                                            "optimization_goal": "POST_ENGAGEMENT",
+                                            "targeting": "MOMS",
+                                            "format": "VIDEO"
+                                        }
+                                    ],
+                                    "status": "PAUSED",
+                                    "campaignObjective": "OUTCOME_ENGAGEMENT",
+                                    "buyingType": "AUCTION",
+                                    "specialAdCategories": "NONE",
+                                    "country": "",
+                                    "apiCampaign": true,
+                                    "objective": "MULITI LINK",
+                                    "nameFragment": "FB LINK",
+                                    "scope": "WINTER"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "name": "Amazon Advertising DSP",
+                    "isApiEnabled": true,
+                    "deprecatedCampaignTypes": [],
+                    "budget": 872.610255,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "8-Responsive eCommerce",
+                            "name": "Responsive eCommerce",
+                            "budget": 872.610255,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "8-Responsive eCommerce-Camp 2",
+                                    "name": "202312|Responsive eCommerce|MULTI LINK2|AMZ LINK|WINTER",
+                                    "budget": 872.610255,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "8-Responsive eCommerce-Camp 2-Adset 2",
+                                            "name": "202312|Responsive eCommerce|MULTI LINK2|AMZ LINK|WINTER|DADS|VIDEO",
+                                            "budget": 872.610255,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "startDate": "2023-12-01T05:00:00.000Z",
+                                            "endDate": "2024-02-01T05:00:00.000Z",
+                                            "lineItemType": "VIDEO",
+                                            "frequencyCap": "UNCAPPED",
+                                            "timeUnit": "",
+                                            "maximumImpressions": "",
+                                            "timeUnitCount": "",
+                                            "targeting": "DADS",
+                                            "format": "VIDEO"
+                                        }
+                                    ],
+                                    "status": "PAUSED",
+                                    "productLocation": "SOLD_ON_AMAZON",
+                                    "orderGoal": "ENGAGEMENT_WITH_MY_AD",
+                                    "orderGoalKpi": "DETAIL_PAGE_VIEW_RATE",
+                                    "recurrenceTimePeriod": "UNCAPPED",
+                                    "amount": "",
+                                    "autoOptimizations": "BUDGET",
+                                    "biddingStrategy": "MAXIMIZE_PERFOMANCE",
+                                    "frequencyCap": "UNCAPPED",
+                                    "timeUnit": "DAYS",
+                                    "maximumImpressions": "5",
+                                    "timeUnitCount": "2",
+                                    "apiCampaign": true,
+                                    "objective": "MULTI LINK2",
+                                    "nameFragment": "AMZ LINK",
+                                    "scope": "WINTER"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "1",
+                    "name": "Google Ads",
+                    "isApiEnabled": false,
+                    "deprecatedCampaignTypes": [],
+                    "budget": 872.610255,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "1-SEARCH",
+                            "name": "SEARCH",
+                            "budget": 872.610255,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "1-SEARCH-Camp 3",
+                                    "name": "Camp 3",
+                                    "budget": 872.610255,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "1-SEARCH-Camp 3-Adset 3",
+                                            "name": "Adset 3",
+                                            "budget": 872.610255,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "startDate": "2023-12-01T05:00:00.000Z",
+                                            "endDate": "2024-02-01T05:00:00.000Z"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "february_2024": {
+            "budget": 2644.2735000000002,
+            "percentage": 33,
+            "allocations": [
+                {
+                    "id": "4",
+                    "name": "Facebook",
+                    "isApiEnabled": true,
+                    "deprecatedCampaignTypes": [
+                        { "id": 1, "name": "POST_ENGAGEMENT" },
+                        { "id": 2, "name": "REACH" },
+                        { "id": 3, "name": "PAGE_LIKES" },
+                        { "id": 4, "name": "BRAND_AWARENESS" },
+                        { "id": 5, "name": "CONVERSIONS" },
+                        { "id": 6, "name": "LINK_CLICKS" }
+                    ],
+                    "budget": 899.0529900000001,
+                    "percentage": 34,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "4-OUTCOME_ENGAGEMENT",
+                            "name": "OUTCOME_ENGAGEMENT",
+                            "budget": 899.0529900000001,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "4-OUTCOME_ENGAGEMENT-Camp 1",
+                                    "name": "202312|OUTCOME_ENGAGEMENT|MULITI LINK|FB LINK|WINTER",
+                                    "budget": 899.0529900000001,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "4-OUTCOME_ENGAGEMENT-Camp 1-Adset 1",
+                                            "name": "202312|OUTCOME_ENGAGEMENT|MULITI LINK|FB LINK|WINTER|MOMS|VIDEO",
+                                            "budget": 899.0529900000001,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "startDate": "2023-12-01T05:00:00.000Z",
+                                            "endDate": "2024-02-01T05:00:00.000Z",
+                                            "status": "PAUSED",
+                                            "daily_budget": "926.30",
+                                            "billing_event": "IMPRESSIONS",
+                                            "bid_strategy": "LOWEST_COST_WITH_BID_CAP",
+                                            "bid_amount": "3",
+                                            "optimization_goal": "POST_ENGAGEMENT",
+                                            "targeting": "MOMS",
+                                            "format": "VIDEO"
+                                        }
+                                    ],
+                                    "status": "PAUSED",
+                                    "campaignObjective": "OUTCOME_ENGAGEMENT",
+                                    "buyingType": "AUCTION",
+                                    "specialAdCategories": "NONE",
+                                    "country": "",
+                                    "apiCampaign": true,
+                                    "objective": "MULITI LINK",
+                                    "nameFragment": "FB LINK",
+                                    "scope": "WINTER"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "name": "Amazon Advertising DSP",
+                    "isApiEnabled": true,
+                    "deprecatedCampaignTypes": [],
+                    "budget": 872.610255,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "8-Responsive eCommerce",
+                            "name": "Responsive eCommerce",
+                            "budget": 872.610255,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "8-Responsive eCommerce-Camp 2",
+                                    "name": "202312|Responsive eCommerce|MULTI LINK2|AMZ LINK|WINTER",
+                                    "budget": 872.610255,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "8-Responsive eCommerce-Camp 2-Adset 2",
+                                            "name": "202312|Responsive eCommerce|MULTI LINK2|AMZ LINK|WINTER|DADS|VIDEO",
+                                            "budget": 872.610255,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "startDate": "2023-12-01T05:00:00.000Z",
+                                            "endDate": "2024-02-01T05:00:00.000Z",
+                                            "lineItemType": "VIDEO",
+                                            "frequencyCap": "UNCAPPED",
+                                            "timeUnit": "",
+                                            "maximumImpressions": "",
+                                            "timeUnitCount": "",
+                                            "targeting": "DADS",
+                                            "format": "VIDEO"
+                                        }
+                                    ],
+                                    "status": "PAUSED",
+                                    "productLocation": "SOLD_ON_AMAZON",
+                                    "orderGoal": "ENGAGEMENT_WITH_MY_AD",
+                                    "orderGoalKpi": "DETAIL_PAGE_VIEW_RATE",
+                                    "recurrenceTimePeriod": "UNCAPPED",
+                                    "amount": "",
+                                    "autoOptimizations": "BUDGET",
+                                    "biddingStrategy": "MAXIMIZE_PERFOMANCE",
+                                    "frequencyCap": "UNCAPPED",
+                                    "timeUnit": "DAYS",
+                                    "maximumImpressions": "5",
+                                    "timeUnitCount": "2",
+                                    "apiCampaign": true,
+                                    "objective": "MULTI LINK2",
+                                    "nameFragment": "AMZ LINK",
+                                    "scope": "WINTER"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "1",
+                    "name": "Google Ads",
+                    "isApiEnabled": false,
+                    "deprecatedCampaignTypes": [],
+                    "budget": 872.610255,
+                    "percentage": 33,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "1-SEARCH",
+                            "name": "SEARCH",
+                            "budget": 872.610255,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "1-SEARCH-Camp 3",
+                                    "name": "Camp 3",
+                                    "budget": 872.610255,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "1-SEARCH-Camp 3-Adset 3",
+                                            "name": "Adset 3",
+                                            "budget": 872.610255,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "startDate": "2023-12-01T05:00:00.000Z",
+                                            "endDate": "2024-02-01T05:00:00.000Z"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "periods": [
+        { "id": "december_2023", "label": "December 2023", "days": 31 },
+        { "id": "january_2024", "label": "January 2024", "days": 31 },
+        { "id": "february_2024", "label": "February 2024", "days": 29 }
+    ]
+}
