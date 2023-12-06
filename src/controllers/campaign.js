@@ -750,6 +750,10 @@ const createMarketingCampaign = async (req, res) => {
                                         ) {
                                             delete adsetPayload.bid_amount;
                                         }
+                                        //An ad set with a daily_budget cannot be updated to have lifetime_budget later, and vice versa.
+                                        if (adsetPayload.lifetime_budget) {
+                                            delete adsetPayload.daily_budget;
+                                        }
                                         const adsetResponse =
                                             await req.facebook.createAdset(
                                                 secret.FACEBOOK_ACCESS_TOKEN,
