@@ -1,5 +1,5 @@
 const { bigqueryClient } = require('../config/bigquery');
-const { Agency, Channel } = require('../models');
+const { Channel, DeprecatedCampaignType } = require('../models');
 
 const getProtectedBigqueryChannels = async () => {
     try {
@@ -17,6 +17,13 @@ const getChannels = async (req, res) => {
     try {
         const channels = await Channel.findAll({
             attributes: ['id', 'name', 'isApiEnabled'],
+            include: [
+                {
+                    model: DeprecatedCampaignType,
+                    as: 'deprecatedCampaignTypes',
+                    attributes: ['id', 'name'],
+                },
+            ],
             where: {
                 active: true,
             },
