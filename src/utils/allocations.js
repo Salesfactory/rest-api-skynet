@@ -32,6 +32,10 @@ const HEADER_CONFIG = {
         'Content-Type': 'application/json',
         Accept: 'application/vnd.dsporders.v2.3+json',
     },
+    'Sponsored Ads Line Item': {
+        'Content-Type': 'application/json',
+        Accept: 'application/vnd.dsplineitems.v3.3+json',
+    },
 };
 
 const getAxiosHeaders = ({ clientId, accessToken, profileId, type }) => {
@@ -257,8 +261,9 @@ const getSponsoredAdsCreateData = ({ campaign }) => {
         frequencyCapTimeUnitCount,
         frequencyCapTimeUnit,
         productLocation,
-        goal,
-        goalKpi,
+        orderGoal,
+        orderGoalKpi,
+        biddingStrategy,
     } = campaign;
 
     const frequencyCap = {
@@ -274,21 +279,26 @@ const getSponsoredAdsCreateData = ({ campaign }) => {
 
     const optimization = {
         productLocation: productLocation || 'SOLD_ON_AMAZON', //"SOLD_ON_AMAZON" "NOT_SOLD_ON_AMAZON"
-        goal: goal || 'AWARENESS',
-        goalKpi: goalKpi || 'REACH',
+        goal: orderGoal || 'AWARENESS',
+        goalKpi: orderGoalKpi || 'REACH',
+        biddingStrategy: biddingStrategy || 'MAXIMIZE_PERFORMANCE', // "SPEND_BUDGET_IN_FULL" "MAXIMIZE_PERFORMANCE"
     };
+
+    const budgetCaps = [
+        {
+            recurrenceTimePeriod: recurrenceTimePeriod || 'DAILY', // "UNCAPPED" "DAILY" "MONTHLY"  If UNCAPPED, no other fields are used.
+            ...(recurrenceTimePeriod === 'UNCAPPED'
+                ? {}
+                : { amount: budget || 1 }),
+        },
+    ];
 
     const order = [
         {
             advertiserId,
             name,
             budget: {
-                budgetCaps: [
-                    {
-                        recurrenceTimePeriod: recurrenceTimePeriod || 'DAILY', // "UNCAPPED" "DAILY" "MONTHLY"
-                        amount: budget || 1,
-                    },
-                ],
+                budgetCaps,
                 flights: [
                     {
                         startDateTime: formatDateString(startDate),
@@ -306,27 +316,59 @@ const getSponsoredAdsCreateData = ({ campaign }) => {
 };
 
 const getSponsoredAdsLineItemCreateData = ({ adset, orderId }) => {
-    const { lineItemType, name, startDate, endDate } = adset;
-    return {
-        lineItemType: lineItemType || 'STANDARD_DISPLAY', // "STANDARD_DISPLAY" "AMAZON_MOBILE_DISPLAY" "AAP_MOBILE_APP" "VIDEO"
+    const {
+        lineItemType,
         name,
-        orderId,
-        startDateTime: formatDateString(startDate),
-        endDateTime: formatDateString(endDate),
-        lineItemClassification: {
-            productCategories: [],
+        startDate,
+        endDate,
+        frequencyCap,
+        maximumImpressions,
+        timeUnitCount,
+        timeUnit,
+        budget,
+    } = adset;
+
+    const lineItem = [
+        {
+            lineItemType: lineItemType || 'STANDARD_DISPLAY', // "STANDARD_DISPLAY" "AMAZON_MOBILE_DISPLAY" "AAP_MOBILE_APP" "VIDEO"
+            name,
+            orderId,
+            startDateTime: formatDateString(startDate),
+            endDateTime: formatDateString(endDate),
+            budget: {
+                totalBudgetAmount: budget || 1,
+                budgetCaps: [
+                    {
+                        recurrenceTimePeriod: 'UNCAPPED', // "UNCAPPED" for now
+                    },
+                ],
+                pacing: {
+                    deliveryProfile: 'EVENLY', // "FRONT_LOADED" "EVENLY"
+                },
+            },
+            lineItemClassification: {
+                productCategories: ['315343899230333385'],
+            },
+            frequencyCap: {
+                type: frequencyCap || 'UNCAPPED', // "UNCAPPED" "CUSTOM" If UNCAPPED, no other fields are used.
+                ...(frequencyCap === 'CUSTOM'
+                    ? {
+                          maxImpressions: maximumImpressions || 5,
+                          timeUnitCount: timeUnitCount || 1,
+                          timeUnit: timeUnit || 'DAYS', // "DAYS" "HOURS"
+                      }
+                    : {}),
+            },
+            bidding: {
+                baseSupplyBid: 1.5,
+                maxSupplyBid: 5.0,
+            },
+            optimization: {
+                budgetOptimization: false,
+            },
         },
-        frequencyCap: {
-            type: 'UNCAPPED',
-        },
-        bidding: {
-            baseSupplyBid: 1.5,
-            maxSupplyBid: 5.0,
-        },
-        optimization: {
-            budgetOptimization: true,
-        },
-    };
+    ];
+    return JSON.stringify(lineItem);
 };
 
 // Get campaigns from Amazon DSP
@@ -344,6 +386,40 @@ const getDSPCampaigns = async ({ config, advertiserId }) => {
     });
 };
 
+const findIdInAllocations = async ({ allocations, periods, id }) => {
+    let found = false;
+    for (const [index, period] of periods.entries()) {
+        const periodAllocations = allocations[period.id];
+
+        if (!Array.isArray(periodAllocations.allocations)) continue;
+
+        for (const channel of periodAllocations.allocations) {
+            if (!Array.isArray(channel.allocations)) continue;
+
+            for (const campaignType of channel.allocations) {
+                if (!Array.isArray(campaignType.allocations)) continue;
+
+                for (const campaign of campaignType.allocations) {
+                    if (campaign.id === id) {
+                        found = true;
+                        break;
+                    }
+
+                    if (!Array.isArray(campaign.allocations)) continue;
+
+                    for (const adset of campaign.allocations) {
+                        if (adset.id === id) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return found;
+};
+
 module.exports = {
     validateCredentials,
     validateCampaignsArray,
@@ -354,6 +430,8 @@ module.exports = {
     getSponsoredDisplayCreateData,
     createCampaigns,
     getDSPCampaigns,
+
+    findIdInAllocations,
 
     isValidDate,
     formatDateString,

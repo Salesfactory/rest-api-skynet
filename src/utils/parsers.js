@@ -40,6 +40,7 @@ function groupCampaignAllocationsByType({
                                     frequencyCapTimeUnit:
                                         campaign.frequencyCapTimeUnit,
                                     productLocation: campaign.productLocation,
+                                    biddingStrategy: campaign.biddingStrategy,
                                     goal: campaign.orderGoal,
                                     goalKpi: campaign.orderGoalKpi,
                                     adsets: campaign.allocations,
@@ -188,40 +189,46 @@ function generateCampaignsWithTimePeriodsAndAdsets(inputData) {
                 .allocations) {
                 for (const campaignType of allocation.allocations) {
                     for (const campaign of campaignType.allocations) {
-                        const campaignData = {
-                            objective: campaign.objective,
-                            specialAdCategories: campaign.specialAdCategories,
-                            id: campaign.id,
-                            name: campaign.name,
-                            goals: campaign.goals,
-                            type: 'CAMPAIGN',
-                            campaignType: campaignType.name,
-                            timePeriods: [],
-                        };
+                        if (channel.name === allocation.name) {
+                            const campaignData = {
+                                objective: campaign.objective,
+                                specialAdCategories:
+                                    campaign.specialAdCategories,
+                                campaignObjective: campaign.campaignObjective,
+                                id: campaign.id,
+                                name: campaign.name,
+                                goals: campaign.goals,
+                                type: 'CAMPAIGN',
+                                campaignType: campaignType.name,
+                                timePeriods: [],
+                                buyingType: campaign.buyingType,
+                                country: campaign.country,
+                            };
 
-                        let adsets = [];
-                        if (Array.isArray(campaign.allocations)) {
-                            adsets = [...campaign.allocations];
-                        }
-                        const existingCampaign = channelData.campaigns.find(
-                            campaign => campaign.id === campaignData.id
-                        );
+                            let adsets = [];
+                            if (Array.isArray(campaign.allocations)) {
+                                adsets = [...campaign.allocations];
+                            }
+                            const existingCampaign = channelData.campaigns.find(
+                                campaign => campaign.id === campaignData.id
+                            );
 
-                        const timePeriodWithAdsets = {
-                            ...periodData,
-                            adsets,
-                        };
-                        if (existingCampaign) {
-                            // If the id exists, push data to the timePeriods array
-                            existingCampaign.timePeriods.push({
-                                ...timePeriodWithAdsets,
-                            });
-                        } else {
-                            // If the id doesn't exist, create a new object and add it to the array
-                            campaignData.timePeriods.push({
-                                ...timePeriodWithAdsets,
-                            });
-                            channelData.campaigns.push({ ...campaignData });
+                            const timePeriodWithAdsets = {
+                                ...periodData,
+                                adsets,
+                            };
+                            if (existingCampaign) {
+                                // If the id exists, push data to the timePeriods array
+                                existingCampaign.timePeriods.push({
+                                    ...timePeriodWithAdsets,
+                                });
+                            } else {
+                                // If the id doesn't exist, create a new object and add it to the array
+                                campaignData.timePeriods.push({
+                                    ...timePeriodWithAdsets,
+                                });
+                                channelData.campaigns.push({ ...campaignData });
+                            }
                         }
                     }
                 }
@@ -236,7 +243,16 @@ function generateCampaignsWithTimePeriodsAndAdsets(inputData) {
 }
 
 function convertToCents(dollars) {
-    const cents = dollars * 100;
+    let dollarsAsNumber;
+
+    if (typeof dollars === 'string') {
+        dollarsAsNumber = parseFloat(dollars);
+    } else if (typeof dollars === 'number') {
+        dollarsAsNumber = dollars;
+    }
+
+    // Use Math.round to handle floating point precision issues
+    const cents = Math.round(dollarsAsNumber * 100);
     return cents;
 }
 

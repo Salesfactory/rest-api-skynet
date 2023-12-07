@@ -1,0 +1,183 @@
+{
+    "name": "xd",
+    "goals": "dfsdf",
+    "total_gross_budget": 5000,
+    "margin": 0.15,
+    "flight_time_start": "2023-11-28T04:00:00.000Z",
+    "flight_time_end": "2023-11-29T04:00:00.000Z",
+    "net_budget": "4250.00",
+    "change_reason_log": "",
+    "channels": [
+        {
+            "id": "1",
+            "name": "Amazon Advertising DSP"
+        }
+    ],
+    "allocations": {
+        "january_2023": {
+            "budget": 2125,
+            "percentage": 50,
+            "allocations": [
+                {
+                    "id": "1",
+                    "name": "Amazon Advertising DSP",
+                    "budget": 2125,
+                    "percentage": 100,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "1-SEARCH",
+                            "name": "Responsive eCommerce",
+                            "budget": 2125,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "1-SEARCH-dfsdfsd",
+                                    "name": "TEST|202301|SEARCH|OBJETIVE|NAMESD|SCOPE",
+                                    "budget": 2125,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "1-SEARCH-dfsdfsd-sdfd",
+                                            "name": "202301|SEARCH|OBJETIVE|NAMESD|SCOPE|TARGET|FORMAT",
+                                            "budget": 2125,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "targeting": "TARGET",
+                                            "format": "FORMAT"
+                                        }
+                                    ],
+                                    "apiCampaign": true,
+                                    "objetive": "OBJETIVE",
+                                    "scope": "SCOPE",
+                                    "recurrenceTimePeriod": "DAILY",
+                                    "frequencyCapType": "UNCAPPED",
+                                    "frequencyCapMaxImpressions": "1",
+                                    "frequencyCapTimeUnitCount": "1",
+                                    "frequencyCapTimeUnit": "DAYS",
+                                    "productLocation": "SOLD_ON_AMAZON",
+                                    "orderGoal": "AWARENESS",
+                                    "orderGoalKpi": "REACH"
+                                },
+                                {
+                                    "id": "1-SEARCH-dfsdfsd1",
+                                    "name": "TEST|202301|SEARCH|OBJETIVE|NAMESD|SCOPE",
+                                    "budget": 1125,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "1-SEARCH-dfsdfsd-sdfdx",
+                                            "name": "202301|SEARCH|OBJETIVE|NAMESD|SCOPE|TARGET|FORMAT",
+                                            "budget": 2125,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "targeting": "TARGET",
+                                            "format": "FORMAT"
+                                        }
+                                    ],
+                                    "apiCampaign": true,
+                                    "objetive": "OBJETIVE",
+                                    "scope": "SCOPE"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "february_2023": {
+            "budget": 2125,
+            "percentage": 50,
+            "allocations": [
+                {
+                    "id": "1",
+                    "name": "Amazon Advertising DSP",
+                    "budget": 2125,
+                    "percentage": 100,
+                    "type": "CHANNEL",
+                    "allocations": [
+                        {
+                            "id": "1-SEARCH",
+                            "name": "Responsive eCommerce",
+                            "budget": 2125,
+                            "percentage": 100,
+                            "type": "CAMPAIGN_TYPE",
+                            "allocations": [
+                                {
+                                    "id": "1-SEARCH-dfsdfsd",
+                                    "name": "TEST|202301|SEARCH|OBJETIVE|NAMESD|SCOPE",
+                                    "budget": 2125,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "1-SEARCH-dfsdfsd-sdfd",
+                                            "name": "202301|SEARCH|OBJETIVE|NAMESD|SCOPE|TARGET|FORMAT",
+                                            "budget": 2125,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "targeting": "TARGET",
+                                            "format": "FORMAT"
+                                        }
+                                    ],
+                                    "apiCampaign": true,
+                                    "objetive": "OBJETIVE",
+                                    "scope": "SCOPE",
+                                    "recurrenceTimePeriod": "DAILY",
+                                    "frequencyCapType": "UNCAPPED",
+                                    "frequencyCapMaxImpressions": "1",
+                                    "frequencyCapTimeUnitCount": "1",
+                                    "frequencyCapTimeUnit": "DAYS",
+                                    "productLocation": "SOLD_ON_AMAZON",
+                                    "orderGoal": "AWARENESS",
+                                    "orderGoalKpi": "REACH"
+                                },
+                                {
+                                    "id": "1-SEARCH-dfsdfsd1",
+                                    "name": "TEST|202301|SEARCH|OBJETIVE|NAMESD|SCOPE",
+                                    "budget": 1125,
+                                    "percentage": 100,
+                                    "goals": "",
+                                    "type": "CAMPAIGN",
+                                    "allocations": [
+                                        {
+                                            "id": "1-SEARCH-dfsdfsd-sdfdx",
+                                            "name": "202301|SEARCH|OBJETIVE|NAMESD|SCOPE|TARGET|FORMAT",
+                                            "budget": 2125,
+                                            "percentage": 100,
+                                            "type": "ADSET",
+                                            "targeting": "TARGET",
+                                            "format": "FORMAT"
+                                        }
+                                    ],
+                                    "apiCampaign": true,
+                                    "objetive": "OBJETIVE",
+                                    "scope": "SCOPE"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "periods": [
+        {
+            "id": "january_2023",
+            "label": "January 2023",
+            "days": 31
+        },
+        {
+            "id": "february_2023",
+            "label": "February 2023",
+            "days": 28
+        }
+    ],
+    "status": "Not tracking"
+}

@@ -3,53 +3,37 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
     async up(queryInterface, Sequelize) {
-        await queryInterface.createTable('budgets', {
+        await queryInterface.createTable('deprecated_campaign_types', {
             id: {
                 allowNull: false,
                 autoIncrement: true,
                 primaryKey: true,
                 type: Sequelize.INTEGER,
             },
-            campaign_group_id: {
+            channel_id: {
                 type: Sequelize.INTEGER,
                 allowNull: false,
                 references: {
-                    model: 'campaign_groups',
+                    model: 'channels',
                     key: 'id',
                 },
-                onDelete: 'cascade',
-                onUpdate: 'cascade',
             },
-            periods: {
-                type: Sequelize.JSON,
+            name: {
+                type: Sequelize.STRING,
                 allowNull: false,
-            },
-            allocations: {
-                type: Sequelize.JSON,
-                allowNull: false,
-            },
-            amazonCampaigns: {
-                type: Sequelize.JSON,
-                allowNull: true,
-            },
-            facebookCampaigns: {
-                type: Sequelize.JSON,
-                allowNull: true,
             },
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE,
-                defaultValue: Sequelize.fn('now'),
             },
             updatedAt: {
                 allowNull: false,
                 type: Sequelize.DATE,
-                defaultValue: Sequelize.fn('now'),
             },
         });
     },
 
     async down(queryInterface, Sequelize) {
-        await queryInterface.dropTable('budgets');
+        await queryInterface.dropTable('deprecated_campaign_types');
     },
 };

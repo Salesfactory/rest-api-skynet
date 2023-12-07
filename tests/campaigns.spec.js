@@ -2,14 +2,20 @@ const supertest = require('supertest');
 const makeApp = require('../src/app');
 const adsetFacebookPayload = require('./controllers-sample-data/orchestration-adset-facebook.json');
 const campaignOrchestrationFacebookPayloadData = require('./controllers-sample-data/orchestration-facebook.json');
+const adsetAmazonDSPPayload = require('./controllers-sample-data/orchestration-adset-amazon-dsp.json');
+const campaignOrchestrationAmazonDSPPayloadData = require('./controllers-sample-data/orchestration-amazon-dsp.json');
 const { Budget, Channel, CampaignGroup, Client } = require('../src/models');
 const { getUser } = require('../src/utils');
 
 // Mocked utility functions
 jest.mock('../src/utils/allocations', () => ({
     createCampaigns: jest.fn(),
+    findIdInAllocations: jest.fn(),
 }));
-const { createCampaigns } = require('../src/utils/allocations');
+const {
+    createCampaigns,
+    findIdInAllocations,
+} = require('../src/utils/allocations');
 
 jest.mock('../src/models', () => ({
     User: {
@@ -68,7 +74,14 @@ const getSecrets = jest.fn(() => ({
 }));
 
 const _createAmazonCampaign = jest.fn(() => {
-    return Promise.resolve({ id: 'AMAZON_CAMPAIGN_ID' });
+    return Promise.resolve({
+        id: 'AMAZON_CAMPAIGN_ID',
+        data: [
+            {
+                orderId: 2,
+            },
+        ],
+    });
 });
 const _createAmazonAdset = jest.fn(() => {
     return {};
@@ -632,7 +645,7 @@ describe('Campaign Endpoints Test', () => {
                             },
                             {
                                 id: '2',
-                                name: 'Amazon Advertising',
+                                name: 'Amazon Advertising DSP',
                                 budget: 27.06,
                                 percentage: 50,
                                 type: 'CHANNEL',
@@ -654,7 +667,7 @@ describe('Campaign Endpoints Test', () => {
                             },
                             {
                                 id: '2',
-                                name: 'Amazon Advertising',
+                                name: 'Amazon Advertising DSP',
                                 budget: 27.06,
                                 percentage: 50,
                                 type: 'CHANNEL',
@@ -712,6 +725,22 @@ describe('Campaign Endpoints Test', () => {
             expect(response.status).toBe(201);
             expect(response.body.data).toEqual({
                 budgets: data.budget,
+                amazonData: {
+                    adsets: {
+                        error: [],
+                        success: [],
+                    },
+                    error: [],
+                    success: [],
+                },
+                facebook: {
+                    adsets: {
+                        error: [],
+                        success: [],
+                    },
+                    error: [],
+                    success: [],
+                },
             });
             expect(response.body.message).toBe(
                 'Marketing campaign created successfully'
@@ -818,7 +847,7 @@ describe('Campaign Endpoints Test', () => {
                 };
 
                 Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 2, name: 'Amazon Advertising DSP' },
                     { id: 3, name: 'Facebook' },
                 ]);
 
@@ -859,7 +888,7 @@ describe('Campaign Endpoints Test', () => {
                         },
                         {
                             id: '2',
-                            name: 'Amazon Advertising',
+                            name: 'Amazon Advertising DSP',
                             isApiEnabled: true,
                         },
                     ],
@@ -879,7 +908,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -887,7 +916,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -947,7 +976,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -955,7 +984,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -1036,7 +1065,7 @@ describe('Campaign Endpoints Test', () => {
                 };
 
                 Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 2, name: 'Amazon Advertising DSP' },
                     { id: 3, name: 'Facebook' },
                 ]);
 
@@ -1053,7 +1082,7 @@ describe('Campaign Endpoints Test', () => {
                 CampaignGroup.create.mockResolvedValue(data);
                 Budget.create.mockResolvedValue(data.budget);
 
-                await request
+                const response = await request
                     .post(`/api/clients/${clientId}/marketingcampaign`)
                     .send(campaignOrchestrationPayloadData);
 
@@ -1077,7 +1106,7 @@ describe('Campaign Endpoints Test', () => {
                         },
                         {
                             id: '2',
-                            name: 'Amazon Advertising',
+                            name: 'Amazon Advertising DSP',
                             isApiEnabled: true,
                         },
                     ],
@@ -1097,7 +1126,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -1105,7 +1134,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -1157,7 +1186,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -1165,7 +1194,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -1237,7 +1266,7 @@ describe('Campaign Endpoints Test', () => {
                 };
 
                 Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 2, name: 'Amazon Advertising DSP' },
                     { id: 3, name: 'Facebook' },
                 ]);
 
@@ -1284,8 +1313,9 @@ describe('Campaign Endpoints Test', () => {
                         goalKpi: 'Revenue',
                         productLocation: 'New York',
                         recurrenceTimePeriod: 'Monthly',
-                        startDate: '2023-01-01',
-                        type: 'Sponsored Ads',
+                        startDate: '2023-01-01T04:00:00.000Z',
+                        endDate: '2023-02-01T04:00:00.000Z',
+                        type: 'Responsive eCommerce',
                     },
                     profileId: 'DSP_PROFILE_ID',
                     type: 'Sponsored Ads',
@@ -1309,7 +1339,7 @@ describe('Campaign Endpoints Test', () => {
                         },
                         {
                             id: '2',
-                            name: 'Amazon Advertising',
+                            name: 'Amazon Advertising DSP',
                             isApiEnabled: true,
                         },
                     ],
@@ -1329,7 +1359,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -1337,7 +1367,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -1397,7 +1427,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     isApiEnabled: true,
                                     budget: 2125,
                                     percentage: 50,
@@ -1405,7 +1435,7 @@ describe('Campaign Endpoints Test', () => {
                                     allocations: [
                                         {
                                             id: '2-Sponsored Ads',
-                                            name: 'Sponsored Ads',
+                                            name: 'Responsive eCommerce',
                                             budget: 2125,
                                             percentage: 100,
                                             type: 'CAMPAIGN_TYPE',
@@ -1485,7 +1515,7 @@ describe('Campaign Endpoints Test', () => {
                 };
 
                 Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 2, name: 'Amazon Advertising DSP' },
                     { id: 3, name: 'Facebook' },
                 ]);
 
@@ -1529,31 +1559,314 @@ describe('Campaign Endpoints Test', () => {
                 expect(_createAmazonCampaign).toHaveBeenCalledTimes(2);
                 expect(response.body).toEqual({
                     code: 207,
+                    message: 'Marketing campaign created with errors',
                     data: {
                         amazonData: {
+                            success: [],
                             error: [
                                 {
                                     name: 'test-campaign',
-                                    response: {
-                                        data: {
-                                            error: 'Bad Request',
-                                            message: 'Invalid campaign data',
-                                        },
-                                        headers: {},
-                                        status: 400,
-                                        statusText: 'Bad Request',
+                                    errorDetails: {
+                                        errors: [
+                                            {
+                                                response: {
+                                                    data: {
+                                                        error: 'Bad Request',
+                                                        message:
+                                                            'Invalid campaign data',
+                                                    },
+                                                    status: 400,
+                                                    statusText: 'Bad Request',
+                                                    headers: {},
+                                                },
+                                            },
+                                        ],
                                     },
                                 },
                                 {
-                                    name: 'test-campaign-3',
+                                    name: '3-Sponsored Ads-test-campaign',
+                                    errorDetails: {
+                                        message: 'Invalid campaign response',
+                                    },
                                 },
                             ],
+                            adsets: { success: [], error: [] },
+                        },
+                        facebook: {
                             success: [],
+                            error: [],
+                            adsets: { success: [], error: [] },
+                        },
+                    },
+                });
+
+                _createAmazonCampaign.mockClear();
+            });
+        });
+
+        describe('Test Amazon DSP Adset Creation', () => {
+            test("Given the payload doesn't contain a Amazon Adset, the Amazon Adset API should not be called", async () => {
+                const data = {
+                    id: 1,
+                    ...campaignOrchestrationAmazonDSPPayloadData,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising DSP' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                const response = await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(campaignOrchestrationAmazonDSPPayloadData);
+
+                expect(_createAmazonAdset).not.toHaveBeenCalled();
+            });
+            test('Given the payload  contain an Amazon Adset, the Amazon Adset API should be called', async () => {
+                const data = {
+                    id: 1,
+                    ...adsetAmazonDSPPayload,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising DSP' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+                const response = await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(adsetAmazonDSPPayload);
+
+                expect(_createAmazonAdset).toHaveBeenCalled();
+            });
+            test('Given the payload  contain 2 Amazon adset, the Amazon API should be called 2 Times', async () => {
+                const data = {
+                    id: 1,
+                    ...adsetAmazonDSPPayload,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising DSP' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(adsetAmazonDSPPayload);
+
+                expect(_createAmazonAdset).toHaveBeenCalledTimes(2);
+            });
+            it('should the Amazon API with specific parameters', async () => {
+                const data = {
+                    id: 1,
+                    ...adsetAmazonDSPPayload,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising DSP' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                const response = await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(adsetAmazonDSPPayload);
+
+                expect(_createAmazonAdset).toHaveBeenCalledWith({
+                    access: { ACCESS_TOKEN: '123', CLIENT_ID: 'TEST' },
+                    adset: {
+                        budget: 2125,
+                        format: 'FORMAT',
+                        id: '1-SEARCH-dfsdfsd-sdfdx',
+                        name: '202301|SEARCH|OBJETIVE|NAMESD|SCOPE|TARGET|FORMAT',
+                        percentage: 100,
+                        targeting: 'TARGET',
+                        type: 'ADSET',
+                    },
+                    orderId: 2,
+                    profileId: 'DSP_PROFILE_ID',
+                    type: 'Sponsored Ads Line Item',
+                });
+            });
+            test('When the payload contains data for creating 3 Facebook adsets, and the process results in 2 adsets failing during creation, the API response should include a list of successfully created adsets and a list of adsets that failed to be created.', async () => {
+                const data = {
+                    id: 1,
+                    ...adsetAmazonDSPPayload,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising DSP' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.create.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                _createAmazonAdset.mockRejectedValueOnce({
+                    response: {
+                        data: {
+                            error: 'Bad Request',
+                            message: 'Invalid adset data',
+                        },
+                        status: 400, // Or any other non-2xx status code
+                        statusText: 'Bad Request',
+                        headers: {},
+                    },
+                });
+                const response = await request
+                    .post(`/api/clients/${clientId}/marketingcampaign`)
+                    .send(adsetAmazonDSPPayload);
+
+                expect(response.status).toBe(207);
+                expect(response.body).toEqual({
+                    code: 207,
+                    data: {
+                        amazonData: {
+                            error: expect.any(Array),
+                            success: expect.any(Array),
+                            adsets: {
+                                error: expect.any(Array),
+                                success: expect.any(Array),
+                            },
+                        },
+                        facebook: {
+                            error: [],
+                            success: [],
+                            adsets: {
+                                error: [],
+                                success: [],
+                            },
                         },
                     },
                     message: 'Marketing campaign created with errors',
                 });
-
                 _createAmazonCampaign.mockClear();
             });
         });
@@ -1587,7 +1900,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     budget: 27.06,
                                     percentage: 50,
                                     type: 'CHANNEL',
@@ -1609,7 +1922,7 @@ describe('Campaign Endpoints Test', () => {
                                 },
                                 {
                                     id: '2',
-                                    name: 'Amazon Advertising',
+                                    name: 'Amazon Advertising DSP',
                                     budget: 27.06,
                                     percentage: 50,
                                     type: 'CHANNEL',
@@ -2047,8 +2360,12 @@ describe('Campaign Endpoints Test', () => {
                     code: 207,
                     data: {
                         amazonData: {
-                            error: null,
-                            success: null,
+                            error: [],
+                            success: [],
+                            adsets: {
+                                error: [],
+                                success: [],
+                            },
                         },
                         facebook: {
                             error: [
@@ -2226,6 +2543,7 @@ describe('Campaign Endpoints Test', () => {
                 const data = {
                     id: 1,
                     ...adsetFacebookPayload,
+
                     createdAt: '2023-07-07 18:13:23.552748-04',
                     updatedAt: '2023-07-07 18:13:23.552748-04',
                     get: jest.fn().mockResolvedValue({
@@ -2260,7 +2578,7 @@ describe('Campaign Endpoints Test', () => {
                 CampaignGroup.create.mockResolvedValue(data);
                 Budget.create.mockResolvedValue(data.budget);
 
-                const response = await request
+                await request
                     .post(`/api/clients/${clientId}/marketingcampaign`)
                     .send(adsetFacebookPayload);
 
@@ -2277,7 +2595,6 @@ describe('Campaign Endpoints Test', () => {
                         start_time: '2023-01-01T00:00:17+0000',
                         end_time: '2023-02-01T00:00:17+0000',
                         bid_strategy: undefined,
-                        daily_budget: undefined,
                         optimization_goal: 'REACH',
                         targeting: { geo_locations: { countries: ['US'] } },
                         status: 'PAUSED',
@@ -2342,8 +2659,12 @@ describe('Campaign Endpoints Test', () => {
                     code: 207,
                     data: {
                         amazonData: {
-                            error: null,
-                            success: null,
+                            error: [],
+                            success: [],
+                            adsets: {
+                                error: [],
+                                success: [],
+                            },
                         },
                         facebook: {
                             error: expect.any(Array),
@@ -2450,6 +2771,644 @@ describe('Campaign Endpoints Test', () => {
             );
             expect(response.status).toBe(500);
             expect(response.body.message).toBe('Error');
+        });
+
+        describe('Test Amazon DSP Campaigns and adsets Update', () => {
+            test("Given the payload doesn't contain a Amazon campaign, the Amazon API should not be called", async () => {
+                const campaignOrchestrationPayloadData = {
+                    name: 'Campaña 1',
+                    goals: 'test',
+                    total_gross_budget: 123,
+                    margin: 0.12,
+                    flight_time_start: '2023-02-01T04:00:00.000Z',
+                    flight_time_end: '2023-03-01T04:00:00.000Z',
+                    net_budget: '108.24',
+                    channels: [{ id: '1', name: 'Amazon Advertising' }],
+                    allocations: {
+                        february: {
+                            budget: 54.12,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '1',
+                                    name: 'Amazon Advertising DSP',
+                                    budget: 27.06,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                            ],
+                        },
+                        march: {
+                            budget: 54.12,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '1',
+                                    name: 'Amazon Advertising DSP',
+                                    budget: 27.06,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [],
+                                },
+                            ],
+                        },
+                    },
+                    periods: [
+                        { id: 'february', label: 'february' },
+                        { id: 'march', label: 'march' },
+                    ],
+                    facebookAdAccountId: 'YOUR_AD_ACCOUNT_ID',
+                };
+                const data = {
+                    id: 1,
+                    ...campaignOrchestrationPayloadData,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising DSP' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.findOne.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                const response = await request
+                    .put(
+                        `/api/clients/${clientId}/marketingcampaign/${campaignId}`
+                    )
+                    .send(campaignOrchestrationPayloadData);
+
+                expect(_createAmazonCampaign).not.toHaveBeenCalled();
+            });
+            test('Given the payload contain 2 Amazon campaign, the Amazon API campaign should be called 2 times and adsets 2 times', async () => {
+                const campaignOrchestrationPayloadData = {
+                    name: 'AMZ Manuel test 4',
+                    goals: 'Sale More',
+                    total_gross_budget: 10000,
+                    margin: 0.15,
+                    flight_time_start: '2023-01-01T04:00:00.000Z',
+                    flight_time_end: '2023-02-01T04:00:00.000Z',
+                    net_budget: '8500.00',
+                    change_reason_log: '',
+                    channels: [
+                        {
+                            id: '2',
+                            name: 'Amazon Advertising DSP',
+                            isApiEnabled: true,
+                        },
+                    ],
+                    allocations: {
+                        january_2023: {
+                            budget: 4250,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '2',
+                                    name: 'Amazon Advertising DSP',
+                                    isApiEnabled: true,
+                                    budget: 2125,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '2-Sponsored Ads',
+                                            name: 'Responsive eCommerce',
+                                            budget: 2125,
+                                            percentage: 100,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '2-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    id: '3-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign-3',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                        february_2023: {
+                            budget: 4250,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '2',
+                                    name: 'Amazon Advertising DSP',
+                                    isApiEnabled: true,
+                                    budget: 2125,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '2-Sponsored Ads',
+                                            name: 'Responsive eCommerce',
+                                            budget: 2125,
+                                            percentage: 100,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '2-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    id: '3-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign-3',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                    periods: [
+                        {
+                            id: 'january_2023',
+                            label: 'January 2023',
+                            days: 31,
+                        },
+                        {
+                            id: 'february_2023',
+                            label: 'February 2023',
+                            days: 28,
+                        },
+                    ],
+                    status: 'Not tracking',
+                };
+
+                const data = {
+                    id: 1,
+                    ...campaignOrchestrationPayloadData,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising DSP' },
+                    { id: 3, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                findIdInAllocations.mockResolvedValue(false);
+                CampaignGroup.findOne.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                await request
+                    .put(
+                        `/api/clients/${clientId}/marketingcampaign/${campaignId}`
+                    )
+                    .send(campaignOrchestrationPayloadData);
+
+                expect(_createAmazonCampaign).toHaveBeenCalledTimes(2);
+                expect(_createAmazonAdset).toHaveBeenCalledTimes(2);
+            });
+            test('Given the payload contain 2 Amazon campaign, the Amazon API campaign and adsets should not be called because campaigns already exist', async () => {
+                const campaignOrchestrationPayloadData = {
+                    name: 'AMZ Manuel test 4',
+                    goals: 'Sale More',
+                    total_gross_budget: 10000,
+                    margin: 0.15,
+                    flight_time_start: '2023-01-01T04:00:00.000Z',
+                    flight_time_end: '2023-02-01T04:00:00.000Z',
+                    net_budget: '8500.00',
+                    change_reason_log: '',
+                    channels: [
+                        {
+                            id: '2',
+                            name: 'Amazon Advertising DSP',
+                            isApiEnabled: true,
+                        },
+                    ],
+                    allocations: {
+                        january_2023: {
+                            budget: 4250,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '2',
+                                    name: 'Amazon Advertising DSP',
+                                    isApiEnabled: true,
+                                    budget: 2125,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '2-Sponsored Ads',
+                                            name: 'Responsive eCommerce',
+                                            budget: 2125,
+                                            percentage: 100,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '2-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    id: '3-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign-3',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                        february_2023: {
+                            budget: 4250,
+                            percentage: 50,
+                            allocations: [
+                                {
+                                    id: '2',
+                                    name: 'Amazon Advertising DSP',
+                                    isApiEnabled: true,
+                                    budget: 2125,
+                                    percentage: 50,
+                                    type: 'CHANNEL',
+                                    allocations: [
+                                        {
+                                            id: '2-Sponsored Ads',
+                                            name: 'Responsive eCommerce',
+                                            budget: 2125,
+                                            percentage: 100,
+                                            type: 'CAMPAIGN_TYPE',
+                                            allocations: [
+                                                {
+                                                    id: '2-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                                {
+                                                    id: '3-Sponsored Ads-test-campaign',
+                                                    name: 'test-campaign-3',
+                                                    budget: 2125,
+                                                    percentage: 100,
+                                                    goals: '',
+                                                    type: 'CAMPAIGN',
+                                                    allocations: [
+                                                        {
+                                                            id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                                            name: 'test-campaign-adset',
+                                                            budget: 2125,
+                                                            percentage: 100,
+                                                            type: 'ADSET',
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                    periods: [
+                        {
+                            id: 'january_2023',
+                            label: 'January 2023',
+                            days: 31,
+                        },
+                        {
+                            id: 'february_2023',
+                            label: 'February 2023',
+                            days: 28,
+                        },
+                    ],
+                    status: 'Not tracking',
+                };
+
+                const data = {
+                    id: 1,
+                    ...campaignOrchestrationPayloadData,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising DSP' },
+                    { id: 3, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                findIdInAllocations.mockResolvedValue(true);
+                CampaignGroup.findOne.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                await request
+                    .put(
+                        `/api/clients/${clientId}/marketingcampaign/${campaignId}`
+                    )
+                    .send(campaignOrchestrationPayloadData);
+
+                expect(_createAmazonCampaign).toHaveBeenCalledTimes(0);
+                expect(_createAmazonAdset).toHaveBeenCalledTimes(0);
+            });
+        });
+
+        describe('Test Facebook Campaigns and adsets Update', () => {
+            test("Given the payload doesn't contain a Facebook campaign, the Facebook Adset API should not be called", async () => {
+                const data = {
+                    id: 1,
+                    ...campaignOrchestrationFacebookPayloadData,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 3, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                CampaignGroup.findOne.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+
+                const response = await request
+                    .put(
+                        `/api/clients/${clientId}/marketingcampaign/${campaignId}`
+                    )
+                    .send(campaignOrchestrationFacebookPayloadData);
+
+                expect(_createFacebookCampaign).not.toHaveBeenCalled();
+            });
+            test('Given the payload contain a Facebook campaign, the Facebook API campaign and adset should be called', async () => {
+                const data = {
+                    id: 1,
+                    ...adsetFacebookPayload,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 4, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                findIdInAllocations.mockResolvedValue(false);
+                CampaignGroup.findOne.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+                const response = await request
+                    .put(
+                        `/api/clients/${clientId}/marketingcampaign/${campaignId}`
+                    )
+                    .send(adsetFacebookPayload);
+
+                expect(_createFacebookCampaign).toHaveBeenCalledTimes(3);
+                expect(_createFacebookAdset).toHaveBeenCalledTimes(30);
+            });
+            test('Given the payload contain a Facebook campaign, the Facebook API campaign and adset should not be called because they already exist', async () => {
+                const data = {
+                    id: 1,
+                    ...adsetFacebookPayload,
+                    createdAt: '2023-07-07 18:13:23.552748-04',
+                    updatedAt: '2023-07-07 18:13:23.552748-04',
+                    get: jest.fn().mockResolvedValue({
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
+                    }),
+                };
+
+                const user = {
+                    id: 1,
+                    username: '123',
+                };
+
+                Channel.findAll.mockResolvedValue([
+                    { id: 2, name: 'Amazon Advertising' },
+                    { id: 4, name: 'Facebook' },
+                ]);
+
+                getUser.mockResolvedValue(user);
+
+                createCampaigns.mockImplementation(() => ({
+                    errors: [],
+                    successes: [{ y: 'success' }],
+                }));
+
+                Client.findOne.mockResolvedValue({
+                    id: 1,
+                    name: 'Test Client 1',
+                });
+                findIdInAllocations.mockResolvedValue(true);
+                CampaignGroup.findOne.mockResolvedValue(data);
+                Budget.create.mockResolvedValue(data.budget);
+                const response = await request
+                    .put(
+                        `/api/clients/${clientId}/marketingcampaign/${campaignId}`
+                    )
+                    .send(adsetFacebookPayload);
+
+                expect(_createFacebookCampaign).toHaveBeenCalledTimes(0);
+                expect(_createFacebookAdset).toHaveBeenCalledTimes(0);
+            });
         });
     });
 
