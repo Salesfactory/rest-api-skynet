@@ -609,7 +609,7 @@ describe('Campaign Endpoints Test', () => {
                 `/api/clients/${clientId}/marketingcampaign`
             );
             expect(response.status).toBe(404);
-            expect(response.body.message).toBe(`Client not found`);
+            expect(response.body.message).toBe('Client with ID 1 not found');
         });
 
         it('400', async () => {
@@ -628,7 +628,7 @@ describe('Campaign Endpoints Test', () => {
 
             expect(response.status).toBe(400);
             expect(response.body.message).toBe(
-                `Missing required fields: name, goals, total_gross_budget, flight_time_start, flight_time_end, net_budget, periods, channels, allocations`
+                'Missing required field: name; Missing required field: goals; Missing required field: total_gross_budget; Missing required field: flight_time_start; Missing required field: flight_time_end; Missing required field: net_budget; Missing required field: periods; Missing required field: channels; Missing required field: allocations; Margin must be a number; Total gross budget must be a number; Net budget must be a number; Periods must be an array; Channels must be an array'
             );
         });
 
@@ -739,6 +739,12 @@ describe('Campaign Endpoints Test', () => {
 
             expect(response.status).toBe(201);
             expect(response.body.data).toEqual({
+                campaigns: [
+                    {
+                        id: 1,
+                        name: 'Test Campaign 1',
+                    },
+                ],
                 budgets: data.budget,
                 amazonData: {
                     adsets: {
@@ -1328,8 +1334,8 @@ describe('Campaign Endpoints Test', () => {
                         goalKpi: 'Revenue',
                         productLocation: 'New York',
                         recurrenceTimePeriod: 'Monthly',
-                        startDate: "2023-01-01T04:00:00.000Z",
-                        endDate: "2023-02-01T04:00:00.000Z",
+                        startDate: '2023-01-01T04:00:00.000Z',
+                        endDate: '2023-02-01T04:00:00.000Z',
                         type: 'Responsive eCommerce',
                     },
                     profileId: 'DSP_PROFILE_ID',
@@ -1576,6 +1582,12 @@ describe('Campaign Endpoints Test', () => {
                     code: 207,
                     message: 'Marketing campaign created with errors',
                     data: {
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
                         amazonData: {
                             success: [],
                             error: [
@@ -2272,6 +2284,12 @@ describe('Campaign Endpoints Test', () => {
                 expect(response.body).toEqual({
                     code: 207,
                     data: {
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
                         amazonData: {
                             error: [],
                             success: [],
@@ -2572,6 +2590,12 @@ describe('Campaign Endpoints Test', () => {
                 expect(response.body).toEqual({
                     code: 207,
                     data: {
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
                         amazonData: {
                             error: [],
                             success: [],
