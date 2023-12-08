@@ -1,4 +1,4 @@
-function createQueue(jobs) {
+function createQueue(jobs, sendEmails) {
     let isProcessing = false;
     return {
         addJobToQueue: async jobData => {
@@ -20,25 +20,45 @@ function createQueue(jobs) {
             isProcessing = true;
 
             let job = await jobs.findOne({ where: { status: 'pending' } });
+            let currentBatchId = null;
+            let batchJobsData = [];
 
             while (job) {
-                await job.update({ status: 'processing' });
+                const { batchId } = job.data;
 
+                // Check if we are starting a new batch
+                if (currentBatchId !== batchId) {
+                    if (currentBatchId !== null) {
+                        // Call sendEmails for the completed batch
+                        await sendEmails(batchJobsData);
+                    }
+                    currentBatchId = batchId;
+                    batchJobsData = []; // Reset batch data for the new batch
+                }
+
+                await job.update({ status: 'processing' });
                 try {
                     await jobProcessingLogic(job);
                     await job.update({
                         status: 'completed',
                         processedAt: new Date(),
                     });
+                    batchJobsData.push(job.data); // Collect job data for the batch
                 } catch (error) {
                     await job.update({
                         status: 'failed',
                         processedAt: new Date(),
                     });
+                    batchJobsData.push(job.data); // Collect job data for the batch
                     console.error(`Error processing job ${job.id}:`, error);
                 }
 
                 job = await jobs.findOne({ where: { status: 'pending' } });
+            }
+
+            // Call sendEmails for the last batch if there are any jobs
+            if (batchJobsData.length > 0) {
+                await sendEmails(batchJobsData);
             }
 
             isProcessing = false;

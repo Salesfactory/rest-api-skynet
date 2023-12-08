@@ -504,6 +504,7 @@ const createMarketingCampaign = async (req, res) => {
                                                 type: 'Sponsored Ads Line Item',
                                                 profileId: PROFILE_ID,
                                                 campaignId: campaign.id,
+                                                batchId: campaignGroup.id,
                                             });
                                         // if (
                                         //     Array.isArray(

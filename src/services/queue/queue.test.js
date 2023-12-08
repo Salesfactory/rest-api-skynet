@@ -1,11 +1,13 @@
 const { createQueue } = require('./queue');
 const jobs = require('../../../__mocks__/jobs');
+const sendEmails = require('../../../__mocks__/sendEmails');
 
 describe('Queue Module', () => {
-    const mockQueue = createQueue(jobs);
+    const mockQueue = createQueue(jobs, sendEmails);
 
     beforeEach(() => {
         jest.clearAllMocks();
+        jobs.findOne.mockReset();
     });
 
     describe('addJobToQueue', () => {
@@ -30,7 +32,11 @@ describe('Queue Module', () => {
 
     describe('startProcessingJobs', () => {
         it('should process a pending job with a delay', async () => {
-            const mockJob = { id: '123', update: jest.fn() };
+            const mockJob = {
+                id: '123',
+                data: { batchId: 'batch1' },
+                update: jest.fn(),
+            };
             jobs.findOne
                 .mockResolvedValueOnce(mockJob) // First call for finding the job
                 .mockResolvedValueOnce(null); // Second call returns null to exit loop
@@ -51,6 +57,49 @@ describe('Queue Module', () => {
                 processedAt: expect.any(Date),
             });
             expect(mockJob.update).toHaveBeenCalledTimes(2);
+        });
+        it('should process jobs in batches and call sendEmails after each batch', async () => {
+            // Mock job data
+            const mockJobs = [
+                { id: '1', data: { batchId: 'batch1' }, update: jest.fn() },
+                { id: '2', data: { batchId: 'batch1' }, update: jest.fn() },
+                { id: '3', data: { batchId: 'batch2' }, update: jest.fn() },
+            ];
+
+            // Setup jobs.findOne to return mock jobs and then null
+            jobs.findOne
+                .mockResolvedValueOnce(mockJobs[0])
+                .mockResolvedValueOnce(mockJobs[1])
+                .mockResolvedValueOnce(mockJobs[2])
+                .mockResolvedValueOnce(null);
+
+            // Mock job processing logic
+            const jobProcessingLogic = jest.fn();
+
+            // Execute startProcessingJobs
+            await mockQueue.startProcessingJobs(jobProcessingLogic);
+
+            // Verify job processing logic is called for each job
+            expect(jobProcessingLogic).toHaveBeenCalledTimes(3);
+
+            // Verify sendEmails is called after each batch
+            expect(sendEmails).toHaveBeenCalledTimes(2);
+            expect(sendEmails).toHaveBeenCalledWith([
+                mockJobs[0].data,
+                mockJobs[1].data,
+            ]);
+            expect(sendEmails).toHaveBeenCalledWith([mockJobs[2].data]);
+
+            // Verify job updates
+            mockJobs.forEach(job => {
+                expect(job.update).toHaveBeenCalledWith({
+                    status: 'processing',
+                });
+                expect(job.update).toHaveBeenCalledWith({
+                    status: 'completed',
+                    processedAt: expect.any(Date),
+                });
+            });
         });
     });
 

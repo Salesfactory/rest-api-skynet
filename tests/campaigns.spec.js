@@ -1727,6 +1727,7 @@ describe('Campaign Endpoints Test', () => {
                     createdAt: '2023-07-07 18:13:23.552748-04',
                     updatedAt: '2023-07-07 18:13:23.552748-04',
                     get: jest.fn().mockResolvedValue({
+                        id: 'campaing-group-id',
                         campaigns: [
                             {
                                 id: 1,
@@ -1779,6 +1780,7 @@ describe('Campaign Endpoints Test', () => {
                     profileId: 'DSP_PROFILE_ID',
                     campaignId: '1-SEARCH-dfsdfsd1',
                     type: 'Sponsored Ads Line Item',
+                    batchId: 'campaing-group-id',
                 });
 
                 expect(_startProcessingJobs).toHaveBeenCalledTimes(1);

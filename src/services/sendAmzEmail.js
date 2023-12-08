@@ -1,3 +1,4 @@
+const jobs = require('../../__mocks__/jobs');
 const { emailAmzTemplate } = require('../templates/amzEmail');
 const { send } = require('../utils/email');
 
@@ -19,6 +20,13 @@ const sendAdsetCreationResultsToOwners = async owners => {
     await Promise.all(emailPromises);
 };
 
+const sendEmails = async jobs => {
+    // Todo parse the data to send emails
+    // Todo get data from database
+    return null;
+};
+
 module.exports = {
     sendAdsetCreationResultsToOwners,
+    sendEmails,
 };
