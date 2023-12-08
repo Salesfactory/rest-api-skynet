@@ -34,7 +34,8 @@ describe('Queue Module', () => {
         it('should process a pending job with a delay', async () => {
             const mockJob = {
                 id: '123',
-                data: { batchId: 'batch1' },
+                batchId: 'batch1',
+                data: {},
                 update: jest.fn(),
             };
             jobs.findOne
@@ -61,9 +62,9 @@ describe('Queue Module', () => {
         it('should process jobs in batches and call sendEmails after each batch', async () => {
             // Mock job data
             const mockJobs = [
-                { id: '1', data: { batchId: 'batch1' }, update: jest.fn() },
-                { id: '2', data: { batchId: 'batch1' }, update: jest.fn() },
-                { id: '3', data: { batchId: 'batch2' }, update: jest.fn() },
+                { id: '1', batchId: 'batch1', data: {}, update: jest.fn() },
+                { id: '2', batchId: 'batch1', data: {}, update: jest.fn() },
+                { id: '3', batchId: 'batch2', data: {}, update: jest.fn() },
             ];
 
             // Setup jobs.findOne to return mock jobs and then null

@@ -19,12 +19,15 @@ function createQueue(jobs, sendEmails) {
             }
             isProcessing = true;
 
-            let job = await jobs.findOne({ where: { status: 'pending' } });
+            let job = await jobs.findOne({
+                where: { status: 'pending' },
+                order: [['batchId', 'ASC']],
+            });
             let currentBatchId = null;
             let batchJobsData = [];
 
             while (job) {
-                const { batchId } = job.data;
+                const { batchId } = job;
 
                 // Check if we are starting a new batch
                 if (currentBatchId !== batchId) {
