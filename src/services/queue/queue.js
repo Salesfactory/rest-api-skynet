@@ -1,10 +1,11 @@
 function createQueue(jobs, sendEmails) {
     let isProcessing = false;
     return {
-        addJobToQueue: async jobData => {
+        addJobToQueue: async ({ jobData, batchId }) => {
             try {
                 const job = await jobs.create({
                     data: jobData,
+                    batchId,
                 });
                 console.log(`Job added with ID: ${job.id}`);
                 return job.id;
@@ -33,7 +34,10 @@ function createQueue(jobs, sendEmails) {
                 if (currentBatchId !== batchId) {
                     if (currentBatchId !== null) {
                         // Call sendEmails for the completed batch
-                        await sendEmails(batchJobsData);
+                        await sendEmails({
+                            currentBatchId,
+                            jobs: [...batchJobsData],
+                        });
                     }
                     currentBatchId = batchId;
                     batchJobsData = []; // Reset batch data for the new batch
@@ -61,7 +65,7 @@ function createQueue(jobs, sendEmails) {
 
             // Call sendEmails for the last batch if there are any jobs
             if (batchJobsData.length > 0) {
-                await sendEmails(batchJobsData);
+                await sendEmails({ currentBatchId, jobs: [...batchJobsData] });
             }
 
             isProcessing = false;

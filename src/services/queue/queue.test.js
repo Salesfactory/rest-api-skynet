@@ -86,8 +86,8 @@ describe('Queue Module', () => {
             // Verify sendEmails is called after each batch
             expect(sendEmails).toHaveBeenCalledTimes(2);
             expect(sendEmails).toHaveBeenCalledWith([
-                mockJobs[0].data,
-                mockJobs[1].data,
+                {"currentBatchId": "batch1", "jobs": [mockJobs[0].data,mockJobs[1].data]}
+                {"currentBatchId": "batch2", "jobs": [mockJobs[2].data]}
             ]);
             expect(sendEmails).toHaveBeenCalledWith([mockJobs[2].data]);
 

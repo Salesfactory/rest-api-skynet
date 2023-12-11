@@ -1767,19 +1767,21 @@ describe('Campaign Endpoints Test', () => {
 
                 expect(_addJobToQueue).toHaveBeenCalledTimes(2);
                 expect(_addJobToQueue).toHaveBeenCalledWith({
-                    adset: {
-                        budget: 2125,
-                        format: 'FORMAT',
-                        id: '1-SEARCH-dfsdfsd-sdfdx',
-                        name: '202301|SEARCH|OBJETIVE|NAMESD|SCOPE|TARGET|FORMAT',
-                        percentage: 100,
-                        targeting: 'TARGET',
-                        type: 'ADSET',
+                    jobData: {
+                        adset: {
+                            budget: 2125,
+                            format: 'FORMAT',
+                            id: '1-SEARCH-dfsdfsd-sdfdx',
+                            name: '202301|SEARCH|OBJETIVE|NAMESD|SCOPE|TARGET|FORMAT',
+                            percentage: 100,
+                            targeting: 'TARGET',
+                            type: 'ADSET',
+                        },
+                        orderId: 2,
+                        profileId: 'DSP_PROFILE_ID',
+                        campaignId: '1-SEARCH-dfsdfsd1',
+                        type: 'Sponsored Ads Line Item',
                     },
-                    orderId: 2,
-                    profileId: 'DSP_PROFILE_ID',
-                    campaignId: '1-SEARCH-dfsdfsd1',
-                    type: 'Sponsored Ads Line Item',
                     batchId: 'campaing-group-id',
                 });
 
