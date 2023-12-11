@@ -377,7 +377,7 @@ const createMarketingCampaign = async (req, res) => {
 
         const user = await getUser(res);
 
-        const campaignData = prepareCampaignData(req.body, client, user);
+        const campaignData = await prepareCampaignData(req.body, client, user);
         const campaignGroup = await createCampaignGroup(
             campaignData,
             CampaignGroup
