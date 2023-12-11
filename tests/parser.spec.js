@@ -4,7 +4,7 @@ const {
     concatMissingCampaigns,
 } = require('../src/utils/parsers');
 const orchestrationDataSample = require('./parser-sample-data/face-book-payload.json');
-
+const multiChannelPayload = require('./parser-sample-data/multiChannelPayload.json');
 const expected = [
     {
         id: '4',
@@ -198,6 +198,33 @@ describe('generateCampaignsWithTimePeriodsAndAdsets', () => {
         );
 
         expect(result).toEqual(expected);
+    });
+    test('given the payload coantin multiples channels', () => {
+        const result =
+            generateCampaignsWithTimePeriodsAndAdsets(multiChannelPayload);
+        const { campaigns: fbCampaigns } = result.find(
+            channel => channel.name === 'Facebook'
+        );
+        const { campaigns: AmzCampaigns } = result.find(
+            channel => channel.name === 'Amazon Advertising DSP'
+        );
+        const { campaigns: googleCampaigns } = result.find(
+            channel => channel.name === 'Google Ads'
+        );
+
+        const timePeriods = fbCampaigns[0].timePeriods;
+
+        expect(fbCampaigns.length).toEqual(1);
+        expect(AmzCampaigns.length).toEqual(1);
+        expect(googleCampaigns.length).toEqual(1);
+        expect(fbCampaigns[0].timePeriods.length).toEqual(3);
+        expect(AmzCampaigns[0].timePeriods.length).toEqual(3);
+        expect(googleCampaigns[0].timePeriods.length).toEqual(3);
+        timePeriods.forEach(timePeriod => {
+            expect(timePeriod.adsets.length).toEqual(1);
+            expect(timePeriod).toHaveProperty('adsets');
+            expect(Array.isArray(timePeriod.adsets)).toBeTruthy();
+        });
     });
 });
 
