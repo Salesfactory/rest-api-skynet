@@ -75,7 +75,7 @@ async function getUserByCampaignGroupId(campaignGroupId) {
                 user: campaignGroup.user,
             };
         } else {
-            return null; // No CampaignGroup found with the provided ID
+            return { name: '', user: null }; // No CampaignGroup found with the provided ID
         }
     } catch (error) {
         console.error('Error fetching user by CampaignGroup ID:', error);

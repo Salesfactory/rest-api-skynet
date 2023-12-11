@@ -34,10 +34,7 @@ function createQueue(jobs, sendEmails) {
                 if (currentBatchId !== batchId) {
                     if (currentBatchId !== null) {
                         // Call sendEmails for the completed batch
-                        await sendEmails({
-                            currentBatchId,
-                            jobs: [...batchJobsData],
-                        });
+                        await sendEmails(currentBatchId);
                     }
                     currentBatchId = batchId;
                     batchJobsData = []; // Reset batch data for the new batch
@@ -65,7 +62,7 @@ function createQueue(jobs, sendEmails) {
 
             // Call sendEmails for the last batch if there are any jobs
             if (batchJobsData.length > 0) {
-                await sendEmails({ currentBatchId, jobs: [...batchJobsData] });
+                await sendEmails(currentBatchId);
             }
 
             isProcessing = false;

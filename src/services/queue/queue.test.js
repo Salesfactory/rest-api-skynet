@@ -15,9 +15,15 @@ describe('Queue Module', () => {
             const mockJobData = { task: 'test' };
             jobs.create.mockResolvedValue({ id: '123', data: mockJobData });
 
-            const jobId = await mockQueue.addJobToQueue(mockJobData);
+            const jobId = await mockQueue.addJobToQueue({
+                jobData: mockJobData,
+                batchId: 3,
+            });
 
-            expect(jobs.create).toHaveBeenCalledWith({ data: mockJobData });
+            expect(jobs.create).toHaveBeenCalledWith({
+                data: mockJobData,
+                batchId: 3,
+            });
             expect(jobId).toBe('123');
         });
 
@@ -85,11 +91,8 @@ describe('Queue Module', () => {
 
             // Verify sendEmails is called after each batch
             expect(sendEmails).toHaveBeenCalledTimes(2);
-            expect(sendEmails).toHaveBeenCalledWith([
-                {"currentBatchId": "batch1", "jobs": [mockJobs[0].data,mockJobs[1].data]}
-                {"currentBatchId": "batch2", "jobs": [mockJobs[2].data]}
-            ]);
-            expect(sendEmails).toHaveBeenCalledWith([mockJobs[2].data]);
+            expect(sendEmails).toHaveBeenCalledWith('batch1');
+            expect(sendEmails).toHaveBeenCalledWith('batch2');
 
             // Verify job updates
             mockJobs.forEach(job => {
