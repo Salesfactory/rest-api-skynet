@@ -1841,6 +1841,66 @@ const getRecentCampaigns = async (req, res) => {
     }
 };
 
+const getAllCampaignsByName = async (req, res) => {
+    const { name } = req.body;
+
+    try {
+        if (!name) {
+            return res
+                .status(400)
+                .json({ message: 'Name is required in the request body.' });
+        }
+
+        const searchLower = name.toLowerCase();
+
+        const campaigns = await CampaignGroup.findAll({
+            attributes: [
+                'id',
+                'name',
+                'company_name',
+                'flight_time_start',
+                'flight_time_end',
+                'createdAt',
+            ],
+            where: {
+                '$CampaignGroup.name$': sequelize.where(
+                    sequelize.fn('LOWER', sequelize.col('CampaignGroup.name')),
+                    '=',
+                    searchLower
+                ),
+            },
+            include: [
+                {
+                    model: Client,
+                    as: 'client',
+                    attributes: ['id', 'name'],
+                },
+                {
+                    model: Budget,
+                    as: 'budgets',
+                    limit: 1,
+                    order: [['updatedAt', 'DESC']],
+                    attributes: ['periods', 'allocations'],
+                },
+            ],
+        });
+
+        if (campaigns.length > 0) {
+            return res.status(200).json({
+                message: 'A campaign group with that name already exists',
+                data: { unavailable: true },
+            });
+        } else {
+            return res.status(404).json({
+                message: 'The name is available',
+                data: { unavailable: false },
+            });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // temp endpoint to refresh metrics
 const refreshMetrics = async (req, res) => {
     try {
@@ -1999,6 +2059,7 @@ module.exports = {
     deleteMarketingCampaign,
     getClientBigqueryCampaigns,
     getClientBigqueryAdsets,
+    getAllCampaignsByName,
     getRecentCampaigns,
     createReport,
     getCampaignGroupPacing,
