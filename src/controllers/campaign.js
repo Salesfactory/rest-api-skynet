@@ -1841,14 +1841,14 @@ const getRecentCampaigns = async (req, res) => {
     }
 };
 
-const getAllCampaignsByName = async (req, res) => {
-    const { name } = req.body;
+getAllCampaignsByName = async (req, res) => {
+    const { name } = req.params;
 
     try {
         if (!name) {
             return res
                 .status(400)
-                .json({ message: 'Name is required in the request body.' });
+                .json({ message: 'Name is required in the request params.' });
         }
 
         const searchLower = name.toLowerCase();
@@ -1900,6 +1900,7 @@ const getAllCampaignsByName = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
 
 // temp endpoint to refresh metrics
 const refreshMetrics = async (req, res) => {
