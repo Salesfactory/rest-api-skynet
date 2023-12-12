@@ -22,6 +22,7 @@ const {
     sendNotification,
 } = require('../utils/cronjobs');
 const { emailTemplate } = require('../templates/email');
+const { emailCampaignFail } = require('../templates/emailCampaignFail');
 const { send } = require('../utils/email');
 const {
     groupCampaignAllocationsByType,
@@ -443,6 +444,10 @@ const createMarketingCampaign = async (req, res) => {
             fails: [],
         };
 
+        // this isgoing to be used to notify the user via email,
+        // if there is any error in the creation of the campaigns or adsets
+        const campaignCreationFails = [];
+
         if (campaignGroup) {
             let amazonCampaigns = [];
             let facebookCampaigns = [];
@@ -488,6 +493,20 @@ const createMarketingCampaign = async (req, res) => {
                                         name: campaign.id,
                                         ...response.data[0],
                                     });
+
+                                    campaignCreationFails.push({
+                                        name: campaign.name,
+                                        type: 'Campaign',
+                                        channel: 'Amazon Advertising DSP',
+                                        adsets: campaign.adsets.map(adset => ({
+                                            name: adset.name,
+                                            reason: 'Campaign id is needed to create adset',
+                                        })),
+                                        // check if this is the accurate error message
+                                        reason: JSON.stringify(
+                                            response.data[0].errorDetails
+                                        ),
+                                    });
                                 } else {
                                     createdAmazonCampaignsResult.success.push({
                                         name: campaign.id,
@@ -497,26 +516,44 @@ const createMarketingCampaign = async (req, res) => {
                                     const orderId = response.data[0].orderId;
 
                                     for (const adset of campaign.adsets) {
-                                        const jobId =
-                                            await req.amzQueue.addJobToQueue({
-                                                jobData: {
-                                                    adset,
-                                                    orderId,
-                                                    type: 'Sponsored Ads Line Item',
-                                                    profileId: PROFILE_ID,
-                                                    campaignId: campaign.id,
-                                                },
-                                                batchId: campaignGroup.id,
+                                        try {
+                                            const jobId =
+                                                await req.amzQueue.addJobToQueue(
+                                                    {
+                                                        jobData: {
+                                                            adset,
+                                                            orderId,
+                                                            type: 'Sponsored Ads Line Item',
+                                                            profileId:
+                                                                PROFILE_ID,
+                                                            campaignId:
+                                                                campaign.id,
+                                                        },
+                                                        batchId:
+                                                            campaignGroup.id,
+                                                    }
+                                                );
+
+                                            amazonAdset.push({
+                                                jobId,
+                                                adset: null,
                                             });
-                                        amazonAdset.push({
-                                            jobId,
-                                            adset: null,
-                                        });
-                                        createdAmazonAdsetsResult.success.push({
-                                            name: adset.id,
-                                            ...adsetResponse.data[0],
-                                            status: 'queue',
-                                        });
+                                            createdAmazonAdsetsResult.success.push(
+                                                {
+                                                    name: adset.id,
+                                                    jobId,
+                                                    status: 'queue',
+                                                }
+                                            );
+                                        } catch (adsetError) {
+                                            campaignCreationFails.push({
+                                                name: adset.name,
+                                                type: 'Adset',
+                                                channel:
+                                                    'Amazon Advertising DSP',
+                                                reason: adsetError.message,
+                                            });
+                                        }
                                     }
 
                                     amazonCampaigns.push({
@@ -532,6 +569,17 @@ const createMarketingCampaign = async (req, res) => {
                                         message: 'Invalid campaign response',
                                     },
                                 });
+
+                                campaignCreationFails.push({
+                                    name: campaign.name,
+                                    type: 'Campaign',
+                                    channel: 'Amazon Advertising DSP',
+                                    adsets: campaign.adsets.map(adset => ({
+                                        name: adset.name,
+                                        reason: 'No campaign was created',
+                                    })),
+                                    reason: 'Invalid campaign response',
+                                });
                             }
                         } catch (campaignError) {
                             console.error(
@@ -544,6 +592,16 @@ const createMarketingCampaign = async (req, res) => {
                                     message: campaignError.message,
                                     errors: [campaignError],
                                 },
+                            });
+                            campaignCreationFails.push({
+                                name: campaign.name,
+                                type: 'Campaign',
+                                channel: 'Amazon Advertising DSP',
+                                adsets: campaign.adsets.map(adset => ({
+                                    name: adset.name,
+                                    reason: 'No campaign was created',
+                                })),
+                                reason: campaignError.message,
                             });
                         }
                     }
@@ -578,6 +636,7 @@ const createMarketingCampaign = async (req, res) => {
                             status,
                             country,
                         } = campaign;
+
                         const facebookCampaign =
                             await req.facebook.createCampaign(
                                 secret.FACEBOOK_ACCESS_TOKEN,
@@ -696,6 +755,13 @@ const createMarketingCampaign = async (req, res) => {
                                                 status: 'PAUSED',
                                             },
                                         });
+
+                                        campaignCreationFails.push({
+                                            name: adset.name,
+                                            type: 'Adset',
+                                            channel: 'Facebook',
+                                            reason: adsetError.message,
+                                        });
                                     }
                                 }
                             }
@@ -714,8 +780,35 @@ const createMarketingCampaign = async (req, res) => {
                             name: campaign.name,
                             ...campaignError,
                         });
+
+                        campaignCreationFails.push({
+                            name: campaign.name,
+                            type: 'Campaign',
+                            channel: 'Facebook',
+                            adsets: campaign?.timePeriods[0]?.adsets?.map(
+                                adset => ({
+                                    name: adset.name,
+                                    reason: 'No campaign was created',
+                                })
+                            ),
+                            reason: campaignError.message,
+                        });
                     }
                 }
+            }
+
+            // if either amazon or facebook campaigns were not created
+            if (campaignCreationFails.length > 0) {
+                const html = emailCampaignFail({
+                    user,
+                    campaigns: campaignCreationFails,
+                });
+                await send({
+                    to: user.email,
+                    subject: 'Campaign Creation Failed',
+                    message: 'Campaign Creation Failed',
+                    html,
+                });
             }
 
             // insert budget
@@ -1832,7 +1925,6 @@ getAllCampaignsByName = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
 
 // temp endpoint to refresh metrics
 const refreshMetrics = async (req, res) => {
