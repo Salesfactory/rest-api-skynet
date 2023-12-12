@@ -498,10 +498,12 @@ const createMarketingCampaign = async (req, res) => {
                                         name: campaign.name,
                                         type: 'Campaign',
                                         channel: 'Amazon Advertising DSP',
-                                        adsets: campaign.adsets.map(adset => ({
-                                            name: adset.name,
-                                            reason: 'Campaign id is needed to create adset',
-                                        })),
+                                        adsets: Array.isArray(campaign?.adsets)
+                                            ? campaign.adsets.map(adset => ({
+                                                  name: adset.name,
+                                                  reason: 'Campaign id is needed to create adset',
+                                              }))
+                                            : [],
                                         // check if this is the accurate error message
                                         reason: JSON.stringify(
                                             response.data[0].errorDetails
@@ -574,10 +576,12 @@ const createMarketingCampaign = async (req, res) => {
                                     name: campaign.name,
                                     type: 'Campaign',
                                     channel: 'Amazon Advertising DSP',
-                                    adsets: campaign.adsets.map(adset => ({
-                                        name: adset.name,
-                                        reason: 'No campaign was created',
-                                    })),
+                                    adsets: Array.isArray(campaign?.adsets)
+                                        ? campaign.adsets.map(adset => ({
+                                              name: adset.name,
+                                              reason: 'No campaign was created',
+                                          }))
+                                        : [],
                                     reason: 'Invalid campaign response',
                                 });
                             }
@@ -597,10 +601,12 @@ const createMarketingCampaign = async (req, res) => {
                                 name: campaign.name,
                                 type: 'Campaign',
                                 channel: 'Amazon Advertising DSP',
-                                adsets: campaign.adsets.map(adset => ({
-                                    name: adset.name,
-                                    reason: 'No campaign was created',
-                                })),
+                                adsets: Array.isArray(campaign?.adsets)
+                                    ? campaign.adsets.map(adset => ({
+                                          name: adset.name,
+                                          reason: 'No campaign was created',
+                                      }))
+                                    : [],
                                 reason: campaignError.message,
                             });
                         }
@@ -614,12 +620,13 @@ const createMarketingCampaign = async (req, res) => {
                     ...req.body,
                 });
 
-            if (campaignDataByChannel['Facebook']) {
-                if (!facebookAdAccountId) {
-                    return res.status(400).json({
-                        message: `Invalid Facebook ADAccountId`,
-                    });
-                }
+            if (campaignDataByChannel['Facebook'] && facebookAdAccountId) {
+                // this is preventing the budget from being created
+                // if (!facebookAdAccountId) {
+                //     return res.status(400).json({
+                //         message: `Invalid Facebook ADAccountId`,
+                //     });
+                // }
                 const { campaigns } = campaignAdSetAllocation.find(
                     channel => channel.name === 'Facebook'
                 );
