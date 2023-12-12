@@ -256,9 +256,20 @@ function convertToCents(dollars) {
     return cents;
 }
 
+// ambos son arrays en la db, y como solo estamos creando campañas nuevas
+// no hay que preocuparse por actualizar campañas existentes ¡AÚN!
+const concatMissingCampaigns = async (prevCampaigns, newCampaigns) => {
+    if (Array.isArray(prevCampaigns)) {
+        return [...prevCampaigns, ...newCampaigns];
+    } else {
+        return newCampaigns;
+    }
+};
+
 module.exports = {
     groupCampaignAllocationsByType,
     transformBudgetData,
     generateCampaignsWithTimePeriodsAndAdsets,
     convertToCents,
+    concatMissingCampaigns,
 };

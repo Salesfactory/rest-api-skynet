@@ -10,6 +10,11 @@ module.exports = {
                 primaryKey: true,
                 type: Sequelize.INTEGER,
             },
+            batchId: {
+                // New column for batchId
+                type: Sequelize.INTEGER,
+                allowNull: false,
+            },
             data: {
                 type: Sequelize.JSONB,
                 allowNull: false,

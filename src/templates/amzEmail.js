@@ -1,4 +1,4 @@
-const emailAmzTemplate = ({ owner, campaignGroup,campaigns }) => {
+const emailAmzTemplate = ({ user, campaignGroupName, campaigns }) => {
     let html = `
         <!DOCTYPE html>
         <html lang="en">
@@ -29,48 +29,52 @@ const emailAmzTemplate = ({ owner, campaignGroup,campaigns }) => {
             </style>
         </head>
         <body>
-        <p>Hi ${owner?.name ?? 'Test'}, </p>
-        <p>Rede has finished creating the Amazon campaigns and adsets in your ${campaignGroup.name ?? ''} group. Please see below for the status of each creation attempt:</p>
+        <p>Hi ${user?.name ?? 'Test'}, </p>
+        <p>Rede has finished creating the Amazon campaigns and adsets in your ${
+            campaignGroupName ?? ''
+        } group. Please see below for the status of each creation attempt:</p>
     `;
 
-    campaigns.forEach(campaign => {
+    // Iterate over each campaign
+    Object.keys(campaigns).forEach(campaignId => {
+        const adsets = campaigns[campaignId];
+
         html += `
-            <div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Element</th>
-                            <th>Status</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><b>${campaign.campaignName}</b></td>
-                            <td>${campaign.status}</td>
-                            <td>${campaign.description}</td>
-                        </tr>
+                <div>
+                    <span>Campaign Name: ${campaignId}</span>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Adset Name</th>
+                                <th>Status</th>
+                                <th>Format</th>
+                            </tr>
+                        </thead>
+                        <tbody>
         `;
 
-        campaign.adsets.forEach(adset => {
+        // Iterate over adsets of the campaign
+        adsets.forEach(adset => {
             html += `
-                        <tr>
-                            <td>${adset.adsetName}</td>
-                            <td>${adset.status}</td>
-                            <td>${adset.description}</td>
-                        </tr>
+                            <tr>
+                                <td>${adset.name}</td>
+                                <td>${adset.status}</td>
+                                <td>${adset.format ?? 'N/A'}</td>
+                            </tr>
             `;
         });
 
         html += `
-                    </tbody>
-                </table>
-            </div>
+                        </tbody>
+                    </table>
+                </div>
         `;
     });
 
     html += `
-        <p>This covers the entire ${campaignGroup.name ?? ''} group you submitted to the automated creation queue on [Date Submitted].</p>
+        <p>This covers the entire ${
+            campaignGroupName ?? ''
+        } group you submitted to the automated creation queue on [Date Submitted].</p>
         <p>Thanks,</p>
         </body>
         </html>
@@ -78,7 +82,4 @@ const emailAmzTemplate = ({ owner, campaignGroup,campaigns }) => {
 
     return html;
 };
-
-module.exports = {
-    emailAmzTemplate,
-};
+module.exports = { emailAmzTemplate };
