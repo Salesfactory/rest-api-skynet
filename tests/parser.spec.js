@@ -1,6 +1,7 @@
 const {
     generateCampaignsWithTimePeriodsAndAdsets,
     convertToCents,
+    concatMissingCampaigns,
 } = require('../src/utils/parsers');
 const orchestrationDataSample = require('./parser-sample-data/face-book-payload.json');
 const multiChannelPayload = require('./parser-sample-data/multiChannelPayload.json');
@@ -259,5 +260,132 @@ describe('convert dollars to cents', () => {
         const expectedCents = convertToCents(dollar);
 
         expect(cents).toEqual(expectedCents);
+    });
+});
+
+describe('concatMissingCampaigns', () => {
+    it('it should return 2 campaigns', async () => {
+        const amazonCampaignsPrev = [
+            {
+                name: 'test campaign 1',
+                data: '123123',
+                adsets: [
+                    {
+                        name: 'test adset 1',
+                        data: '35533451',
+                    },
+                    {
+                        name: 'test adset 2',
+                        data: '35533452',
+                    },
+                    {
+                        name: 'test adset 3',
+                        data: '35533453',
+                    },
+                ],
+            },
+        ];
+        const amazonCampaignsNew = [
+            {
+                name: 'test campaign 2',
+                data: '123123',
+                adsets: [
+                    {
+                        name: 'test adset 1',
+                        data: '35533451',
+                    },
+                ],
+            },
+        ];
+
+        const result = await concatMissingCampaigns(
+            amazonCampaignsPrev,
+            amazonCampaignsNew
+        );
+
+        expect(result.length).toEqual(2);
+    });
+
+    it('should return 1 campaign with 3 adsets and 1 campaign with 1 adset', async () => {
+        const amazonCampaignsPrev = [
+            {
+                name: 'test campaign 1',
+                data: '123123',
+                adsets: [
+                    {
+                        name: 'test adset 1',
+                        data: '35533451',
+                    },
+                    {
+                        name: 'test adset 2',
+                        data: '35533452',
+                    },
+                    {
+                        name: 'test adset 3',
+                        data: '35533453',
+                    },
+                ],
+            },
+        ];
+        const amazonCampaignsNew = [
+            {
+                name: 'test campaign 2',
+                data: '123123',
+                adsets: [
+                    {
+                        name: 'test adset 1',
+                        data: '35533451',
+                    },
+                ],
+            },
+        ];
+
+        const result = await concatMissingCampaigns(
+            amazonCampaignsPrev,
+            amazonCampaignsNew
+        );
+
+        expect(result[0].adsets.length).toEqual(3);
+        expect(result[1].adsets.length).toEqual(1);
+    });
+
+    it('should return 1 campaign from new data and 0 from prev data', async () => {
+        const amazonCampaignsPrev = {
+            name: 'test campaign 1',
+            data: '123123',
+            adsets: [
+                {
+                    name: 'test adset 1',
+                    data: '35533451',
+                },
+                {
+                    name: 'test adset 2',
+                    data: '35533452',
+                },
+                {
+                    name: 'test adset 3',
+                    data: '35533453',
+                },
+            ],
+        };
+        const amazonCampaignsNew = [
+            {
+                name: 'test campaign 2',
+                data: '123123',
+                adsets: [
+                    {
+                        name: 'test adset 1',
+                        data: '35533451',
+                    },
+                ],
+            },
+        ];
+
+        const result = await concatMissingCampaigns(
+            amazonCampaignsPrev,
+            amazonCampaignsNew
+        );
+
+        expect(result.length).toEqual(1);
     });
 });
