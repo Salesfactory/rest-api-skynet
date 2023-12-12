@@ -13,6 +13,12 @@ router.get(
     [hasOneOfRoles(['Super', 'Admin', 'DM'])],
     campaignController.getRecentCampaigns
 );
+// campaign names
+router.get(
+    '/campaign-group-name/:name',
+    [hasOneOfRoles(['Super', 'Admin', 'DM'])],
+    campaignController.getAllCampaignsByName
+);
 // this is a temp route to test refresh budget pacing (must be deleted later)
 router.get(
     '/refresh-metrics',
