@@ -12,6 +12,9 @@ jest.mock('../src/utils/allocations', () => ({
     createCampaigns: jest.fn(),
     findIdInAllocations: jest.fn(),
 }));
+jest.mock('../src/utils/email', () => ({
+    send: jest.fn(),
+}));
 const {
     createCampaigns,
     findIdInAllocations,

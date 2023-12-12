@@ -1913,13 +1913,16 @@ getAllCampaignsByName = async (req, res) => {
 
         if (campaigns.length > 0) {
             return res.status(200).json({
-                message: 'A campaign group with that name already exists',
-                data: { unavailable: true },
+                message: 'Campaign group pacing retrieved successfully',
+                data: {
+                    message: 'A campaign group with that name already exists',
+                    unavailable: true,
+                },
             });
         } else {
-            return res.status(404).json({
-                message: 'The name is available',
-                data: { unavailable: false },
+            return res.status(200).json({
+                message: 'Campaign group pacing retrieved successfully',
+                data: { message: 'The name is available', unavailable: false },
             });
         }
     } catch (error) {
