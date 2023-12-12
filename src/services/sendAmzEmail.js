@@ -70,9 +70,10 @@ async function getUserByCampaignGroupId(campaignGroupId) {
         });
 
         if (campaignGroup) {
+            console.log(campaignGroup.user.dataValues);
             return {
                 campaignGroupName: campaignGroup.name,
-                user: campaignGroup.user,
+                user: { ...campaignGroup.user.dataValues },
             };
         } else {
             return { name: '', user: null }; // No CampaignGroup found with the provided ID

@@ -19,7 +19,9 @@ describe('sendEmails', () => {
     it('should send an email if user and jobs are found', async () => {
         CampaignGroup.findOne.mockResolvedValue({
             campaignGroupName: 'Campaign Group Name',
-            user: { email: 'test@example.com', name: 'Test User' },
+            user: {
+                dataValues: { email: 'test@example.com', name: 'Test User' },
+            },
         });
         Job.findAll.mockResolvedValue([
             {
