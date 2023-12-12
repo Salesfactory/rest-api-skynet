@@ -22,6 +22,7 @@ const {
     sendNotification,
 } = require('../utils/cronjobs');
 const { emailTemplate } = require('../templates/email');
+const { emailCampaignFail } = require('../templates/emailCampaignFail');
 const { send } = require('../utils/email');
 const {
     groupCampaignAllocationsByType,
@@ -30,6 +31,7 @@ const {
     concatMissingCampaigns,
 } = require('../utils/parsers');
 const { findIdInAllocations } = require('../utils/allocations');
+const util = require('util');
 
 //creacion de reporte excel
 const createReport = async (req, res) => {
@@ -540,7 +542,7 @@ const createMarketingCampaign = async (req, res) => {
                                             createdAmazonAdsetsResult.success.push(
                                                 {
                                                     name: adset.id,
-                                                    ...adsetResponse.data[0],
+                                                    jobId,
                                                     status: 'queue',
                                                 }
                                             );
@@ -548,7 +550,8 @@ const createMarketingCampaign = async (req, res) => {
                                             campaignCreationFails.push({
                                                 name: adset.name,
                                                 type: 'Adset',
-                                                channel: 'Amazon Advertising DSP',
+                                                channel:
+                                                    'Amazon Advertising DSP',
                                                 reason: adsetError.message,
                                             });
                                         }
@@ -795,7 +798,19 @@ const createMarketingCampaign = async (req, res) => {
                 }
             }
 
-            console.log(campaignCreationFails);
+            // if either amazon or facebook campaigns were not created
+            if (campaignCreationFails.length > 0) {
+                const html = emailCampaignFail({
+                    user,
+                    campaigns: campaignCreationFails,
+                });
+                await send({
+                    to: user.email,
+                    subject: 'Campaign Creation Failed',
+                    message: 'Campaign Creation Failed',
+                    html,
+                });
+            }
 
             // insert budget
             const newBudget = await Budget.create({
