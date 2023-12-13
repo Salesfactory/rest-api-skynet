@@ -2,6 +2,7 @@ const {
     generateCampaignsWithTimePeriodsAndAdsets,
     convertToCents,
     concatMissingCampaigns,
+    replaceJobIdWithAdsetInAmazonData,
 } = require('../src/utils/parsers');
 const orchestrationDataSample = require('./parser-sample-data/face-book-payload.json');
 const multiChannelPayload = require('./parser-sample-data/multiChannelPayload.json');
@@ -387,5 +388,67 @@ describe('concatMissingCampaigns', () => {
         );
 
         expect(result.length).toEqual(1);
+    });
+});
+
+describe('replaceJobIdWithAdsetInAmazonData', () => {
+    test('Reemplaza el jobId con el adset correctamente', async () => {
+        const input = {
+            amazonCampaigns: [
+                {
+                    name: '8-Responsive eCommerce-b',
+                    data: { orderId: '587878912348263615' },
+                    adsets: [{ jobId: 6, adset: null }],
+                },
+            ],
+            jobId: 6,
+            adset: { lineitem: '123456789' },
+        };
+
+        const output = await replaceJobIdWithAdsetInAmazonData(input);
+
+        expect(output).toEqual([
+            {
+                name: '8-Responsive eCommerce-b',
+                data: { orderId: '587878912348263615' },
+                adsets: [{ lineitem: '123456789' }],
+            },
+        ]);
+    });
+
+    test('No hace cambios si el jobId no coincide', async () => {
+        const input = {
+            amazonCampaigns: [
+                {
+                    name: '8-Responsive eCommerce-b',
+                    data: { orderId: '587878912348263615' },
+                    adsets: [{ jobId: 10, adset: null }],
+                },
+            ],
+            jobId: 6,
+            adset: { lineitem: '123456789' },
+        };
+
+        const output = await replaceJobIdWithAdsetInAmazonData(input);
+
+        expect(output).toEqual([
+            {
+                name: '8-Responsive eCommerce-b',
+                data: { orderId: '587878912348263615' },
+                adsets: [{ jobId: 10, adset: null }],
+            },
+        ]);
+    });
+
+    test('No hace cambios si amazonCampaigns no es un array', async () => {
+        const input = {
+            amazonCampaigns: {},
+            jobId: 6,
+            adset: { lineitem: '123456789' },
+        };
+
+        const output = await replaceJobIdWithAdsetInAmazonData(input);
+
+        expect(output).toEqual([]);
     });
 });
