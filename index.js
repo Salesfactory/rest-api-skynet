@@ -6,6 +6,7 @@ const { createCampaign, createAdset } = require('./src/services/facebook');
 const { createQueue } = require('./src/services/queue/queue');
 const { Job } = require('./src/models');
 const { sendEmails } = require('./src/services/sendAmzEmail');
+const { getAmazonDSPCampaigns } = require('./src/services/amazonDSP');
 
 const app = makeApp({
     getSecrets,
@@ -18,6 +19,9 @@ const app = makeApp({
         createAdset: createAdset,
     },
     amzQueue: createQueue(Job, sendEmails),
+    amazonDSP: {
+        list: getAmazonDSPCampaigns,
+    },
 });
 const port = process.env.PORT || 5000;
 app.listen(port, err => {
