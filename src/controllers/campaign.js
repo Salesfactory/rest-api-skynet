@@ -267,7 +267,7 @@ const getMarketingCampaignsByClient = async (req, res) => {
                     as: 'budgets',
                     limit: 1,
                     order: [['updatedAt', 'DESC']],
-                    attributes: ['periods', 'allocations'],
+                    attributes: ['periods', 'allocations', 'amazonCampaigns', 'facebookCampaigns'],
                 },
             ],
         });
@@ -326,7 +326,7 @@ const getMarketingCampaignsById = async (req, res) => {
                     as: 'budgets',
                     limit: 1,
                     order: [['updatedAt', 'DESC']],
-                    attributes: ['id', 'periods', 'allocations'],
+                    attributes: ['id', 'periods', 'allocations', 'amazonCampaigns', 'facebookCampaigns'],
                 },
             ],
         });
