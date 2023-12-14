@@ -7,6 +7,7 @@ const {
     Client,
     Pacing,
     Channel,
+    Job,
 } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
@@ -29,6 +30,7 @@ const {
     generateCampaignsWithTimePeriodsAndAdsets,
     convertToCents,
     concatMissingCampaigns,
+    replaceJobIdWithAdsetInAmazonData,
 } = require('../utils/parsers');
 const { findIdInAllocations } = require('../utils/allocations');
 
@@ -265,7 +267,7 @@ const getMarketingCampaignsByClient = async (req, res) => {
                     as: 'budgets',
                     limit: 1,
                     order: [['updatedAt', 'DESC']],
-                    attributes: ['periods', 'allocations'],
+                    attributes: ['periods', 'allocations', 'amazonCampaigns', 'facebookCampaigns'],
                 },
             ],
         });
@@ -324,7 +326,7 @@ const getMarketingCampaignsById = async (req, res) => {
                     as: 'budgets',
                     limit: 1,
                     order: [['updatedAt', 'DESC']],
-                    attributes: ['id', 'periods', 'allocations'],
+                    attributes: ['id', 'periods', 'allocations', 'amazonCampaigns', 'facebookCampaigns'],
                 },
             ],
         });
@@ -530,6 +532,8 @@ const createMarketingCampaign = async (req, res) => {
                                                                 PROFILE_ID,
                                                             campaignId:
                                                                 campaign.id,
+                                                            campaignGroupId:
+                                                                campaignGroup.id,
                                                         },
                                                         batchId:
                                                             campaignGroup.id,
@@ -853,11 +857,27 @@ const createMarketingCampaign = async (req, res) => {
                 access,
             });
 
-            console.log(`Processing job data: ${JSON.stringify(job.data)}`);
+            console.log(`Processing job [${job.id}]`);
 
-            // To Do
-            // Update campaing with the adset ids
-            // handle error creating adset
+            // !!! To Do: handle error creating adset
+
+            // find budget, should only be one
+            const budget = await Budget.findOne({
+                where: { campaign_group_id: job.data.campaignGroupId },
+            });
+
+            // get updated data
+            const amazonCampaignsUpdated = await replaceJobIdWithAdsetInAmazonData({
+                amazonCampaigns: budget?.amazonCampaigns,
+                jobId: job.id,
+                adset: adsetResponse.data[0],
+            });
+
+            // update budget
+            await Budget.update(
+                { amazonCampaigns: amazonCampaignsUpdated },
+                { where: { id: budget.id } }
+            );
 
             return adsetResponse;
         });
