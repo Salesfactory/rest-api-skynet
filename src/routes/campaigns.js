@@ -15,7 +15,7 @@ router.get(
 );
 // campaign names
 router.get(
-    '/campaign-group-name/:name',
+    '/campaign-group-name',
     [hasOneOfRoles(['Super', 'Admin', 'DM'])],
     campaignController.getAllCampaignsByName
 );

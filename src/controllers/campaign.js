@@ -1893,8 +1893,8 @@ const getRecentCampaigns = async (req, res) => {
     }
 };
 
-getAllCampaignsByName = async (req, res) => {
-    const { name } = req.params;
+const getAllCampaignsByName = async (req, res) => {
+    const { name } = req.query;
 
     try {
         if (!name) {
