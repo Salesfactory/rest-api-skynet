@@ -7,6 +7,7 @@ const {
     Client,
     Pacing,
     Channel,
+    Job,
 } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
@@ -424,6 +425,8 @@ const createMarketingCampaign = async (req, res) => {
                 'Responsive eCommerce'
             ].length > 0;
 
+        const isAccessInvalid = !access?.CLIENT_ID || !access?.ACCESS_TOKEN;
+
         const createdAmazonCampaignsResult = {
             success: [],
             fails: [],
@@ -432,9 +435,6 @@ const createMarketingCampaign = async (req, res) => {
             success: [],
             fails: [],
         };
-
-        const isAccessInvalid = !access?.CLIENT_ID || !access?.ACCESS_TOKEN;
-
         const createdfacebookCampaignsResult = {
             success: [],
             fails: [],
@@ -535,7 +535,6 @@ const createMarketingCampaign = async (req, res) => {
                                                             campaignGroup.id,
                                                     }
                                                 );
-
                                             amazonAdset.push({
                                                 jobId,
                                                 adset: null,
@@ -939,7 +938,6 @@ const updateMarketingCampaign = async (req, res) => {
                 },
             ],
         });
-
         if (!campaignGroup) {
             return res.status(404).json({
                 message: `Marketing campaign not found`,
@@ -1094,20 +1092,122 @@ const updateMarketingCampaign = async (req, res) => {
                         error: 'Amazon DSP Advertising ID is required',
                     });
                 } else {
+                    // step 1: query to table jobs
+                    const queryJobs = await Job.findAll();
+                    console.log(JSON.stringify(queryJobs, null, 2));
+                    // console.log(queryJobs);
                     for (const campaign of campaignDataByChannel[
                         'Amazon Advertising DSP'
                     ]['Responsive eCommerce']) {
+                        // step 2: search campaignId inside jobs table
+                        // const campaignIds = '9-Responsive eCommerce-b';
+                        const campaignIds = queryJobs.map(
+                            job => job.dataValues.data.campaignId
+                        );
+                        // console.log(campaign.id);
                         let amazonAdset = [];
-                        // check for non previously added campaigns
-                        const campaingFoundInAllocations =
-                            await findIdInAllocations({
-                                allocations: cgAllocations,
-                                periods: cgPeriods,
-                                id: campaign.id,
-                            });
+                        let orderIdOfCampaignCreated;
+                        let adsetFounds = [];
+                        //check for non previously added campaigns
 
-                        if (!campaingFoundInAllocations) {
+                        // step 3: if not find the campaignId that is in the job.data, so create a new one
+
+                        if (campaignIds.includes(campaign.id)) {
                             try {
+                                const orderIds = queryJobs.find(
+                                    job => job.data.campaignId === campaign.id
+                                ).data.orderId;
+                                const adsetId = queryJobs.find(
+                                    job => job.data.campaignId === campaign.id
+                                ).data.adset.id;
+                                orderIdOfCampaignCreated = orderIds;
+                                // adsetFounds.push(adsetId);
+                                console.log(
+                                    'el id de la orden: ',
+                                    orderIdOfCampaignCreated
+                                );
+                                // console.log('el id del adset: ', adsetFounds);
+                                for (const adset of campaign.adsets) {
+                                    // check for non previously added adsets
+                                    // step 5: if not find campaignId, don't ask and do it
+                                    // step 6: if found campaignId, search if adsetId exists, if exists, don't do anything, but if no exists, create the adset with the previous orderId
+
+                                    if (!adsetFounds) {
+                                        const adsetResponse =
+                                            await req.amazon.createAdset({
+                                                adset,
+                                                orderId:
+                                                    orderIdOfCampaignCreated,
+                                                type: 'Sponsored Ads Line Item',
+                                                access,
+                                                profileId,
+                                            });
+                                        adsetFounds.push(adset);
+                                        console.log(adsetFounds);
+                                        const jobId =
+                                            await req.amazon.addJobToQueue({
+                                                jobData: {
+                                                    adset,
+                                                    orderId:
+                                                        orderIdOfCampaignCreated,
+                                                    type: 'Sponsored Ads Line Item',
+                                                    profileId: profileId,
+                                                    campaignId: campaign.id,
+                                                },
+                                                batchId: campaignGroup.id,
+                                            });
+                                        console.log('RESULTADOOOOO:', jobId);
+                                        amazonAdset.push({
+                                            jobId,
+                                            adset: null,
+                                        });
+                                        console.log('ADIOOOS', amazonAdset);
+                                    }
+                                }
+                                req.amzQueue.startProcessingJobs(async job => {
+                                    const delay = ms =>
+                                        new Promise(resolve =>
+                                            setTimeout(resolve, ms)
+                                        );
+                                    await delay(1000); // Wait for one second
+                                    const {
+                                        data: { campaignId, ...rest },
+                                    } = job;
+                                    const adsetResponse =
+                                        await req.amazon.createAdset({
+                                            ...rest,
+                                            access,
+                                        });
+
+                                    console.log(
+                                        `Processing job data: ${JSON.stringify(
+                                            job.data
+                                        )}`
+                                    );
+
+                                    // To Do
+                                    // Update campaing with the adset ids
+                                    // handle error creating adset
+
+                                    return adsetResponse;
+                                });
+                            } catch (campaignError) {
+                                console.error(
+                                    'Error creating campaign:',
+                                    campaignError
+                                );
+                                createdAmazonCampaignsResult.fails.push({
+                                    name: campaign.name,
+                                    errorDetails: {
+                                        message: campaignError.message,
+                                        errors: [campaignError],
+                                    },
+                                });
+                            }
+                        } else {
+                            try {
+                                // step 4: if found campaignId don't create the campaign, instead copy the orderId of job.data
+                                console.log(campaign.name);
                                 const response =
                                     await req.amazon.createCampaign({
                                         campaign: {
@@ -1150,24 +1250,59 @@ const updateMarketingCampaign = async (req, res) => {
 
                                         for (const adset of campaign.adsets) {
                                             // check for non previously added adsets
-                                            const adsetFoundInAllocations =
-                                                await findIdInAllocations({
-                                                    allocations: cgAllocations,
-                                                    periods: cgPeriods,
-                                                    id: adset.id,
-                                                });
+                                            // step 5: if not find campaignId, don't ask and do it
+                                            // step 6: if found campaignId, search if adsetId exists, if exists, don't do anything, but if no exists, create the adset with the previous orderId
 
-                                            if (!adsetFoundInAllocations) {
+                                            if (!adsetFounds) {
                                                 const adsetResponse =
                                                     await req.amazon.createAdset(
                                                         {
                                                             adset,
-                                                            orderId,
+                                                            orderId:
+                                                                orderIdOfCampaignCreated,
                                                             type: 'Sponsored Ads Line Item',
                                                             access,
                                                             profileId,
                                                         }
                                                     );
+                                                adsetFounds.push(adset);
+                                                console.log(adsetFounds);
+                                                const jobId =
+                                                    await req.amazon.addJobToQueue(
+                                                        {
+                                                            jobData: {
+                                                                adset,
+                                                                orderId:
+                                                                    orderIdOfCampaignCreated,
+                                                                type: 'Sponsored Ads Line Item',
+                                                                profileId:
+                                                                    profileId,
+                                                                campaignId:
+                                                                    campaign.id,
+                                                            },
+                                                            batchId:
+                                                                campaignGroup.id,
+                                                        }
+                                                    );
+                                                console.log(
+                                                    'RESULTADOOOOO:',
+                                                    jobId
+                                                );
+                                                amazonAdset.push({
+                                                    jobId,
+                                                    adset: null,
+                                                });
+                                                console.log(
+                                                    'ADIOOOS',
+                                                    amazonAdset
+                                                );
+                                                createdAmazonAdsetsResult.success.push(
+                                                    {
+                                                        name: adset.id,
+                                                        jobId,
+                                                        status: 'queue',
+                                                    }
+                                                );
                                                 if (
                                                     Array.isArray(
                                                         adsetResponse?.data
@@ -1441,14 +1576,44 @@ const updateMarketingCampaign = async (req, res) => {
                     }
                 }
             }
+            let _amazonCampaigns;
 
+            if (
+                campaignGroup &&
+                campaignGroup.budgets &&
+                campaignGroup.budgets.length > 0 &&
+                campaignGroup.budgets[0].amazonCampaigns
+            ) {
+                _amazonCampaigns = campaignGroup.budgets[0].amazonCampaigns;
+            } else {
+                console.log(
+                    'Budgets array is empty or amazonCampaigns does not exist'
+                );
+                _amazonCampaigns = []; // or null, or any other default value or error handling
+            }
             const mergedAmazonCampaigns = await concatMissingCampaigns(
-                campaignGroup.budgets[0].amazonCampaigns,
+                _amazonCampaigns,
                 amazonCampaigns
             );
 
+            let _facebookCampaigns;
+
+            if (
+                campaignGroup &&
+                campaignGroup.budgets &&
+                campaignGroup.budgets.length > 0 &&
+                campaignGroup.budgets[0].facebookCampaigns
+            ) {
+                _facebookCampaigns = campaignGroup.budgets[0].facebookCampaigns;
+            } else {
+                console.log(
+                    'Budgets array is empty or amazonCampaigns does not exist'
+                );
+                _facebookCampaigns = []; // or null, or any other default value or error handling
+            }
+
             const mergedFacebookCampaigns = await concatMissingCampaigns(
-                campaignGroup.budgets[0].facebookCampaigns,
+                _facebookCampaigns,
                 facebookCampaigns
             );
 
@@ -1461,6 +1626,25 @@ const updateMarketingCampaign = async (req, res) => {
                 facebookCampaigns: mergedFacebookCampaigns,
             });
         }
+        req.amzQueue.startProcessingJobs(async job => {
+            const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+            await delay(1000); // Wait for one second
+            const {
+                data: { campaignId, ...rest },
+            } = job;
+            const adsetResponse = await req.amazon.createAdset({
+                ...rest,
+                access,
+            });
+
+            console.log(`Processing job data: ${JSON.stringify(job.data)}`);
+
+            // To Do
+            // Update campaing with the adset ids
+            // handle error creating adset
+
+            return adsetResponse;
+        });
 
         res.status(200).json({
             message: 'Marketing campaign updated successfully',
