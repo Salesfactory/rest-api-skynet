@@ -1107,7 +1107,6 @@ const updateMarketingCampaign = async (req, res) => {
                         // console.log(campaign.id);
                         let amazonAdset = [];
                         let orderIdOfCampaignCreated;
-                        let adsetFounds = [];
                         //check for non previously added campaigns
 
                         // step 3: if not find the campaignId that is in the job.data, so create a new one
@@ -1117,14 +1116,17 @@ const updateMarketingCampaign = async (req, res) => {
                                 const orderIds = queryJobs.find(
                                     job => job.data.campaignId === campaign.id
                                 ).data.orderId;
-                                const adsetId = queryJobs.find(
+                                const adsetIds = queryJobs.filter(
                                     job => job.data.campaignId === campaign.id
-                                ).data.adset.id;
+                                ).map(job => job.data.adset.id);
                                 orderIdOfCampaignCreated = orderIds;
-                                // adsetFounds.push(adsetId);
                                 console.log(
                                     'el id de la orden: ',
                                     orderIdOfCampaignCreated
+                                );
+                                console.log(
+                                    'el id del adset: ',
+                                    adsetIds
                                 );
                                 // console.log('el id del adset: ', adsetFounds);
                                 for (const adset of campaign.adsets) {
@@ -1132,18 +1134,18 @@ const updateMarketingCampaign = async (req, res) => {
                                     // step 5: if not find campaignId, don't ask and do it
                                     // step 6: if found campaignId, search if adsetId exists, if exists, don't do anything, but if no exists, create the adset with the previous orderId
 
-                                    if (!adsetFounds) {
-                                        const adsetResponse =
-                                            await req.amazon.createAdset({
-                                                adset,
-                                                orderId:
-                                                    orderIdOfCampaignCreated,
-                                                type: 'Sponsored Ads Line Item',
-                                                access,
-                                                profileId,
-                                            });
-                                        adsetFounds.push(adset);
-                                        console.log(adsetFounds);
+                                    if (!adsetIds.includes(adset.id)) {
+                                        // const adsetResponse =
+                                        //     await req.amazon.createAdset({
+                                        //         adset,
+                                        //         orderId:
+                                        //             orderIdOfCampaignCreated,
+                                        //         type: 'Sponsored Ads Line Item',
+                                        //         access,
+                                        //         profileId,
+                                        //     });
+                                        // adsetFounds.push(adset);
+                                        // console.log(adsetFounds);
                                         const jobId =
                                             await req.amazon.addJobToQueue({
                                                 jobData: {
@@ -1164,33 +1166,33 @@ const updateMarketingCampaign = async (req, res) => {
                                         console.log('ADIOOOS', amazonAdset);
                                     }
                                 }
-                                req.amzQueue.startProcessingJobs(async job => {
-                                    const delay = ms =>
-                                        new Promise(resolve =>
-                                            setTimeout(resolve, ms)
-                                        );
-                                    await delay(1000); // Wait for one second
-                                    const {
-                                        data: { campaignId, ...rest },
-                                    } = job;
-                                    const adsetResponse =
-                                        await req.amazon.createAdset({
-                                            ...rest,
-                                            access,
-                                        });
+                                // req.amzQueue.startProcessingJobs(async job => {
+                                //     const delay = ms =>
+                                //         new Promise(resolve =>
+                                //             setTimeout(resolve, ms)
+                                //         );
+                                //     await delay(1000); // Wait for one second
+                                //     const {
+                                //         data: { campaignId, ...rest },
+                                //     } = job;
+                                //     const adsetResponse =
+                                //         await req.amazon.createAdset({
+                                //             ...rest,
+                                //             access,
+                                //         });
 
-                                    console.log(
-                                        `Processing job data: ${JSON.stringify(
-                                            job.data
-                                        )}`
-                                    );
+                                //     console.log(
+                                //         `Processing job data: ${JSON.stringify(
+                                //             job.data
+                                //         )}`
+                                //     );
 
-                                    // To Do
-                                    // Update campaing with the adset ids
-                                    // handle error creating adset
+                                //     // To Do
+                                //     // Update campaing with the adset ids
+                                //     // handle error creating adset
 
-                                    return adsetResponse;
-                                });
+                                //     return adsetResponse;
+                                // });
                             } catch (campaignError) {
                                 console.error(
                                     'Error creating campaign:',

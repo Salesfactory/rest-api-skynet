@@ -4,7 +4,13 @@ const adsetFacebookPayload = require('./controllers-sample-data/orchestration-ad
 const campaignOrchestrationFacebookPayloadData = require('./controllers-sample-data/orchestration-facebook.json');
 const adsetAmazonDSPPayload = require('./controllers-sample-data/orchestration-adset-amazon-dsp.json');
 const campaignOrchestrationAmazonDSPPayloadData = require('./controllers-sample-data/orchestration-amazon-dsp.json');
-const { Budget, Channel, CampaignGroup, Client, Job } = require('../src/models');
+const {
+    Budget,
+    Channel,
+    CampaignGroup,
+    Client,
+    Job,
+} = require('../src/models');
 const { getUser } = require('../src/utils');
 
 // Mocked utility functions
@@ -2829,6 +2835,7 @@ describe('Campaign Endpoints Test', () => {
                     .send(campaignOrchestrationPayloadData);
 
                 expect(_createAmazonCampaign).not.toHaveBeenCalled();
+                expect(_addJobToQueue).not.toHaveBeenCalled();
             });
             test('Given the payload contain 2 Amazon campaign, the Amazon API campaign should be called 2 times and adsets 2 times', async () => {
                 const campaignOrchestrationPayloadData = {
@@ -3025,6 +3032,40 @@ describe('Campaign Endpoints Test', () => {
                 findIdInAllocations.mockResolvedValue(false);
                 CampaignGroup.findOne.mockResolvedValue(data);
                 Budget.create.mockResolvedValue(data.budgets);
+                Job.findAll.mockResolvedValue([
+                    {
+                        id: 15,
+                        data: {
+                            type: 'Sponsored Ads Line Item',
+                            adset: {
+                                id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
+                                name: 'test-campaign-adset',
+                                budget: 2125,
+                                percentage: 100,
+                                type: 'ADSET',
+                            },
+                            campaignId: '2-Sponsored Ads-test-campaign',
+                        },
+                        status: 'completed',
+                        batchId: 16,
+                    },
+                    {
+                        id: 15,
+                        data: {
+                            type: 'Sponsored Ads Line Item',
+                            adset: {
+                                id: '4-Sponsored Ads-test-campaign-test-campaign-adset',
+                                name: 'test-campaign-adset',
+                                budget: 2125,
+                                percentage: 100,
+                                type: 'ADSET',
+                            },
+                            campaignId: '3-Sponsored Ads-test-campaign',
+                        },
+                        status: 'completed',
+                        batchId: 16,
+                    },
+                ]);
 
                 await request
                     .put(
@@ -3033,6 +3074,7 @@ describe('Campaign Endpoints Test', () => {
                     .send(campaignOrchestrationPayloadData);
 
                 expect(_createAmazonCampaign).toHaveBeenCalledTimes(2);
+                expect(_addJobToQueue).toHaveBeenCalledTimes(2);
                 // expect(_createAmazonAdset).toHaveBeenCalledTimes(2);
             });
             test('Given the payload contain 2 Amazon campaign, the Amazon API campaign and adsets should not be called because campaigns already exist', async () => {
@@ -3259,6 +3301,7 @@ describe('Campaign Endpoints Test', () => {
                     .send(campaignOrchestrationPayloadData);
 
                 expect(_createAmazonCampaign).toHaveBeenCalledTimes(0);
+                expect(_addJobToQueue).not.toHaveBeenCalled();
                 expect(_createAmazonAdset).toHaveBeenCalledTimes(0);
             });
         });
