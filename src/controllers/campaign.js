@@ -21,6 +21,7 @@ const {
     checkBigQueryIdExists,
     getUsersToNotifyWithCampaigns,
     sendNotification,
+    checkSameAmountOfCampaigns,
 } = require('../utils/cronjobs');
 const { emailTemplate } = require('../templates/email');
 const { emailCampaignFail } = require('../templates/emailCampaignFail');
@@ -267,7 +268,12 @@ const getMarketingCampaignsByClient = async (req, res) => {
                     as: 'budgets',
                     limit: 1,
                     order: [['updatedAt', 'DESC']],
-                    attributes: ['periods', 'allocations', 'amazonCampaigns', 'facebookCampaigns'],
+                    attributes: [
+                        'periods',
+                        'allocations',
+                        'amazonCampaigns',
+                        'facebookCampaigns',
+                    ],
                 },
             ],
         });
@@ -283,9 +289,18 @@ const getMarketingCampaignsByClient = async (req, res) => {
             campaign.dataValues.inFlight = inFlight;
 
             // Check campaign link status
-            campaign.dataValues.linked = !checkBigQueryIdExists({
-                allocations: campaign.budgets[0].allocations,
-            }).hasUnlinkedCampaigns;
+            if (
+                campaign.budgets[0].amazonCampaigns?.length > 0 ||
+                campaign.budgets[0].facebookCampaigns?.length > 0
+            ) {
+                campaign.dataValues.linked = checkSameAmountOfCampaigns({
+                    campaign,
+                });
+            } else {
+                campaign.dataValues.linked = !checkBigQueryIdExists({
+                    allocations: campaign.budgets[0].allocations,
+                }).hasUnlinkedCampaigns;
+            }
         }
 
         res.status(200).json({
@@ -326,7 +341,13 @@ const getMarketingCampaignsById = async (req, res) => {
                     as: 'budgets',
                     limit: 1,
                     order: [['updatedAt', 'DESC']],
-                    attributes: ['id', 'periods', 'allocations', 'amazonCampaigns', 'facebookCampaigns'],
+                    attributes: [
+                        'id',
+                        'periods',
+                        'allocations',
+                        'amazonCampaigns',
+                        'facebookCampaigns',
+                    ],
                 },
             ],
         });
@@ -346,9 +367,18 @@ const getMarketingCampaignsById = async (req, res) => {
         campaign.dataValues.inFlight = inFlight;
 
         // Check campaign link status
-        campaign.dataValues.linked = !checkBigQueryIdExists({
-            allocations: campaign.budgets[0].allocations,
-        }).hasUnlinkedCampaigns;
+        if (
+            campaign.budgets[0].amazonCampaigns?.length > 0 ||
+            campaign.budgets[0].facebookCampaigns?.length > 0
+        ) {
+            campaign.dataValues.linked = checkSameAmountOfCampaigns({
+                campaign,
+            });
+        } else {
+            campaign.dataValues.linked = !checkBigQueryIdExists({
+                allocations: campaign.budgets[0].allocations,
+            }).hasUnlinkedCampaigns;
+        }
 
         res.status(200).json({
             message: 'Marketing campaign retrieved successfully',
@@ -867,11 +897,12 @@ const createMarketingCampaign = async (req, res) => {
             });
 
             // get updated data
-            const amazonCampaignsUpdated = await replaceJobIdWithAdsetInAmazonData({
-                amazonCampaigns: budget?.amazonCampaigns,
-                jobId: job.id,
-                adset: adsetResponse.data[0],
-            });
+            const amazonCampaignsUpdated =
+                await replaceJobIdWithAdsetInAmazonData({
+                    amazonCampaigns: budget?.amazonCampaigns,
+                    jobId: job.id,
+                    adset: adsetResponse.data[0],
+                });
 
             // update budget
             await Budget.update(
