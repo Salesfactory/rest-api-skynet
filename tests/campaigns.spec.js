@@ -115,7 +115,14 @@ const _createAmazonCampaign = jest.fn(() => {
     });
 });
 const _createAmazonAdset = jest.fn(() => {
-    return {};
+    return {
+        id: 'AMAZON_ADSET_ID',
+        data: [
+            {
+                lineItem: 2,
+            },
+        ],
+    };
 });
 const _createFacebookCampaign = jest.fn(() => {
     return Promise.resolve({ id: 'FACEBOOK_CAMPAIGN_ID' });
@@ -1792,6 +1799,17 @@ describe('Campaign Endpoints Test', () => {
                     callback()
                 );
 
+                Budget.findOne.mockResolvedValue({
+                    id: 1,
+                    amazonCampaigns: [
+                        {
+                            name: '8-Responsive eCommerce-b',
+                            data: { orderId: '587878912348263615' },
+                            adsets: [{ jobId: 10, adset: null }],
+                        },
+                    ],
+                });
+
                 await request
                     .post(`/api/clients/${clientId}/marketingcampaign`)
                     .send(adsetAmazonDSPPayload);
@@ -1811,6 +1829,7 @@ describe('Campaign Endpoints Test', () => {
                         orderId: 2,
                         profileId: 'DSP_PROFILE_ID',
                         campaignId: '1-SEARCH-dfsdfsd1',
+                        campaignGroupId: 'campaing-group-id',
                         type: 'Sponsored Ads Line Item',
                     },
                     batchId: 'campaing-group-id',

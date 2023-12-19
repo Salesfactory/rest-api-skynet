@@ -1,4 +1,5 @@
 const {
+    Channel,
     Budget,
     CampaignGroup,
     Notification,
@@ -81,7 +82,7 @@ function checkPacingOffPace({ pacing, currentDate }) {
         const currentPeriod = allocations[formattedDate];
         // If for some reason the current period does not exist in the budget period, return null
         if (!currentPeriod) {
-            return { overPaceCampaigns: null, underPaceCampaigns: null };
+            return { overPaceCampaigns: [], underPaceCampaigns: [] };
         }
 
         // get all campaigns from the current period in a flat array
@@ -124,13 +125,96 @@ function checkPacingOffPace({ pacing, currentDate }) {
 }
 
 /**
+ * count campaigns and adsets inside of allocations
+ */
+function countCampaignsAndAdsetsInAllocations({ campaign, channelName }) {
+    let campaignCount = 0;
+    let adsetCount = 0;
+    if (Array.isArray(campaign.budgets) && campaign.budgets.length > 0) {
+        const { allocations, periods } = campaign.budgets[0];
+        const first_period = periods[0];
+
+        if (first_period) {
+            const allocationsPeriod = allocations[first_period.id];
+            if (
+                Array.isArray(allocationsPeriod.allocations) &&
+                allocationsPeriod.allocations.length > 0
+            ) {
+                for (const channel of allocationsPeriod.allocations) {
+                    if (
+                        channel.type === 'CHANNEL' &&
+                        Array.isArray(channel.allocations) &&
+                        channel.allocations.length > 0 &&
+                        channel.name === channelName
+                    ) {
+                        for (const campaignType of channel.allocations) {
+                            if (
+                                campaignType.type === 'CAMPAIGN_TYPE' &&
+                                Array.isArray(campaignType.allocations) &&
+                                campaignType.allocations.length > 0
+                            ) {
+                                campaignCount +=
+                                    campaignType.allocations.length;
+                                for (const campaign of campaignType.allocations) {
+                                    if (
+                                        campaign.type === 'CAMPAIGN' &&
+                                        Array.isArray(campaign.allocations) &&
+                                        campaign.allocations.length > 0
+                                    ) {
+                                        adsetCount +=
+                                            campaign.allocations.length;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return {
+        campaignCount,
+        adsetCount,
+    };
+}
+
+/**
+ * counts campaigns and adsets inside of amazonCampaigns, facebookCampaigns
+ */
+function countCampaignAndAdsetsAmzFb({ campaigns }) {
+    let campaignCount = 0;
+    let adsetCount = 0;
+
+    if (Array.isArray(campaigns)) {
+        campaignCount = campaigns.length;
+        for (const campaign of campaigns) {
+            if (Array.isArray(campaign.adsets)) {
+                for (const adset of campaign.adsets) {
+                    if (!adset.jobId) {
+                        // if it has a jobId it means it hasnt been processed yet
+                        adsetCount += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    return {
+        campaignCount,
+        adsetCount,
+    };
+}
+
+/**
  *  Checks if a campaign is unlinked
  */
-function checkIfCampaignIsUnlinked({ campaign }) {
+function checkIfCampaignIsUnlinked({ campaign, apiEnabledChannels = [] }) {
     const { allocations } = campaign.budgets[0];
+    console.log(campaign.id, apiEnabledChannels);
     // check if campaign does not have a bigquery_campaign_id
     const { hasUnlinkedCampaigns, campaigns } = checkBigQueryIdExists({
         allocations,
+        apiEnabledChannels,
     });
 
     const unlinkedCampaigns = campaigns.map(item => ({
@@ -145,9 +229,57 @@ function checkIfCampaignIsUnlinked({ campaign }) {
 }
 
 /**
+ * Checks if there's the same amount of campaigns in the allocations and in the amazonCampaigns, facebookCampaigns, etc
+ * also checks its adsets inside of amazonCampaigns[x].adsets, facebookCampaigns[x].adsets, etc
+ * returns true if there's the same amount of campaigns and adsets (it is linked)
+ * returns false if there's not the same amount of campaigns and adsets (it is unlinked)
+ */
+function checkSameAmountOfCampaigns({ campaign }) {
+    const { amazonCampaigns, facebookCampaigns } = campaign.budgets[0];
+
+    if (amazonCampaigns?.length > 0 || facebookCampaigns?.length > 0) {
+        const { campaignCount: amzCampaignCount, adsetCount: amzAdsetCount } =
+            countCampaignsAndAdsetsInAllocations({
+                campaign,
+                channelName: 'Amazon Advertising DSP',
+            });
+
+        const {
+            campaignCount: createdAmzCampaignsCount,
+            adsetCount: createdAmzAdsetCount,
+        } = countCampaignAndAdsetsAmzFb({
+            campaigns: amazonCampaigns,
+        });
+
+        const { campaignCount: fbCampaignCount, adsetCount: fbAdsetCount } =
+            countCampaignsAndAdsetsInAllocations({
+                campaign,
+                channelName: 'Facebook',
+            });
+
+        const {
+            campaignCount: createdFbCampaignsCount,
+            adsetCount: createdFbAdsetCount,
+        } = countCampaignAndAdsetsAmzFb({
+            campaigns: facebookCampaigns,
+        });
+
+        // it could've been validated as !== but i decided to use > just in case there
+        // are more campaigns in the amazonCampaigns or facebookCampaigns than in the allocations
+        // but that never should be the case
+        return !(
+            amzCampaignCount > createdAmzCampaignsCount ||
+            amzAdsetCount > createdAmzAdsetCount ||
+            fbCampaignCount > createdFbCampaignsCount ||
+            fbAdsetCount > createdFbAdsetCount
+        );
+    }
+}
+
+/**
  * Checks if at least a campaigns from a list of campaigns does not have a bigquery_campaign_id
  */
-function checkBigQueryIdExists({ allocations }) {
+function checkBigQueryIdExists({ allocations, apiEnabledChannels = [] }) {
     let campaignsUnlinked = [];
     for (const [index, key] of Object.keys(allocations).entries()) {
         // since every period has the same structure, we only need to check the first period
@@ -157,7 +289,9 @@ function checkBigQueryIdExists({ allocations }) {
                 if (
                     channel.type === 'CHANNEL' &&
                     Array.isArray(channel.allocations) &&
-                    channel.allocations.length > 0
+                    channel.allocations.length > 0 &&
+                    // added this line to avoid checking api enabled channels (since those are not manually linked to bigquery)
+                    !apiEnabledChannels.includes(channel.name)
                 ) {
                     for (const campaignType of channel.allocations) {
                         if (
@@ -189,7 +323,11 @@ function checkBigQueryIdExists({ allocations }) {
 /**
  * returns the users to be notified and their usernames
  */
-function getUsersToNotifyWithCampaigns({ campaigngroups, currentDate }) {
+function getUsersToNotifyWithCampaigns({
+    campaigngroups,
+    currentDate,
+    apiEnabledChannels = [],
+}) {
     let usersToNotify = {};
     let usernames = new Map();
 
@@ -197,7 +335,11 @@ function getUsersToNotifyWithCampaigns({ campaigngroups, currentDate }) {
     // in flight campaign means: A campaign with a start date in the past and an end date in the future
     for (campaign of campaigngroups) {
         // check if campaign has a user just in case (it should always have a user)
-        if (campaign.user) {
+        if (
+            campaign.user &&
+            Array.isArray(campaign.budgets) &&
+            campaign.budgets.length > 0
+        ) {
             // check if campaign is in flight
             const { inFlight } = checkInFlight({ currentDate, campaign });
             if (inFlight) {
@@ -210,6 +352,7 @@ function getUsersToNotifyWithCampaigns({ campaigngroups, currentDate }) {
                 const { unlinkedCampaigns, hasUnlinkedCampaigns } =
                     checkIfCampaignIsUnlinked({
                         campaign,
+                        apiEnabledChannels,
                     });
 
                 // if campaign is off pace or unlinked, add it to the list of campaigns to notify the user
@@ -330,6 +473,17 @@ async function fetchCampaignsWithPacings() {
 }
 
 /**
+ * Fetches all api enabled channels
+ */
+async function fetchApiEnabledChannels() {
+    return Channel.findAll({
+        where: {
+            isApiEnabled: true,
+        },
+    });
+}
+
+/**
  *  Fetches all campaigns with their pacings from the database
  */
 async function fetchCampaignsWithPacingsByUserId({ userId }) {
@@ -403,6 +557,10 @@ module.exports = {
     getUsersToNotifyWithCampaigns,
     fetchCampaignsWithBudgets,
     fetchCampaignsWithPacings,
+    fetchApiEnabledChannels,
     fetchCampaignsWithPacingsByUserId,
     updateOrInsertPacingMetrics,
+    checkSameAmountOfCampaigns,
+    countCampaignsAndAdsetsInAllocations,
+    countCampaignAndAdsetsAmzFb,
 };
