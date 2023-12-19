@@ -191,7 +191,7 @@ function countCampaignAndAdsetsAmzFb({ campaigns }) {
             if (Array.isArray(campaign.adsets)) {
                 for (const adset of campaign.adsets) {
                     if (!adset.jobId) {
-                        // is it has a jobId it means it hasnt been processed yet
+                        // if it has a jobId it means it hasnt been processed yet
                         adsetCount += 1;
                     }
                 }
@@ -561,4 +561,6 @@ module.exports = {
     fetchCampaignsWithPacingsByUserId,
     updateOrInsertPacingMetrics,
     checkSameAmountOfCampaigns,
+    countCampaignsAndAdsetsInAllocations,
+    countCampaignAndAdsetsAmzFb,
 };
