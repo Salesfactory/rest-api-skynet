@@ -1610,25 +1610,25 @@ const updateMarketingCampaign = async (req, res) => {
                 facebookCampaigns: mergedFacebookCampaigns,
             });
         }
-        // req.amzQueue.startProcessingJobs(async job => {
-        //     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-        //     await delay(1000); // Wait for one second
-        //     const {
-        //         data: { campaignId, ...rest },
-        //     } = job;
-        //     const adsetResponse = await req.amazon.createAdset({
-        //         ...rest,
-        //         access,
-        //     });
+        req.amzQueue.startProcessingJobs(async job => {
+            const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+            await delay(1000); // Wait for one second
+            const {
+                data: { campaignId, ...rest },
+            } = job;
+            const adsetResponse = await req.amazon.createAdset({
+                ...rest,
+                access,
+            });
 
-        //     console.log(`Processing job data: ${JSON.stringify(job.data)}`);
+            console.log(`Processing job data: ${JSON.stringify(job.data)}`);
 
-        //     // To Do
-        //     // Update campaing with the adset ids
-        //     // handle error creating adset
+            // To Do
+            // Update campaing with the adset ids
+            // handle error creating adset
 
-        //     return adsetResponse;
-        // });
+            return adsetResponse;
+        });
 
         res.status(200).json({
             message: 'Marketing campaign updated successfully',
