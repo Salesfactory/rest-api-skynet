@@ -6,6 +6,7 @@ const {
     sendNotification,
     fetchCampaignsWithBudgets,
     fetchCampaignsWithPacings,
+    fetchApiEnabledChannels,
     updateOrInsertPacingMetrics,
     checkBigQueryIdExists,
     checkPacingOffPace,
@@ -227,12 +228,14 @@ async function updateBudgetMetrics() {
 async function checkAndNotifyUnlinkedOrOffPaceCampaigns() {
     logMessage('Starting daily check for unlinked or off pace campaigns');
     const campaigngroups = await fetchCampaignsWithPacings();
+    const apiEnabledChannels = await fetchApiEnabledChannels();
 
     const currentDate = new Date();
 
     const { usersToNotify, usernames } = getUsersToNotifyWithCampaigns({
         campaigngroups,
         currentDate,
+        apiEnabledChannels: apiEnabledChannels.map(channel => channel.name),
     });
 
     // send email to users
@@ -289,63 +292,68 @@ async function updateCampaignGroupsStatuses() {
         on pace -5% <> 5%
     */
     for (const campaign of campaigns) {
-        const { allocations } = campaign.budgets[0];
-        let status = null;
+        if (Array.isArray(campaign.budgets) && campaign.budgets.length > 0) {
+            const { allocations } = campaign.budgets[0];
+            let status = null;
 
-        // check if campaign is in flight
-        const currentDate = new Date();
+            // check if campaign is in flight
+            const currentDate = new Date();
 
-        const { hasUnlinkedCampaigns } = checkBigQueryIdExists({
-            allocations,
-        });
+            const { hasUnlinkedCampaigns } = checkBigQueryIdExists({
+                allocations,
+            });
 
-        const { inFlight, hasEnded } = checkInFlight({ currentDate, campaign });
+            const { inFlight, hasEnded } = checkInFlight({
+                currentDate,
+                campaign,
+            });
 
-        if (inFlight && !hasEnded) {
-            const pacing = campaign.pacings[0];
+            if (inFlight && !hasEnded) {
+                const pacing = campaign.pacings[0];
 
-            // campaign is in flight check if campaign is linked
-            if (!hasUnlinkedCampaigns) {
-                const { overPaceCampaigns, underPaceCampaigns } =
-                    checkPacingOffPace({
-                        pacing,
-                        currentDate,
-                    });
-                if (
-                    Array.isArray(overPaceCampaigns) &&
-                    Array.isArray(underPaceCampaigns)
-                ) {
+                // campaign is in flight check if campaign is linked
+                if (!hasUnlinkedCampaigns) {
+                    const { overPaceCampaigns, underPaceCampaigns } =
+                        checkPacingOffPace({
+                            pacing,
+                            currentDate,
+                        });
                     if (
-                        overPaceCampaigns.length > 0 &&
-                        underPaceCampaigns.length > 0
+                        Array.isArray(overPaceCampaigns) &&
+                        Array.isArray(underPaceCampaigns)
                     ) {
-                        status = 'Off pace';
-                    } else if (overPaceCampaigns.length > 0) {
-                        status = 'Overpaced';
-                    } else if (underPaceCampaigns.length > 0) {
-                        status = 'Underpaced';
+                        if (
+                            overPaceCampaigns.length > 0 &&
+                            underPaceCampaigns.length > 0
+                        ) {
+                            status = 'Off pace';
+                        } else if (overPaceCampaigns.length > 0) {
+                            status = 'Overpaced';
+                        } else if (underPaceCampaigns.length > 0) {
+                            status = 'Underpaced';
+                        } else {
+                            status = 'On pace';
+                        }
                     } else {
-                        status = 'On pace';
+                        status = 'Error';
                     }
                 } else {
-                    status = 'Error';
+                    status = 'Not tracking';
+                }
+            } else if (!inFlight && !hasEnded) {
+                // campaign is not in flight and has not ended
+                if (!hasUnlinkedCampaigns) {
+                    status = 'Planned';
+                } else {
+                    status = 'Planning';
                 }
             } else {
-                status = 'Not tracking';
+                status = 'Ended';
             }
-        } else if (!inFlight && !hasEnded) {
-            // campaign is not in flight and has not ended
-            if (!hasUnlinkedCampaigns) {
-                status = 'Planned';
-            } else {
-                status = 'Planning';
-            }
-        } else {
-            status = 'Ended';
-        }
 
-        campaign.status = status;
-        await campaign.save();
+            campaign.status = status;
+            await campaign.save();
+        }
     }
 
     logMessage('Finished hourly campaign group status update');
