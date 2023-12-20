@@ -1,4 +1,4 @@
-const emailAmzTemplate = ({ user, campaignGroupName, campaigns }) => {
+const emailCampaignFail = ({ user, campaigns }) => {
     let html = `
         <!DOCTYPE html>
         <html lang="en">
@@ -30,56 +30,70 @@ const emailAmzTemplate = ({ user, campaignGroupName, campaigns }) => {
         </head>
         <body>
         <p>Hi ${user?.name ?? 'Test'}, </p>
-        <p>Rede has finished creating the Amazon campaigns and adsets in your ${
-            campaignGroupName ?? ''
-        } group. Please see below for the status of each creation attempt:</p>
+        <p>Something has happened during campaign creation. Please refer below for the status of each creation attempt:</p>
     `;
 
     // Iterate over each campaign
-    Object.keys(campaigns).forEach(campaignId => {
-        const adsets = campaigns[campaignId];
-
-        html += `
+    campaigns.forEach(campaign => {
+        if (campaign.type === 'Campaign') {
+            html += `
                 <div>
-                    <span>Campaign Name: ${campaignId}</span>
+                    <table>
+                    <thead>
+                        <tr>
+                            <th>Campaign Name</th>
+                            <th>Status</th>
+                            <th>Channel</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${campaign.name}</td>
+                            <td>${campaign.reason}</td>
+                            <td>${campaign.channel}</td>
+                        </tr>
+                    </tbody>
+                    </table>
                     <table>
                         <thead>
                             <tr>
                                 <th>Adset Name</th>
                                 <th>Status</th>
-                                <th>Format</th>
                             </tr>
                         </thead>
                         <tbody>
-        `;
+            `;
 
-        // Iterate over adsets of the campaign
-        adsets.forEach(adset => {
-            html += `
+            campaign?.adsets.forEach(adset => {
+                html += `
                             <tr>
                                 <td>${adset.name}</td>
-                                <td>${adset.status}</td>
-                                <td>${adset.format ?? 'N/A'}</td>
+                                <td>${adset.reason}</td>
                             </tr>
             `;
-        });
+            });
 
-        html += `
+            html += `
                         </tbody>
                     </table>
                 </div>
         `;
+        } else {
+            html += `
+                <div>
+                    <span>Adset Name: ${campaign.name}</span>
+                    <span>Status: ${campaign.reason}</span>
+                    <span>Channel: ${campaign.channel}</span>
+                </div>
+        `;
+        }
     });
 
     html += `
-        <p>This covers the entire ${
-            campaignGroupName ?? ''
-        } group you submitted to the automated creation queue on [Date Submitted].</p>
-        <p>Thanks,</p>
         </body>
         </html>
     `;
 
     return html;
 };
-module.exports = { emailAmzTemplate };
+module.exports = { emailCampaignFail };

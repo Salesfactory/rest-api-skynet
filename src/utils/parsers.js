@@ -256,9 +256,56 @@ function convertToCents(dollars) {
     return cents;
 }
 
+// ambos son arrays en la db, y como solo estamos creando campañas nuevas
+// no hay que preocuparse por actualizar campañas existentes ¡AÚN!
+const concatMissingCampaigns = async (prevCampaigns, newCampaigns) => {
+    if (Array.isArray(prevCampaigns)) {
+        return [...prevCampaigns, ...newCampaigns];
+    } else {
+        return newCampaigns;
+    }
+};
+
+
+/* esta funcion reemplaza el jobId con el objeto adset luego de haber sido procesado por la cola
+   ----------------------------------
+   ejemplo de datos que recibe
+   amazonCampaigns : [{"name":"8-Responsive eCommerce-b","data":{"orderId":"587878912348263615"},"adsets":[{"jobId":6,"adset":null}]}]
+   jobId : 6
+   adset : {"lineitem":"123456789"}
+   ----------------------------------
+   ejemplo de datos que retorna
+   [{"name":"8-Responsive eCommerce-b","data":{"orderId":"587878912348263615"},"adsets":[{"lineitem":"123456789"}]}]
+*/
+const replaceJobIdWithAdsetInAmazonData = async ({
+    amazonCampaigns,
+    jobId,
+    adset,
+}) => {
+    if (!Array.isArray(amazonCampaigns)) {
+        return [];
+    }
+    const amazonCampaignsUpdated = amazonCampaigns.map(campaign => {
+        const { adsets } = campaign;
+        const adsetsUpdated = adsets.map(_adset => {
+            if (_adset.jobId == jobId) {
+                return adset;
+            }
+            return _adset;
+        });
+        return {
+            ...campaign,
+            adsets: adsetsUpdated,
+        };
+    });
+    return amazonCampaignsUpdated;
+};
+
 module.exports = {
     groupCampaignAllocationsByType,
     transformBudgetData,
     generateCampaignsWithTimePeriodsAndAdsets,
     convertToCents,
+    concatMissingCampaigns,
+    replaceJobIdWithAdsetInAmazonData,
 };

@@ -12,6 +12,9 @@ jest.mock('../src/utils/allocations', () => ({
     createCampaigns: jest.fn(),
     findIdInAllocations: jest.fn(),
 }));
+jest.mock('../src/utils/email', () => ({
+    send: jest.fn(),
+}));
 const {
     createCampaigns,
     findIdInAllocations,
@@ -84,13 +87,31 @@ const _createAmazonCampaign = jest.fn(() => {
     });
 });
 const _createAmazonAdset = jest.fn(() => {
-    return {};
+    return {
+        id: 'AMAZON_ADSET_ID',
+        data: [
+            {
+                lineItem: 2,
+            },
+        ],
+    };
 });
 const _createFacebookCampaign = jest.fn(() => {
     return Promise.resolve({ id: 'FACEBOOK_CAMPAIGN_ID' });
 });
 const _createFacebookAdset = jest.fn(() => {
     return {};
+});
+
+const _addJobToQueue = jest.fn(() => {
+    return Promise.resolve({ id: 'JOB_ID' });
+});
+
+const _startProcessingJobs = jest.fn().mockImplementation(async callback => {
+    // Call the passed function
+    const job = { data: { foo: 'bar' } };
+    const data = await callback(job);
+    return Promise.resolve({ data });
 });
 
 const app = makeApp({
@@ -102,6 +123,10 @@ const app = makeApp({
     facebook: {
         createCampaign: _createFacebookCampaign,
         createAdset: _createFacebookAdset,
+    },
+    amzQueue: {
+        addJobToQueue: _addJobToQueue,
+        startProcessingJobs: _startProcessingJobs,
     },
 });
 const request = supertest(app);
@@ -594,7 +619,7 @@ describe('Campaign Endpoints Test', () => {
                 `/api/clients/${clientId}/marketingcampaign`
             );
             expect(response.status).toBe(404);
-            expect(response.body.message).toBe(`Client not found`);
+            expect(response.body.message).toBe('Client with ID 1 not found');
         });
 
         it('400', async () => {
@@ -613,7 +638,7 @@ describe('Campaign Endpoints Test', () => {
 
             expect(response.status).toBe(400);
             expect(response.body.message).toBe(
-                `Missing required fields: name, goals, total_gross_budget, flight_time_start, flight_time_end, net_budget, periods, channels, allocations`
+                'Missing required field: name; Missing required field: goals; Missing required field: total_gross_budget; Missing required field: flight_time_start; Missing required field: flight_time_end; Missing required field: net_budget; Missing required field: periods; Missing required field: channels; Missing required field: allocations; Margin must be a number; Total gross budget must be a number; Net budget must be a number; Periods must be an array; Channels must be an array'
             );
         });
 
@@ -724,6 +749,12 @@ describe('Campaign Endpoints Test', () => {
 
             expect(response.status).toBe(201);
             expect(response.body.data).toEqual({
+                campaigns: [
+                    {
+                        id: 1,
+                        name: 'Test Campaign 1',
+                    },
+                ],
                 budgets: data.budget,
                 amazonData: {
                     adsets: {
@@ -1561,6 +1592,12 @@ describe('Campaign Endpoints Test', () => {
                     code: 207,
                     message: 'Marketing campaign created with errors',
                     data: {
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
                         amazonData: {
                             success: [],
                             error: [
@@ -1642,11 +1679,11 @@ describe('Campaign Endpoints Test', () => {
                 CampaignGroup.create.mockResolvedValue(data);
                 Budget.create.mockResolvedValue(data.budget);
 
-                const response = await request
+                await request
                     .post(`/api/clients/${clientId}/marketingcampaign`)
                     .send(campaignOrchestrationAmazonDSPPayloadData);
 
-                expect(_createAmazonAdset).not.toHaveBeenCalled();
+                expect(_addJobToQueue).not.toHaveBeenCalled();
             });
             test('Given the payload  contain an Amazon Adset, the Amazon Adset API should be called', async () => {
                 const data = {
@@ -1686,11 +1723,12 @@ describe('Campaign Endpoints Test', () => {
                 });
                 CampaignGroup.create.mockResolvedValue(data);
                 Budget.create.mockResolvedValue(data.budget);
-                const response = await request
+                await request
                     .post(`/api/clients/${clientId}/marketingcampaign`)
                     .send(adsetAmazonDSPPayload);
 
-                expect(_createAmazonAdset).toHaveBeenCalled();
+                expect(_addJobToQueue).toHaveBeenCalled();
+                expect(_startProcessingJobs).toHaveBeenCalled();
             });
             test('Given the payload  contain 2 Amazon adset, the Amazon API should be called 2 Times', async () => {
                 const data = {
@@ -1699,6 +1737,7 @@ describe('Campaign Endpoints Test', () => {
                     createdAt: '2023-07-07 18:13:23.552748-04',
                     updatedAt: '2023-07-07 18:13:23.552748-04',
                     get: jest.fn().mockResolvedValue({
+                        id: 'campaing-group-id',
                         campaigns: [
                             {
                                 id: 1,
@@ -1728,146 +1767,58 @@ describe('Campaign Endpoints Test', () => {
                 });
                 CampaignGroup.create.mockResolvedValue(data);
                 Budget.create.mockResolvedValue(data.budget);
+                jest.spyOn(global, 'setTimeout').mockImplementation(callback =>
+                    callback()
+                );
+
+                Budget.findOne.mockResolvedValue({
+                    id: 1,
+                    amazonCampaigns: [
+                        {
+                            name: '8-Responsive eCommerce-b',
+                            data: { orderId: '587878912348263615' },
+                            adsets: [{ jobId: 10, adset: null }],
+                        },
+                    ],
+                });
 
                 await request
                     .post(`/api/clients/${clientId}/marketingcampaign`)
                     .send(adsetAmazonDSPPayload);
 
-                expect(_createAmazonAdset).toHaveBeenCalledTimes(2);
-            });
-            it('should the Amazon API with specific parameters', async () => {
-                const data = {
-                    id: 1,
-                    ...adsetAmazonDSPPayload,
-                    createdAt: '2023-07-07 18:13:23.552748-04',
-                    updatedAt: '2023-07-07 18:13:23.552748-04',
-                    get: jest.fn().mockResolvedValue({
-                        campaigns: [
-                            {
-                                id: 1,
-                                name: 'Test Campaign 1',
-                            },
-                        ],
-                    }),
-                };
-                const user = {
-                    id: 1,
-                    username: '123',
-                };
-
-                Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising DSP' },
-                ]);
-
-                getUser.mockResolvedValue(user);
-
-                createCampaigns.mockImplementation(() => ({
-                    errors: [],
-                    successes: [{ y: 'success' }],
-                }));
-                Client.findOne.mockResolvedValue({
-                    id: 1,
-                    name: 'Test Client 1',
+                expect(_addJobToQueue).toHaveBeenCalledTimes(2);
+                expect(_addJobToQueue).toHaveBeenCalledWith({
+                    jobData: {
+                        adset: {
+                            budget: 2125,
+                            format: 'FORMAT',
+                            id: '1-SEARCH-dfsdfsd-sdfdx',
+                            name: '202301|SEARCH|OBJETIVE|NAMESD|SCOPE|TARGET|FORMAT',
+                            percentage: 100,
+                            targeting: 'TARGET',
+                            type: 'ADSET',
+                        },
+                        orderId: 2,
+                        profileId: 'DSP_PROFILE_ID',
+                        campaignId: '1-SEARCH-dfsdfsd1',
+                        campaignGroupId: 'campaing-group-id',
+                        type: 'Sponsored Ads Line Item',
+                    },
+                    batchId: 'campaing-group-id',
                 });
-                CampaignGroup.create.mockResolvedValue(data);
-                Budget.create.mockResolvedValue(data.budget);
 
-                const response = await request
-                    .post(`/api/clients/${clientId}/marketingcampaign`)
-                    .send(adsetAmazonDSPPayload);
+                expect(_startProcessingJobs).toHaveBeenCalledTimes(1);
 
+                expect(_createAmazonAdset).toHaveBeenCalledTimes(1);
                 expect(_createAmazonAdset).toHaveBeenCalledWith({
-                    access: { ACCESS_TOKEN: '123', CLIENT_ID: 'TEST' },
-                    adset: {
-                        budget: 2125,
-                        format: 'FORMAT',
-                        id: '1-SEARCH-dfsdfsd-sdfdx',
-                        name: '202301|SEARCH|OBJETIVE|NAMESD|SCOPE|TARGET|FORMAT',
-                        percentage: 100,
-                        targeting: 'TARGET',
-                        type: 'ADSET',
+                    access: {
+                        ACCESS_TOKEN: '123',
+                        CLIENT_ID: 'TEST',
                     },
-                    orderId: 2,
-                    profileId: 'DSP_PROFILE_ID',
-                    type: 'Sponsored Ads Line Item',
+                    foo: 'bar',
                 });
-            });
-            test('When the payload contains data for creating 3 Facebook adsets, and the process results in 2 adsets failing during creation, the API response should include a list of successfully created adsets and a list of adsets that failed to be created.', async () => {
-                const data = {
-                    id: 1,
-                    ...adsetAmazonDSPPayload,
-                    createdAt: '2023-07-07 18:13:23.552748-04',
-                    updatedAt: '2023-07-07 18:13:23.552748-04',
-                    get: jest.fn().mockResolvedValue({
-                        campaigns: [
-                            {
-                                id: 1,
-                                name: 'Test Campaign 1',
-                            },
-                        ],
-                    }),
-                };
-                const user = {
-                    id: 1,
-                    username: '123',
-                };
 
-                Channel.findAll.mockResolvedValue([
-                    { id: 2, name: 'Amazon Advertising DSP' },
-                ]);
-
-                getUser.mockResolvedValue(user);
-
-                createCampaigns.mockImplementation(() => ({
-                    errors: [],
-                    successes: [{ y: 'success' }],
-                }));
-                Client.findOne.mockResolvedValue({
-                    id: 1,
-                    name: 'Test Client 1',
-                });
-                CampaignGroup.create.mockResolvedValue(data);
-                Budget.create.mockResolvedValue(data.budget);
-
-                _createAmazonAdset.mockRejectedValueOnce({
-                    response: {
-                        data: {
-                            error: 'Bad Request',
-                            message: 'Invalid adset data',
-                        },
-                        status: 400, // Or any other non-2xx status code
-                        statusText: 'Bad Request',
-                        headers: {},
-                    },
-                });
-                const response = await request
-                    .post(`/api/clients/${clientId}/marketingcampaign`)
-                    .send(adsetAmazonDSPPayload);
-
-                expect(response.status).toBe(207);
-                expect(response.body).toEqual({
-                    code: 207,
-                    data: {
-                        amazonData: {
-                            error: expect.any(Array),
-                            success: expect.any(Array),
-                            adsets: {
-                                error: expect.any(Array),
-                                success: expect.any(Array),
-                            },
-                        },
-                        facebook: {
-                            error: [],
-                            success: [],
-                            adsets: {
-                                error: [],
-                                success: [],
-                            },
-                        },
-                    },
-                    message: 'Marketing campaign created with errors',
-                });
-                _createAmazonCampaign.mockClear();
+                global.setTimeout.mockRestore();
             });
         });
 
@@ -2359,6 +2310,12 @@ describe('Campaign Endpoints Test', () => {
                 expect(response.body).toEqual({
                     code: 207,
                     data: {
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
                         amazonData: {
                             error: [],
                             success: [],
@@ -2658,6 +2615,12 @@ describe('Campaign Endpoints Test', () => {
                 expect(response.body).toEqual({
                     code: 207,
                     data: {
+                        campaigns: [
+                            {
+                                id: 1,
+                                name: 'Test Campaign 1',
+                            },
+                        ],
                         amazonData: {
                             error: [],
                             success: [],
@@ -2758,7 +2721,33 @@ describe('Campaign Endpoints Test', () => {
                 .put(`/api/clients/${clientId}/marketingcampaign/${campaignId}`)
                 .send(sendData);
             expect(response.status).toBe(200);
-            expect(response.body.data).toEqual({});
+            expect(response.body.data).toEqual({
+                id: 1,
+                name: 'asd',
+                goals: 'asd',
+                total_gross_budget: 123,
+                margin: 0.12,
+                flight_time_start: '2023-02-01T04:00:00.000Z',
+                flight_time_end: '2023-03-01T04:00:00.000Z',
+                net_budget: '108.24',
+                channels: [{ id: 1, name: 'Google Ads' }],
+                periods: [
+                    { id: 'february', label: 'february' },
+                    { id: 'march', label: 'march' },
+                ],
+                createdAt: '2023-07-07 18:13:23.552748-04',
+                updatedAt: '2023-07-07 18:13:23.552748-04',
+                amazonData: {
+                    success: [],
+                    error: [],
+                    adsets: { success: [], error: [] },
+                },
+                facebook: {
+                    success: [],
+                    error: [],
+                    adsets: { success: [], error: [] },
+                },
+            });
             expect(response.body.message).toBe(
                 'Marketing campaign updated successfully'
             );
