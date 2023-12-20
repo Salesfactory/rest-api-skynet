@@ -1429,6 +1429,7 @@ const updateMarketingCampaign = async (req, res) => {
                                                     endDate: endTime,
                                                     optimization_goal,
                                                     status,
+                                                    totalBudget,
                                                 } = adset;
                                                 const adsetResponse =
                                                     await req.facebook.createAdset(
@@ -1442,7 +1443,7 @@ const updateMarketingCampaign = async (req, res) => {
                                                             billing_event,
                                                             lifetime_budget:
                                                                 convertToCents(
-                                                                    budget
+                                                                    totalBudget
                                                                 ),
                                                             bid_strategy,
                                                             daily_budget:
