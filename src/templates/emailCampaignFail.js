@@ -64,7 +64,7 @@ const emailCampaignFail = ({ user, campaigns }) => {
                         <tbody>
             `;
 
-            campaign?.adsets.forEach(adset => {
+            campaign?.adsets?.forEach(adset => {
                 html += `
                             <tr>
                                 <td>${adset.name}</td>
