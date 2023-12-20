@@ -2721,7 +2721,33 @@ describe('Campaign Endpoints Test', () => {
                 .put(`/api/clients/${clientId}/marketingcampaign/${campaignId}`)
                 .send(sendData);
             expect(response.status).toBe(200);
-            expect(response.body.data).toEqual({});
+            expect(response.body.data).toEqual({
+                id: 1,
+                name: 'asd',
+                goals: 'asd',
+                total_gross_budget: 123,
+                margin: 0.12,
+                flight_time_start: '2023-02-01T04:00:00.000Z',
+                flight_time_end: '2023-03-01T04:00:00.000Z',
+                net_budget: '108.24',
+                channels: [{ id: 1, name: 'Google Ads' }],
+                periods: [
+                    { id: 'february', label: 'february' },
+                    { id: 'march', label: 'march' },
+                ],
+                createdAt: '2023-07-07 18:13:23.552748-04',
+                updatedAt: '2023-07-07 18:13:23.552748-04',
+                amazonData: {
+                    success: [],
+                    error: [],
+                    adsets: { success: [], error: [] },
+                },
+                facebook: {
+                    success: [],
+                    error: [],
+                    adsets: { success: [], error: [] },
+                },
+            });
             expect(response.body.message).toBe(
                 'Marketing campaign updated successfully'
             );

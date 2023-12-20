@@ -1498,8 +1498,60 @@ const updateMarketingCampaign = async (req, res) => {
             });
         }
 
-        res.status(200).json({
-            message: 'Marketing campaign updated successfully',
+        const updatedCampaignGroup = await CampaignGroup.findOne({
+            where: { id: campaignId, client_id: client.id },
+            include: [
+                {
+                    model: Budget,
+                    as: 'budgets',
+                    limit: 1,
+                    order: [['updatedAt', 'DESC']],
+                    attributes: [
+                        'id',
+                        'periods',
+                        'allocations',
+                        'amazonCampaigns',
+                        'facebookCampaigns',
+                    ],
+                },
+            ],
+            raw: true,
+        });
+
+        let returnStatus = 200;
+        let returnMessage = 'Marketing campaign updated successfully';
+
+        if (
+            createdfacebookCampaignsResult.fails.length > 0 ||
+            createdFacebookAdsetResult.fails.length > 0 ||
+            createdAmazonCampaignsResult.fails.length > 0 ||
+            createdAmazonAdsetsResult.fails.length > 0
+        ) {
+            returnStatus = 207;
+            returnMessage = 'Marketing campaign updated with errors';
+        }
+
+        res.status(returnStatus).json({
+            message: returnMessage,
+            data: {
+                ...updatedCampaignGroup,
+                amazonData: {
+                    success: createdAmazonCampaignsResult.success,
+                    error: createdAmazonCampaignsResult.fails,
+                    adsets: {
+                        success: createdAmazonAdsetsResult.success,
+                        error: createdAmazonAdsetsResult.fails,
+                    },
+                },
+                facebook: {
+                    success: createdfacebookCampaignsResult.success,
+                    error: createdfacebookCampaignsResult.fails,
+                    adsets: {
+                        success: createdFacebookAdsetResult.success,
+                        error: createdFacebookAdsetResult.fails,
+                    },
+                },
+            },
         });
     } catch (error) {
         console.log(error);
