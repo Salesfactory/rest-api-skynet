@@ -326,6 +326,7 @@ const getSponsoredAdsLineItemCreateData = ({ adset, orderId }) => {
         timeUnitCount,
         timeUnit,
         budget,
+        totalBudget,
     } = adset;
 
     const lineItem = [
@@ -336,7 +337,7 @@ const getSponsoredAdsLineItemCreateData = ({ adset, orderId }) => {
             startDateTime: formatDateString(startDate),
             endDateTime: formatDateString(endDate),
             budget: {
-                totalBudgetAmount: budget || 1,
+                totalBudgetAmount: totalBudget || 1,
                 budgetCaps: [
                     {
                         recurrenceTimePeriod: 'UNCAPPED', // "UNCAPPED" for now

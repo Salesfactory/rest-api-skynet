@@ -1359,6 +1359,7 @@ describe('Campaign Endpoints Test', () => {
                                 name: 'test-campaign-adset',
                                 percentage: 100,
                                 type: 'ADSET',
+                                totalBudget: 4250,
                             },
                         ],
                         advertiserId: 'ADVERTISING_ID',
@@ -1825,6 +1826,7 @@ describe('Campaign Endpoints Test', () => {
                             percentage: 100,
                             targeting: 'TARGET',
                             type: 'ADSET',
+                            totalBudget: 4250,
                         },
                         orderId: 2,
                         profileId: 'DSP_PROFILE_ID',
@@ -2480,7 +2482,7 @@ describe('Campaign Endpoints Test', () => {
 
                 expect(_createFacebookAdset).toHaveBeenCalled();
             });
-            test('Given the payload  contain 30 Facebook adset, the Facebook API should be called 30 Times', async () => {
+            test('Given the payload  contain 5 Facebook adset, the Facebook API should be called 5 Times', async () => {
                 const data = {
                     id: 1,
                     ...adsetFacebookPayload,
@@ -2522,7 +2524,7 @@ describe('Campaign Endpoints Test', () => {
                     .post(`/api/clients/${clientId}/marketingcampaign`)
                     .send(adsetFacebookPayload);
 
-                expect(_createFacebookAdset).toHaveBeenCalledTimes(30);
+                expect(_createFacebookAdset).toHaveBeenCalledTimes(5);
             });
             it('should the Facebook API with specific parameters', async () => {
                 const data = {
@@ -2574,7 +2576,7 @@ describe('Campaign Endpoints Test', () => {
                     {
                         name: 'api-adset-test-1',
                         campaign_id: 'FACEBOOK_CAMPAIGN_ID',
-                        lifetime_budget: 42500,
+                        lifetime_budget: 331500,
                         bid_amount: 200,
                         billing_event: 'PAGE_LIKES',
                         start_time: '2023-01-01T00:00:17+0000',
