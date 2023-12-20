@@ -266,7 +266,6 @@ const concatMissingCampaigns = async (prevCampaigns, newCampaigns) => {
     }
 };
 
-
 /* esta funcion reemplaza el jobId con el objeto adset luego de haber sido procesado por la cola
    ----------------------------------
    ejemplo de datos que recibe
@@ -301,6 +300,13 @@ const replaceJobIdWithAdsetInAmazonData = async ({
     return amazonCampaignsUpdated;
 };
 
+function mergeResultObjects(resultObj1, resultObj2) {
+    return {
+        success: [...resultObj1.success, ...resultObj2.success],
+        fails: [...resultObj1.fails, ...resultObj2.fails],
+    };
+}
+
 module.exports = {
     groupCampaignAllocationsByType,
     transformBudgetData,
@@ -308,4 +314,5 @@ module.exports = {
     convertToCents,
     concatMissingCampaigns,
     replaceJobIdWithAdsetInAmazonData,
+    mergeResultObjects,
 };
