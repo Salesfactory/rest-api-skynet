@@ -3273,40 +3273,36 @@ describe('Campaign Endpoints Test', () => {
                 Budget.create.mockResolvedValue(data.budgets);
                 Job.findAll.mockResolvedValue([
                     {
-                        dataValues: {
-                            id: 15,
-                            data: {
-                                type: 'Sponsored Ads Line Item',
-                                adset: {
-                                    id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
-                                    name: 'test-campaign-adset',
-                                    budget: 2125,
-                                    percentage: 100,
-                                    type: 'ADSET',
-                                },
-                                campaignId: '2-Sponsored Ads-test-campaign',
+                        id: 15,
+                        data: {
+                            type: 'Sponsored Ads Line Item',
+                            adset: {
+                                id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                name: 'test-campaign-adset',
+                                budget: 2125,
+                                percentage: 100,
+                                type: 'ADSET',
                             },
-                            status: 'completed',
-                            batchId: 16,
+                            campaignId: '2-Sponsored Ads-test-campaign',
                         },
+                        status: 'completed',
+                        batchId: 16,
                     },
                     {
-                        dataValues: {
-                            id: 15,
-                            data: {
-                                type: 'Sponsored Ads Line Item',
-                                adset: {
-                                    id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
-                                    name: 'test-campaign-adset',
-                                    budget: 2125,
-                                    percentage: 100,
-                                    type: 'ADSET',
-                                },
-                                campaignId: '3-Sponsored Ads-test-campaign',
+                        id: 15,
+                        data: {
+                            type: 'Sponsored Ads Line Item',
+                            adset: {
+                                id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
+                                name: 'test-campaign-adset',
+                                budget: 2125,
+                                percentage: 100,
+                                type: 'ADSET',
                             },
-                            status: 'completed',
-                            batchId: 16,
+                            campaignId: '3-Sponsored Ads-test-campaign',
                         },
+                        status: 'completed',
+                        batchId: 16,
                     },
                 ]);
 
@@ -3940,42 +3936,38 @@ describe('Campaign Endpoints Test', () => {
                 Budget.create.mockResolvedValue(data.budgets);
                 Job.findAll.mockResolvedValue([
                     {
-                        dataValues: {
-                            id: 15,
-                            data: {
-                                type: 'Sponsored Ads Line Item',
-                                adset: {
-                                    id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
-                                    name: 'test-campaign-adset',
-                                    budget: 2125,
-                                    percentage: 100,
-                                    type: 'ADSET',
-                                },
-                                campaignId: '2-Sponsored Ads-test-campaign',
-                                orderId: 'order-2',
+                        id: 15,
+                        data: {
+                            type: 'Sponsored Ads Line Item',
+                            adset: {
+                                id: '2-Sponsored Ads-test-campaign-test-campaign-adset',
+                                name: 'test-campaign-adset',
+                                budget: 2125,
+                                percentage: 100,
+                                type: 'ADSET',
                             },
-                            status: 'completed',
-                            batchId: 16,
+                            campaignId: '2-Sponsored Ads-test-campaign',
+                            orderId: 'order-2',
                         },
+                        status: 'completed',
+                        batchId: 16,
                     },
                     {
-                        dataValues: {
-                            id: 15,
-                            data: {
-                                type: 'Sponsored Ads Line Item',
-                                adset: {
-                                    id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
-                                    name: 'test-campaign-adset',
-                                    budget: 2125,
-                                    percentage: 100,
-                                    type: 'ADSET',
-                                },
-                                campaignId: '3-Sponsored Ads-test-campaign',
-                                orderId: 'order-2',
+                        id: 15,
+                        data: {
+                            type: 'Sponsored Ads Line Item',
+                            adset: {
+                                id: '3-Sponsored Ads-test-campaign-test-campaign-adset',
+                                name: 'test-campaign-adset',
+                                budget: 2125,
+                                percentage: 100,
+                                type: 'ADSET',
                             },
-                            status: 'completed',
-                            batchId: 16,
+                            campaignId: '3-Sponsored Ads-test-campaign',
+                            orderId: 'order-2',
                         },
+                        status: 'completed',
+                        batchId: 16,
                     },
                 ]);
 

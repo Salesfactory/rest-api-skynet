@@ -1143,13 +1143,13 @@ const updateMarketingCampaign = async (req, res) => {
                     });
                 } else {
                     // step 1: query to table jobs
-                    const queryJobs = await Job.findAll();
+                    const queryJobs = await Job.findAll({ raw: true });
                     for (const campaign of campaignDataByChannel[
                         'Amazon Advertising DSP'
                     ]['Responsive eCommerce']) {
                         // step 2: search campaignId inside jobs table
                         const campaignIds = queryJobs.map(
-                            job => job.dataValues.data.campaignId
+                            job => job.data.campaignId
                         );
                         let amazonAdset = [];
                         let orderIdOfCampaignCreated;
@@ -1160,17 +1160,14 @@ const updateMarketingCampaign = async (req, res) => {
                         if (campaignIds.includes(campaign.id)) {
                             try {
                                 const orderIds = queryJobs.find(
-                                    job =>
-                                        job.dataValues.data.campaignId ===
-                                        campaign.id
-                                ).dataValues.data.orderId;
+                                    job => job.data.campaignId === campaign.id
+                                ).data.orderId;
                                 const adsetIds = queryJobs
                                     .filter(
                                         job =>
-                                            job.dataValues.data.campaignId ===
-                                            campaign.id
+                                            job.data.campaignId === campaign.id
                                     )
-                                    .map(job => job.dataValues.data.adset.id);
+                                    .map(job => job.data.adset.id);
                                 orderIdOfCampaignCreated = orderIds;
                                 for (const adset of campaign.adsets) {
                                     // check for non previously added adsets
