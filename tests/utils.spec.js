@@ -141,7 +141,7 @@ describe('groupCampaignAllocationsByType', () => {
     it('should return campaign data grouped by type', () => {
         // Sample input data
         const channelsWithApiEnabled = [
-            { name: 'Amazon Advertising' },
+            { name: 'Amazon Advertising DSP' },
             { name: 'Google Ads' },
         ];
 
@@ -153,7 +153,7 @@ describe('groupCampaignAllocationsByType', () => {
                 budget: 4000,
                 allocations: [
                     {
-                        name: 'Amazon Advertising',
+                        name: 'Amazon Advertising DSP',
                         allocations: [
                             {
                                 name: 'Sponsored Display',
@@ -202,7 +202,7 @@ describe('groupCampaignAllocationsByType', () => {
         };
 
         const expectedOutput = {
-            'Amazon Advertising': {
+            'Amazon Advertising DSP': {
                 'Sponsored Display': [
                     {
                         id: '1-SEARCH-dfsdfsd',

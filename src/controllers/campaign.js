@@ -647,193 +647,179 @@ const createMarketingCampaign = async (req, res) => {
                     }
                 }
             }
-            // const allocationsData = transformBudgetData(req.body);
-            // amazon campaign creation
-            const campaignAdSetAllocation =
-                await generateCampaignsWithTimePeriodsAndAdsets({
-                    ...req.body,
-                });
 
             if (campaignDataByChannel['Facebook'] && facebookAdAccountId) {
-                // this is preventing the budget from being created
-                // if (!facebookAdAccountId) {
-                //     return res.status(400).json({
-                //         message: `Invalid Facebook ADAccountId`,
-                //     });
-                // }
-                const { campaigns } = campaignAdSetAllocation.find(
-                    channel => channel.name === 'Facebook'
-                );
-
-                for (const campaign of campaigns) {
+                const facebookData = campaignDataByChannel['Facebook'];
+                for (const type in facebookData) {
                     let facebookAdset = [];
-                    try {
-                        const {
-                            name,
-                            campaignObjective,
-                            specialAdCategories,
-                            timePeriods,
-                            buyingType,
-                            status,
-                            country,
-                        } = campaign;
-
-                        const facebookCampaign =
-                            await req.facebook.createCampaign(
-                                secret.FACEBOOK_ACCESS_TOKEN,
-                                facebookAdAccountId,
-                                {
+                    if (facebookData.hasOwnProperty(type)) {
+                        for (const campaign of facebookData[type]) {
+                            try {
+                                const {
                                     name,
-                                    objective: campaignObjective,
-                                    special_ad_categories: specialAdCategories,
-                                    special_ad_category_country: country
-                                        ? [country]
-                                        : null, // verificar si se manda como array o sin array
-                                    status: status || 'PAUSED',
-                                    buying_type: buyingType,
-                                }
-                            );
-
-                        createdfacebookCampaignsResult.success.push(
-                            facebookCampaign
-                        );
-
-                        if (Array.isArray(timePeriods)) {
-                            for (const timePeriod of timePeriods) {
-                                for (const adset of timePeriod.adsets) {
-                                    try {
-                                        const {
-                                            name: adsetName,
-                                            bid_strategy,
-                                            bid_amount,
-                                            billing_event,
-                                            budget,
-                                            daily_budget,
-                                            startDate: startTime,
-                                            endDate: endTime,
-                                            optimization_goal,
-                                            status,
-                                        } = adset;
-                                        const adsetPayload = {
-                                            campaign_id: facebookCampaign.id,
-                                            name: adsetName,
-                                            bid_amount,
-                                            billing_event,
-                                            lifetime_budget:
-                                                convertToCents(budget),
-                                            bid_strategy,
-                                            daily_budget:
-                                                convertToCents(daily_budget),
-                                            start_time: startTime,
-                                            end_time: endTime,
-                                            optimization_goal,
-                                            targeting: {
-                                                geo_locations: {
-                                                    countries: ['US'],
-                                                },
-                                            },
+                                    campaignObjective,
+                                    specialAdCategories,
+                                    timePeriods,
+                                    buyingType,
+                                    status,
+                                    country,
+                                } = campaign;
+                                const facebookCampaign =
+                                    await req.facebook.createCampaign(
+                                        secret.FACEBOOK_ACCESS_TOKEN,
+                                        facebookAdAccountId,
+                                        {
+                                            name,
+                                            objective: campaignObjective,
+                                            special_ad_categories:
+                                                specialAdCategories,
+                                            special_ad_category_country: country
+                                                ? [country]
+                                                : null, // verificar si se manda como array o sin array
                                             status: status || 'PAUSED',
-                                        };
-                                        // Check and remove 'bid_amount' based on the FB API allowed conditions
-                                        if (
-                                            adsetPayload.bid_amount === ' ' ||
-                                            adsetPayload.billing_event ===
-                                                'LOWEST_COST_WITHOUT_CAP'
-                                        ) {
-                                            delete adsetPayload.bid_amount;
+                                            buying_type: buyingType,
                                         }
-                                        //An ad set with a daily_budget cannot be updated to have lifetime_budget later, and vice versa.
-                                        if (adsetPayload.lifetime_budget) {
-                                            delete adsetPayload.daily_budget;
-                                        }
-                                        const adsetResponse =
-                                            await req.facebook.createAdset(
-                                                secret.FACEBOOK_ACCESS_TOKEN,
-                                                facebookAdAccountId,
-                                                adsetPayload
-                                            );
-                                        facebookAdset.push({
-                                            name: adset.id,
-                                            data: adsetResponse,
-                                        });
-                                        createdFacebookAdsetResult.success.push(
-                                            adsetResponse
-                                        );
-                                    } catch (adsetError) {
-                                        console.error(
-                                            'Error creating adset:',
-                                            adsetError
-                                        );
-                                        const {
-                                            name: adsetName,
-                                            bid_amount,
-                                            billing_event,
-                                            budget,
-                                            start_time,
-                                            end_time,
-                                            optimization_goal,
-                                        } = adset;
-                                        createdFacebookAdsetResult.fails.push({
-                                            facebookCampaignId:
-                                                facebookCampaign.id,
-                                            adsetName: adset.name,
-                                            ...adsetError,
-                                            payload: {
+                                    );
+
+                                createdfacebookCampaignsResult.success.push(
+                                    facebookCampaign
+                                );
+                                if (Array.isArray(campaign?.adsets)) {
+                                    for (const adset of campaign.adsets) {
+                                        try {
+                                            const {
+                                                name: adsetName,
+                                                bid_strategy,
+                                                bid_amount,
+                                                billing_event,
+                                                budget,
+                                                daily_budget,
+                                                startDate: startTime,
+                                                endDate: endTime,
+                                                optimization_goal,
+                                                status,
+                                            } = adset;
+                                            const adsetPayload = {
                                                 campaign_id:
                                                     facebookCampaign.id,
                                                 name: adsetName,
                                                 bid_amount,
                                                 billing_event,
-                                                lifetime_budget: budget,
-                                                start_time,
-                                                end_time,
+                                                lifetime_budget:
+                                                    convertToCents(budget),
+                                                bid_strategy,
+                                                daily_budget:
+                                                    convertToCents(
+                                                        daily_budget
+                                                    ),
+                                                start_time: startTime,
+                                                end_time: endTime,
                                                 optimization_goal,
                                                 targeting: {
                                                     geo_locations: {
                                                         countries: ['US'],
                                                     },
                                                 },
-                                                status: 'PAUSED',
-                                            },
-                                        });
+                                                status: status || 'PAUSED',
+                                            };
+                                            // Check and remove 'bid_amount' based on the FB API allowed conditions
+                                            if (
+                                                adsetPayload.bid_amount ===
+                                                    ' ' ||
+                                                adsetPayload.billing_event ===
+                                                    'LOWEST_COST_WITHOUT_CAP'
+                                            ) {
+                                                delete adsetPayload.bid_amount;
+                                            }
+                                            //An ad set with a daily_budget cannot be updated to have lifetime_budget later, and vice versa.
+                                            if (adsetPayload.lifetime_budget) {
+                                                delete adsetPayload.daily_budget;
+                                            }
+                                            const adsetResponse =
+                                                await req.facebook.createAdset(
+                                                    secret.FACEBOOK_ACCESS_TOKEN,
+                                                    facebookAdAccountId,
+                                                    adsetPayload
+                                                );
+                                            facebookAdset.push({
+                                                name: adset.id,
+                                                data: adsetResponse,
+                                            });
+                                            createdFacebookAdsetResult.success.push(
+                                                adsetResponse
+                                            );
+                                        } catch (adsetError) {
+                                            console.error(
+                                                'Error creating adset:',
+                                                adsetError
+                                            );
+                                            const {
+                                                name: adsetName,
+                                                bid_amount,
+                                                billing_event,
+                                                budget,
+                                                start_time,
+                                                end_time,
+                                                optimization_goal,
+                                            } = adset;
+                                            createdFacebookAdsetResult.fails.push(
+                                                {
+                                                    facebookCampaignId:
+                                                        facebookCampaign.id,
+                                                    adsetName: adset.name,
+                                                    ...adsetError,
+                                                    payload: {
+                                                        campaign_id:
+                                                            facebookCampaign.id,
+                                                        name: adsetName,
+                                                        bid_amount,
+                                                        billing_event,
+                                                        lifetime_budget: budget,
+                                                        start_time,
+                                                        end_time,
+                                                        optimization_goal,
+                                                        targeting: {
+                                                            geo_locations: {
+                                                                countries: [
+                                                                    'US',
+                                                                ],
+                                                            },
+                                                        },
+                                                        status: 'PAUSED',
+                                                    },
+                                                }
+                                            );
 
-                                        campaignCreationFails.push({
-                                            name: adset.name,
-                                            type: 'Adset',
-                                            channel: 'Facebook',
-                                            reason: adsetError.message,
-                                        });
+                                            campaignCreationFails.push({
+                                                name: adset.name,
+                                                type: 'Adset',
+                                                channel: 'Facebook',
+                                                reason: adsetError.message,
+                                            });
+                                        }
                                     }
                                 }
+                            } catch (campaignError) {
+                                console.error(
+                                    'Error creating campaign:',
+                                    campaignError
+                                );
+                                createdfacebookCampaignsResult.fails.push({
+                                    name: campaign.name,
+                                    ...campaignError,
+                                });
+                                campaignCreationFails.push({
+                                    name: campaign.name,
+                                    type: 'Campaign',
+                                    channel: 'Facebook',
+                                    adsets: campaign?.adsets?.map(adset => ({
+                                        name: adset.name,
+                                        reason: 'No campaign was created',
+                                    })),
+                                    reason: campaignError.message,
+                                });
                             }
                         }
-                        facebookCampaigns.push({
-                            name: campaign.id,
-                            data: facebookCampaign,
-                            adsets: facebookAdset,
-                        });
-                    } catch (campaignError) {
-                        console.error(
-                            'Error creating campaign:',
-                            campaignError
-                        );
-                        createdfacebookCampaignsResult.fails.push({
-                            name: campaign.name,
-                            ...campaignError,
-                        });
-
-                        campaignCreationFails.push({
-                            name: campaign.name,
-                            type: 'Campaign',
-                            channel: 'Facebook',
-                            adsets: campaign?.timePeriods[0]?.adsets?.map(
-                                adset => ({
-                                    name: adset.name,
-                                    reason: 'No campaign was created',
-                                })
-                            ),
-                            reason: campaignError.message,
-                        });
                     }
                 }
             }
@@ -865,7 +851,6 @@ const createMarketingCampaign = async (req, res) => {
 
         let returnStatus = 201;
         let returnMessage = 'Marketing campaign created successfully';
-
         if (
             createdfacebookCampaignsResult.fails.length > 0 ||
             createdFacebookAdsetResult.fails.length > 0 ||

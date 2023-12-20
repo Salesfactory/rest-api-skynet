@@ -17,34 +17,86 @@ function groupCampaignAllocationsByType({
                     for (const campaignType of channel.allocations) {
                         if (Array.isArray(campaignType.allocations)) {
                             for (const campaign of campaignType.allocations) {
-                                campaignData.set(campaign.id, {
-                                    channel: channel.name,
-                                    name: campaign.name,
-                                    type: campaignType.name,
-                                    budget:
-                                        (
-                                            campaignData.get(campaign.id) || {
-                                                budget: 0,
-                                            }
-                                        ).budget + parseFloat(campaign.budget),
+                                if (channel.name === 'Amazon Advertising DSP') {
+                                    campaignData.set(campaign.id, {
+                                        channel: channel.name,
+                                        name: campaign.name,
+                                        type: campaignType.name,
+                                        budget:
+                                            (
+                                                campaignData.get(
+                                                    campaign.id
+                                                ) || {
+                                                    budget: 0,
+                                                }
+                                            ).budget +
+                                            parseFloat(campaign.budget),
 
-                                    // amazon dsp specific fields
-                                    advertiserId: campaign.advertiserId,
-                                    recurrenceTimePeriod:
-                                        campaign.recurrenceTimePeriod,
-                                    frequencyCapType: campaign.frequencyCapType,
-                                    frequencyCapMaxImpressions:
-                                        campaign.frequencyCapMaxImpressions,
-                                    frequencyCapTimeUnitCount:
-                                        campaign.frequencyCapTimeUnitCount,
-                                    frequencyCapTimeUnit:
-                                        campaign.frequencyCapTimeUnit,
-                                    productLocation: campaign.productLocation,
-                                    biddingStrategy: campaign.biddingStrategy,
-                                    goal: campaign.orderGoal,
-                                    goalKpi: campaign.orderGoalKpi,
-                                    adsets: campaign.allocations,
-                                });
+                                        // amazon dsp specific fields
+                                        advertiserId: campaign.advertiserId,
+                                        recurrenceTimePeriod:
+                                            campaign.recurrenceTimePeriod,
+                                        frequencyCapType:
+                                            campaign.frequencyCapType,
+                                        frequencyCapMaxImpressions:
+                                            campaign.frequencyCapMaxImpressions,
+                                        frequencyCapTimeUnitCount:
+                                            campaign.frequencyCapTimeUnitCount,
+                                        frequencyCapTimeUnit:
+                                            campaign.frequencyCapTimeUnit,
+                                        productLocation:
+                                            campaign.productLocation,
+                                        biddingStrategy:
+                                            campaign.biddingStrategy,
+                                        goal: campaign.orderGoal,
+                                        goalKpi: campaign.orderGoalKpi,
+                                        adsets: campaign.allocations,
+                                    });
+                                } else if (channel.name === 'Facebook') {
+                                    campaignData.set(campaign.id, {
+                                        adsets: campaign.allocations,
+                                        channel: channel.name,
+                                        name: campaign.name,
+                                        type: campaignType.name,
+                                        budget:
+                                            (
+                                                campaignData.get(
+                                                    campaign.id
+                                                ) || {
+                                                    budget: 0,
+                                                }
+                                            ).budget +
+                                            parseFloat(campaign.budget),
+
+                                        objective: campaign.objective,
+                                        specialAdCategories:
+                                            campaign.specialAdCategories,
+                                        campaignObjective:
+                                            campaign.campaignObjective,
+                                        id: campaign.id,
+                                        goals: campaign.goals,
+                                        campaignType: campaignType.name,
+                                        timePeriods: [],
+                                        buyingType: campaign.buyingType,
+                                        country: campaign.country,
+                                    });
+                                } else {
+                                    campaignData.set(campaign.id, {
+                                        adsets: campaign.allocations,
+                                        channel: channel.name,
+                                        name: campaign.name,
+                                        type: campaignType.name,
+                                        budget:
+                                            (
+                                                campaignData.get(
+                                                    campaign.id
+                                                ) || {
+                                                    budget: 0,
+                                                }
+                                            ).budget +
+                                            parseFloat(campaign.budget),
+                                    });
+                                }
                             }
                         }
                     }
@@ -265,7 +317,6 @@ const concatMissingCampaigns = async (prevCampaigns, newCampaigns) => {
         return newCampaigns;
     }
 };
-
 
 /* esta funcion reemplaza el jobId con el objeto adset luego de haber sido procesado por la cola
    ----------------------------------

@@ -2452,7 +2452,7 @@ describe('Campaign Endpoints Test', () => {
 
                 expect(_createFacebookAdset).toHaveBeenCalled();
             });
-            test('Given the payload  contain 30 Facebook adset, the Facebook API should be called 30 Times', async () => {
+            test('Given the payload  contain 5 Facebook adset, the Facebook API should be called 5 Times', async () => {
                 const data = {
                     id: 1,
                     ...adsetFacebookPayload,
@@ -2494,7 +2494,7 @@ describe('Campaign Endpoints Test', () => {
                     .post(`/api/clients/${clientId}/marketingcampaign`)
                     .send(adsetFacebookPayload);
 
-                expect(_createFacebookAdset).toHaveBeenCalledTimes(30);
+                expect(_createFacebookAdset).toHaveBeenCalledTimes(5);
             });
             it('should the Facebook API with specific parameters', async () => {
                 const data = {
