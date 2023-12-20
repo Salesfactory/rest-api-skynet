@@ -5,6 +5,7 @@ function groupCampaignAllocationsByType({
     flight_time_end,
 }) {
     const campaignData = new Map();
+    const adsetsData = new Map();
     const channelNames = channelsWithApiEnabled.map(channel => channel.name);
     if (!allocations) {
         return {};
@@ -17,6 +18,29 @@ function groupCampaignAllocationsByType({
                     for (const campaignType of channel.allocations) {
                         if (Array.isArray(campaignType.allocations)) {
                             for (const campaign of campaignType.allocations) {
+                                // performing adset calculations
+                                if (Array.isArray(campaign.allocations)) {
+                                    for (const adset of campaign.allocations) {
+                                        adsetsData.set(adset.id, {
+                                            id: adset.id,
+                                            campaignId: campaign.id,
+                                            name: adset.name,
+                                            budget:
+                                                (
+                                                    adsetsData.get(
+                                                        adset.id
+                                                    ) || {
+                                                        budget: 0,
+                                                    }
+                                                ).budget +
+                                                parseFloat(adset.budget),
+                                            type: adset.type,
+                                            campaignType: campaignType.name,
+                                            channelId: channel.id,
+                                        });
+                                    }
+                                }
+
                                 if (channel.name === 'Amazon Advertising DSP') {
                                     campaignData.set(campaign.id, {
                                         channel: channel.name,
@@ -105,10 +129,35 @@ function groupCampaignAllocationsByType({
         }
     }
 
-    const parsedStartDate = new Date(flight_time_start)
+    // iterate over adsetsData and add adsets to campaigns
+    adsetsData.forEach((adsetData, key) => {
+        const campaignId = adsetData.campaignId;
+        const campaign = campaignData.get(campaignId);
+        if (campaign) {
+            // replace adset inside campaign
+            campaign.adsets = campaign.adsets.map(_adset => {
+                if (_adset.id === adsetData.id) {
+                    return {
+                        ..._adset,
+                        totalBudget: parseFloat(adsetData.budget),
+                    };
+                }
+                return _adset;
+            });
+        }
+        campaignData.set(campaignId, campaign);
+    });
+
+    const tmpParsedStartDate = new Date(flight_time_start);
+    tmpParsedStartDate.setDate(1);
+    const parsedStartDate = tmpParsedStartDate
         .toISOString()
         .substring(0, 10);
-    const parsedEndDate = new Date(flight_time_end)
+
+    const tmpParsedEndDate = new Date(flight_time_end);
+    tmpParsedEndDate.setMonth(tmpParsedEndDate.getMonth() + 1); // Move to the next month
+    tmpParsedEndDate.setDate(0); // Set day to the last day of the previous month
+    const parsedEndDate = tmpParsedEndDate
         .toISOString()
         .substring(0, 10);
 

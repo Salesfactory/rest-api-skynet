@@ -696,6 +696,7 @@ const createMarketingCampaign = async (req, res) => {
                                                 endDate: endTime,
                                                 optimization_goal,
                                                 status,
+                                                totalBudget
                                             } = adset;
                                             const adsetPayload = {
                                                 campaign_id:
@@ -704,7 +705,7 @@ const createMarketingCampaign = async (req, res) => {
                                                 bid_amount,
                                                 billing_event,
                                                 lifetime_budget:
-                                                    convertToCents(budget),
+                                                    convertToCents(totalBudget),
                                                 bid_strategy,
                                                 daily_budget:
                                                     convertToCents(
