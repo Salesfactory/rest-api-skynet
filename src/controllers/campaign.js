@@ -697,7 +697,7 @@ const createMarketingCampaign = async (req, res) => {
                                                 endDate: endTime,
                                                 optimization_goal,
                                                 status,
-                                                totalBudget
+                                                totalBudget,
                                             } = adset;
                                             const adsetPayload = {
                                                 campaign_id:
@@ -1681,7 +1681,6 @@ const updateMarketingCampaign = async (req, res) => {
         let returnStatus = 200;
         let returnMessage = 'Marketing campaign updated successfully';
 
-        console.log(mergedFacebookCampaignsResult);
         if (
             mergedFacebookCampaignsResult.fails.length > 0 ||
             mergedFacebookAdsetResult.fails.length > 0 ||
