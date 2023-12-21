@@ -845,10 +845,6 @@ const createMarketingCampaign = async (req, res) => {
                 allocations,
                 amazonCampaigns,
                 facebookCampaigns,
-                createdfacebookCampaignsResult,
-                createdFacebookAdsetResult,
-                createdAmazonCampaignsResult,
-                createdAmazonAdsetsResult,
             });
             campaignGroup.budgets = newBudget;
         }
@@ -1632,10 +1628,6 @@ const updateMarketingCampaign = async (req, res) => {
                 allocations,
                 amazonCampaigns: mergedAmazonCampaigns,
                 facebookCampaigns: mergedFacebookCampaigns,
-                createdfacebookCampaignsResult: mergedFacebookCampaignsResult,
-                createdFacebookAdsetResult: mergedFacebookAdsetResult,
-                createdAmazonCampaignsResult: mergedAmazonCampaignsResult,
-                createdAmazonAdsetsResult: mergedAmazonAdsetsResult,
             });
         }
         req.amzQueue.startProcessingJobs(async job => {
