@@ -32,6 +32,7 @@ const {
     convertToCents,
     concatMissingCampaigns,
     replaceJobIdWithAdsetInAmazonData,
+    mergeResultObjects,
 } = require('../utils/parsers');
 const { findIdInAllocations } = require('../utils/allocations');
 
@@ -696,7 +697,7 @@ const createMarketingCampaign = async (req, res) => {
                                                 endDate: endTime,
                                                 optimization_goal,
                                                 status,
-                                                totalBudget
+                                                totalBudget,
                                             } = adset;
                                             const adsetPayload = {
                                                 campaign_id:
@@ -1105,6 +1106,10 @@ const updateMarketingCampaign = async (req, res) => {
             success: [],
             fails: [],
         };
+        let mergedFacebookCampaignsResult = { success: [], fails: [] };
+        let mergedFacebookAdsetResult = { success: [], fails: [] };
+        let mergedAmazonCampaignsResult = { success: [], fails: [] };
+        let mergedAmazonAdsetsResult = { success: [], fails: [] };
 
         const { allocations: cgAllocations, periods: cgPeriods } =
             Array.isArray(campaignGroup?.budgets) &&
@@ -1579,7 +1584,44 @@ const updateMarketingCampaign = async (req, res) => {
                 facebookCampaigns
             );
 
+            const currentBudget =
+                campaignGroup?.budgets?.length > 0
+                    ? campaignGroup.budgets[0]
+                    : null;
+
             // insert budget
+            mergedFacebookCampaignsResult = mergeResultObjects(
+                createdfacebookCampaignsResult,
+                currentBudget?.createdfacebookCampaignsResult || {
+                    success: [],
+                    fails: [],
+                }
+            );
+
+            mergedFacebookAdsetResult = mergeResultObjects(
+                createdFacebookAdsetResult,
+                currentBudget?.createdFacebookAdsetResult || {
+                    success: [],
+                    fails: [],
+                }
+            );
+
+            mergedAmazonCampaignsResult = mergeResultObjects(
+                createdAmazonCampaignsResult,
+                currentBudget?.createdAmazonCampaignsResult || {
+                    success: [],
+                    fails: [],
+                }
+            );
+
+            mergedAmazonAdsetsResult = mergeResultObjects(
+                createdAmazonAdsetsResult,
+                currentBudget?.createdAmazonAdsetsResult || {
+                    success: [],
+                    fails: [],
+                }
+            );
+
             await Budget.create({
                 campaign_group_id: campaignId,
                 periods,
@@ -1632,10 +1674,10 @@ const updateMarketingCampaign = async (req, res) => {
         let returnMessage = 'Marketing campaign updated successfully';
 
         if (
-            createdfacebookCampaignsResult.fails.length > 0 ||
-            createdFacebookAdsetResult.fails.length > 0 ||
-            createdAmazonCampaignsResult.fails.length > 0 ||
-            createdAmazonAdsetsResult.fails.length > 0
+            mergedFacebookCampaignsResult.fails.length > 0 ||
+            mergedFacebookAdsetResult.fails.length > 0 ||
+            mergedAmazonCampaignsResult.fails.length > 0 ||
+            mergedAmazonAdsetsResult.fails.length > 0
         ) {
             returnStatus = 207;
             returnMessage = 'Marketing campaign updated with errors';
@@ -1646,19 +1688,19 @@ const updateMarketingCampaign = async (req, res) => {
             data: {
                 ...updatedCampaignGroup,
                 amazonData: {
-                    success: createdAmazonCampaignsResult.success,
-                    error: createdAmazonCampaignsResult.fails,
+                    success: mergedAmazonCampaignsResult.success,
+                    error: mergedAmazonCampaignsResult.fails,
                     adsets: {
-                        success: createdAmazonAdsetsResult.success,
-                        error: createdAmazonAdsetsResult.fails,
+                        success: mergedAmazonAdsetsResult.success,
+                        error: mergedAmazonAdsetsResult.fails,
                     },
                 },
                 facebook: {
-                    success: createdfacebookCampaignsResult.success,
-                    error: createdfacebookCampaignsResult.fails,
+                    success: mergedFacebookCampaignsResult.success,
+                    error: mergedFacebookCampaignsResult.fails,
                     adsets: {
-                        success: createdFacebookAdsetResult.success,
-                        error: createdFacebookAdsetResult.fails,
+                        success: mergedAmazonAdsetsResult.success,
+                        error: mergedAmazonAdsetsResult.fails,
                     },
                 },
             },

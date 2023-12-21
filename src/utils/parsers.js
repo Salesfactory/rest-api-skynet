@@ -401,6 +401,13 @@ const replaceJobIdWithAdsetInAmazonData = async ({
     return amazonCampaignsUpdated;
 };
 
+function mergeResultObjects(resultObj1, resultObj2) {
+    return {
+        success: [...resultObj1.success, ...resultObj2.success],
+        fails: [...resultObj1.fails, ...resultObj2.fails],
+    };
+}
+
 module.exports = {
     groupCampaignAllocationsByType,
     transformBudgetData,
@@ -408,4 +415,5 @@ module.exports = {
     convertToCents,
     concatMissingCampaigns,
     replaceJobIdWithAdsetInAmazonData,
+    mergeResultObjects,
 };
