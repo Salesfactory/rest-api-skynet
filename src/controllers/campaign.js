@@ -32,6 +32,7 @@ const {
     convertToCents,
     concatMissingCampaigns,
     replaceJobIdWithAdsetInAmazonData,
+    mergeResultObjects,
 } = require('../utils/parsers');
 const { findIdInAllocations } = require('../utils/allocations');
 
@@ -456,6 +457,8 @@ const createMarketingCampaign = async (req, res) => {
                 'Responsive eCommerce'
             ].length > 0;
 
+        const isAccessInvalid = !access?.CLIENT_ID || !access?.ACCESS_TOKEN;
+
         const createdAmazonCampaignsResult = {
             success: [],
             fails: [],
@@ -464,9 +467,6 @@ const createMarketingCampaign = async (req, res) => {
             success: [],
             fails: [],
         };
-
-        const isAccessInvalid = !access?.CLIENT_ID || !access?.ACCESS_TOKEN;
-
         const createdfacebookCampaignsResult = {
             success: [],
             fails: [],
@@ -569,7 +569,6 @@ const createMarketingCampaign = async (req, res) => {
                                                             campaignGroup.id,
                                                     }
                                                 );
-
                                             amazonAdset.push({
                                                 jobId,
                                                 adset: null,
@@ -647,193 +646,180 @@ const createMarketingCampaign = async (req, res) => {
                     }
                 }
             }
-            // const allocationsData = transformBudgetData(req.body);
-            // amazon campaign creation
-            const campaignAdSetAllocation =
-                await generateCampaignsWithTimePeriodsAndAdsets({
-                    ...req.body,
-                });
 
             if (campaignDataByChannel['Facebook'] && facebookAdAccountId) {
-                // this is preventing the budget from being created
-                // if (!facebookAdAccountId) {
-                //     return res.status(400).json({
-                //         message: `Invalid Facebook ADAccountId`,
-                //     });
-                // }
-                const { campaigns } = campaignAdSetAllocation.find(
-                    channel => channel.name === 'Facebook'
-                );
-
-                for (const campaign of campaigns) {
+                const facebookData = campaignDataByChannel['Facebook'];
+                for (const type in facebookData) {
                     let facebookAdset = [];
-                    try {
-                        const {
-                            name,
-                            campaignObjective,
-                            specialAdCategories,
-                            timePeriods,
-                            buyingType,
-                            status,
-                            country,
-                        } = campaign;
-
-                        const facebookCampaign =
-                            await req.facebook.createCampaign(
-                                secret.FACEBOOK_ACCESS_TOKEN,
-                                facebookAdAccountId,
-                                {
+                    if (facebookData.hasOwnProperty(type)) {
+                        for (const campaign of facebookData[type]) {
+                            try {
+                                const {
                                     name,
-                                    objective: campaignObjective,
-                                    special_ad_categories: specialAdCategories,
-                                    special_ad_category_country: country
-                                        ? [country]
-                                        : null, // verificar si se manda como array o sin array
-                                    status: status || 'PAUSED',
-                                    buying_type: buyingType,
-                                }
-                            );
-
-                        createdfacebookCampaignsResult.success.push(
-                            facebookCampaign
-                        );
-
-                        if (Array.isArray(timePeriods)) {
-                            for (const timePeriod of timePeriods) {
-                                for (const adset of timePeriod.adsets) {
-                                    try {
-                                        const {
-                                            name: adsetName,
-                                            bid_strategy,
-                                            bid_amount,
-                                            billing_event,
-                                            budget,
-                                            daily_budget,
-                                            startDate: startTime,
-                                            endDate: endTime,
-                                            optimization_goal,
-                                            status,
-                                        } = adset;
-                                        const adsetPayload = {
-                                            campaign_id: facebookCampaign.id,
-                                            name: adsetName,
-                                            bid_amount,
-                                            billing_event,
-                                            lifetime_budget:
-                                                convertToCents(budget),
-                                            bid_strategy,
-                                            daily_budget:
-                                                convertToCents(daily_budget),
-                                            start_time: startTime,
-                                            end_time: endTime,
-                                            optimization_goal,
-                                            targeting: {
-                                                geo_locations: {
-                                                    countries: ['US'],
-                                                },
-                                            },
+                                    campaignObjective,
+                                    specialAdCategories,
+                                    timePeriods,
+                                    buyingType,
+                                    status,
+                                    country,
+                                } = campaign;
+                                const facebookCampaign =
+                                    await req.facebook.createCampaign(
+                                        secret.FACEBOOK_ACCESS_TOKEN,
+                                        facebookAdAccountId,
+                                        {
+                                            name,
+                                            objective: campaignObjective,
+                                            special_ad_categories:
+                                                specialAdCategories,
+                                            special_ad_category_country: country
+                                                ? [country]
+                                                : null, // verificar si se manda como array o sin array
                                             status: status || 'PAUSED',
-                                        };
-                                        // Check and remove 'bid_amount' based on the FB API allowed conditions
-                                        if (
-                                            adsetPayload.bid_amount === ' ' ||
-                                            adsetPayload.billing_event ===
-                                                'LOWEST_COST_WITHOUT_CAP'
-                                        ) {
-                                            delete adsetPayload.bid_amount;
+                                            buying_type: buyingType,
                                         }
-                                        //An ad set with a daily_budget cannot be updated to have lifetime_budget later, and vice versa.
-                                        if (adsetPayload.lifetime_budget) {
-                                            delete adsetPayload.daily_budget;
-                                        }
-                                        const adsetResponse =
-                                            await req.facebook.createAdset(
-                                                secret.FACEBOOK_ACCESS_TOKEN,
-                                                facebookAdAccountId,
-                                                adsetPayload
-                                            );
-                                        facebookAdset.push({
-                                            name: adset.id,
-                                            data: adsetResponse,
-                                        });
-                                        createdFacebookAdsetResult.success.push(
-                                            adsetResponse
-                                        );
-                                    } catch (adsetError) {
-                                        console.error(
-                                            'Error creating adset:',
-                                            adsetError
-                                        );
-                                        const {
-                                            name: adsetName,
-                                            bid_amount,
-                                            billing_event,
-                                            budget,
-                                            start_time,
-                                            end_time,
-                                            optimization_goal,
-                                        } = adset;
-                                        createdFacebookAdsetResult.fails.push({
-                                            facebookCampaignId:
-                                                facebookCampaign.id,
-                                            adsetName: adset.name,
-                                            ...adsetError,
-                                            payload: {
+                                    );
+
+                                createdfacebookCampaignsResult.success.push(
+                                    facebookCampaign
+                                );
+                                if (Array.isArray(campaign?.adsets)) {
+                                    for (const adset of campaign.adsets) {
+                                        try {
+                                            const {
+                                                name: adsetName,
+                                                bid_strategy,
+                                                bid_amount,
+                                                billing_event,
+                                                budget,
+                                                daily_budget,
+                                                startDate: startTime,
+                                                endDate: endTime,
+                                                optimization_goal,
+                                                status,
+                                                totalBudget,
+                                            } = adset;
+                                            const adsetPayload = {
                                                 campaign_id:
                                                     facebookCampaign.id,
                                                 name: adsetName,
                                                 bid_amount,
                                                 billing_event,
-                                                lifetime_budget: budget,
-                                                start_time,
-                                                end_time,
+                                                lifetime_budget:
+                                                    convertToCents(totalBudget),
+                                                bid_strategy,
+                                                daily_budget:
+                                                    convertToCents(
+                                                        daily_budget
+                                                    ),
+                                                start_time: startTime,
+                                                end_time: endTime,
                                                 optimization_goal,
                                                 targeting: {
                                                     geo_locations: {
                                                         countries: ['US'],
                                                     },
                                                 },
-                                                status: 'PAUSED',
-                                            },
-                                        });
+                                                status: status || 'PAUSED',
+                                            };
+                                            // Check and remove 'bid_amount' based on the FB API allowed conditions
+                                            if (
+                                                adsetPayload.bid_amount ===
+                                                    ' ' ||
+                                                adsetPayload.billing_event ===
+                                                    'LOWEST_COST_WITHOUT_CAP'
+                                            ) {
+                                                delete adsetPayload.bid_amount;
+                                            }
+                                            //An ad set with a daily_budget cannot be updated to have lifetime_budget later, and vice versa.
+                                            if (adsetPayload.lifetime_budget) {
+                                                delete adsetPayload.daily_budget;
+                                            }
+                                            const adsetResponse =
+                                                await req.facebook.createAdset(
+                                                    secret.FACEBOOK_ACCESS_TOKEN,
+                                                    facebookAdAccountId,
+                                                    adsetPayload
+                                                );
+                                            facebookAdset.push({
+                                                name: adset.id,
+                                                data: adsetResponse,
+                                            });
+                                            createdFacebookAdsetResult.success.push(
+                                                adsetResponse
+                                            );
+                                        } catch (adsetError) {
+                                            console.error(
+                                                'Error creating adset:',
+                                                adsetError
+                                            );
+                                            const {
+                                                name: adsetName,
+                                                bid_amount,
+                                                billing_event,
+                                                budget,
+                                                start_time,
+                                                end_time,
+                                                optimization_goal,
+                                            } = adset;
+                                            createdFacebookAdsetResult.fails.push(
+                                                {
+                                                    facebookCampaignId:
+                                                        facebookCampaign.id,
+                                                    adsetName: adset.name,
+                                                    ...adsetError,
+                                                    payload: {
+                                                        campaign_id:
+                                                            facebookCampaign.id,
+                                                        name: adsetName,
+                                                        bid_amount,
+                                                        billing_event,
+                                                        lifetime_budget: budget,
+                                                        start_time,
+                                                        end_time,
+                                                        optimization_goal,
+                                                        targeting: {
+                                                            geo_locations: {
+                                                                countries: [
+                                                                    'US',
+                                                                ],
+                                                            },
+                                                        },
+                                                        status: 'PAUSED',
+                                                    },
+                                                }
+                                            );
 
-                                        campaignCreationFails.push({
-                                            name: adset.name,
-                                            type: 'Adset',
-                                            channel: 'Facebook',
-                                            reason: adsetError.message,
-                                        });
+                                            campaignCreationFails.push({
+                                                name: adset.name,
+                                                type: 'Adset',
+                                                channel: 'Facebook',
+                                                reason: adsetError.message,
+                                            });
+                                        }
                                     }
                                 }
+                            } catch (campaignError) {
+                                console.error(
+                                    'Error creating campaign:',
+                                    campaignError
+                                );
+                                createdfacebookCampaignsResult.fails.push({
+                                    name: campaign.name,
+                                    ...campaignError,
+                                });
+                                campaignCreationFails.push({
+                                    name: campaign.name,
+                                    type: 'Campaign',
+                                    channel: 'Facebook',
+                                    adsets: campaign?.adsets?.map(adset => ({
+                                        name: adset.name,
+                                        reason: 'No campaign was created',
+                                    })),
+                                    reason: campaignError.message,
+                                });
                             }
                         }
-                        facebookCampaigns.push({
-                            name: campaign.id,
-                            data: facebookCampaign,
-                            adsets: facebookAdset,
-                        });
-                    } catch (campaignError) {
-                        console.error(
-                            'Error creating campaign:',
-                            campaignError
-                        );
-                        createdfacebookCampaignsResult.fails.push({
-                            name: campaign.name,
-                            ...campaignError,
-                        });
-
-                        campaignCreationFails.push({
-                            name: campaign.name,
-                            type: 'Campaign',
-                            channel: 'Facebook',
-                            adsets: campaign?.timePeriods[0]?.adsets?.map(
-                                adset => ({
-                                    name: adset.name,
-                                    reason: 'No campaign was created',
-                                })
-                            ),
-                            reason: campaignError.message,
-                        });
                     }
                 }
             }
@@ -865,7 +851,6 @@ const createMarketingCampaign = async (req, res) => {
 
         let returnStatus = 201;
         let returnMessage = 'Marketing campaign created successfully';
-
         if (
             createdfacebookCampaignsResult.fails.length > 0 ||
             createdFacebookAdsetResult.fails.length > 0 ||
@@ -990,7 +975,6 @@ const updateMarketingCampaign = async (req, res) => {
                 },
             ],
         });
-
         if (!campaignGroup) {
             return res.status(404).json({
                 message: `Marketing campaign not found`,
@@ -1122,6 +1106,10 @@ const updateMarketingCampaign = async (req, res) => {
             success: [],
             fails: [],
         };
+        let mergedFacebookCampaignsResult = { success: [], fails: [] };
+        let mergedFacebookAdsetResult = { success: [], fails: [] };
+        let mergedAmazonCampaignsResult = { success: [], fails: [] };
+        let mergedAmazonAdsetsResult = { success: [], fails: [] };
 
         const { allocations: cgAllocations, periods: cgPeriods } =
             Array.isArray(campaignGroup?.budgets) &&
@@ -1145,20 +1133,73 @@ const updateMarketingCampaign = async (req, res) => {
                         error: 'Amazon DSP Advertising ID is required',
                     });
                 } else {
+                    // step 1: query to table jobs
+                    const queryJobs = await Job.findAll({ raw: true });
                     for (const campaign of campaignDataByChannel[
                         'Amazon Advertising DSP'
                     ]['Responsive eCommerce']) {
+                        // step 2: search campaignId inside jobs table
+                        const campaignIds = queryJobs.map(
+                            job => job.data.campaignId
+                        );
                         let amazonAdset = [];
-                        // check for non previously added campaigns
-                        const campaingFoundInAllocations =
-                            await findIdInAllocations({
-                                allocations: cgAllocations,
-                                periods: cgPeriods,
-                                id: campaign.id,
-                            });
+                        let orderIdOfCampaignCreated;
+                        //check for non previously added campaigns
 
-                        if (!campaingFoundInAllocations) {
+                        // step 3: if not find the campaignId that is in the job.data, so create a new one
+
+                        if (campaignIds.includes(campaign.id)) {
                             try {
+                                const orderIds = queryJobs.find(
+                                    job => job.data.campaignId === campaign.id
+                                ).data.orderId;
+                                const adsetIds = queryJobs
+                                    .filter(
+                                        job =>
+                                            job.data.campaignId === campaign.id
+                                    )
+                                    .map(job => job.data.adset.id);
+                                orderIdOfCampaignCreated = orderIds;
+                                for (const adset of campaign.adsets) {
+                                    // check for non previously added adsets
+                                    // step 5: if not find campaignId, don't ask and do it
+                                    // step 6: if found campaignId, search if adsetId exists, if exists, don't do anything, but if no exists, create the adset with the previous orderId
+
+                                    if (!adsetIds.includes(adset.id)) {
+                                        const jobId =
+                                            await req.amzQueue.addJobToQueue({
+                                                jobData: {
+                                                    adset,
+                                                    orderId:
+                                                        orderIdOfCampaignCreated,
+                                                    type: 'Sponsored Ads Line Item',
+                                                    profileId: profileId,
+                                                    campaignId: campaign.id,
+                                                },
+                                                batchId: campaignGroup.id,
+                                            });
+                                        amazonAdset.push({
+                                            jobId,
+                                            adset: null,
+                                        });
+                                    }
+                                }
+                            } catch (campaignError) {
+                                console.error(
+                                    'Error creating campaign:',
+                                    campaignError
+                                );
+                                createdAmazonCampaignsResult.fails.push({
+                                    name: campaign.name,
+                                    errorDetails: {
+                                        message: campaignError.message,
+                                        errors: [campaignError],
+                                    },
+                                });
+                            }
+                        } else {
+                            try {
+                                // step 4: if found campaignId don't create the campaign, instead copy the orderId of job.data
                                 const response =
                                     await req.amazon.createCampaign({
                                         campaign: {
@@ -1171,7 +1212,6 @@ const updateMarketingCampaign = async (req, res) => {
                                         access,
                                         profileId,
                                     });
-
                                 if (
                                     Array.isArray(response?.data) &&
                                     response.data.length > 0
@@ -1201,72 +1241,82 @@ const updateMarketingCampaign = async (req, res) => {
 
                                         for (const adset of campaign.adsets) {
                                             // check for non previously added adsets
-                                            const adsetFoundInAllocations =
-                                                await findIdInAllocations({
-                                                    allocations: cgAllocations,
-                                                    periods: cgPeriods,
-                                                    id: adset.id,
-                                                });
+                                            // step 5: if not find campaignId, don't ask and do it
+                                            // step 6: if found campaignId, search if adsetId exists, if exists, don't do anything, but if no exists, create the adset with the previous orderId
 
-                                            if (!adsetFoundInAllocations) {
-                                                const adsetResponse =
-                                                    await req.amazon.createAdset(
-                                                        {
+                                            const jobId =
+                                                await req.amzQueue.addJobToQueue(
+                                                    {
+                                                        jobData: {
                                                             adset,
-                                                            orderId,
+                                                            orderId:
+                                                                orderIdOfCampaignCreated,
                                                             type: 'Sponsored Ads Line Item',
-                                                            access,
-                                                            profileId,
-                                                        }
-                                                    );
-                                                if (
-                                                    Array.isArray(
-                                                        adsetResponse?.data
-                                                    ) &&
-                                                    adsetResponse.data.length >
-                                                        0
-                                                ) {
-                                                    if (
-                                                        adsetResponse.data.some(
-                                                            data =>
-                                                                data.errorDetails
-                                                        ) ||
-                                                        !adsetResponse.data[0]
-                                                            .lineItemId
-                                                    ) {
-                                                        createdAmazonAdsetsResult.fails.push(
-                                                            {
-                                                                name: adset.id,
-                                                                ...adsetResponse
-                                                                    .data[0],
-                                                            }
-                                                        );
-                                                    } else {
-                                                        amazonAdset.push({
-                                                            name: adset.id,
-                                                            data: adsetResponse
-                                                                .data[0]
-                                                                .lineItemId,
-                                                        });
-                                                        createdAmazonAdsetsResult.success.push(
-                                                            {
-                                                                name: adset.id,
-                                                                ...adsetResponse
-                                                                    .data[0],
-                                                            }
-                                                        );
+                                                            profileId:
+                                                                profileId,
+                                                            campaignId:
+                                                                campaign.id,
+                                                        },
+                                                        batchId:
+                                                            campaignGroup.id,
                                                     }
-                                                } else {
+                                                );
+                                            amazonAdset.push({
+                                                jobId,
+                                                adset: null,
+                                            });
+                                            createdAmazonAdsetsResult.success.push(
+                                                {
+                                                    name: adset.id,
+                                                    jobId,
+                                                    status: 'queue',
+                                                }
+                                            );
+                                            if (
+                                                Array.isArray(
+                                                    adsetResponse?.data
+                                                ) &&
+                                                adsetResponse.data.length > 0
+                                            ) {
+                                                if (
+                                                    adsetResponse.data.some(
+                                                        data =>
+                                                            data.errorDetails
+                                                    ) ||
+                                                    !adsetResponse.data[0]
+                                                        .lineItemId
+                                                ) {
                                                     createdAmazonAdsetsResult.fails.push(
                                                         {
                                                             name: adset.id,
-                                                            errorDetails: {
-                                                                message:
-                                                                    'Invalid adset response',
-                                                            },
+                                                            ...adsetResponse
+                                                                .data[0],
+                                                        }
+                                                    );
+                                                } else {
+                                                    amazonAdset.push({
+                                                        name: adset.id,
+                                                        data: adsetResponse
+                                                            .data[0].lineItemId,
+                                                    });
+                                                    createdAmazonAdsetsResult.success.push(
+                                                        {
+                                                            name: adset.id,
+                                                            ...adsetResponse
+                                                                .data[0],
                                                         }
                                                     );
                                                 }
+                                            } else {
+                                                createdAmazonAdsetsResult.fails.push(
+                                                    {
+                                                        name: adset.id,
+                                                        errorDetails: {
+                                                            message:
+                                                                'Invalid adset response',
+                                                        },
+                                                    }
+                                                );
                                             }
                                         }
 
@@ -1384,6 +1434,7 @@ const updateMarketingCampaign = async (req, res) => {
                                                     endDate: endTime,
                                                     optimization_goal,
                                                     status,
+                                                    totalBudget,
                                                 } = adset;
                                                 const adsetResponse =
                                                     await req.facebook.createAdset(
@@ -1397,7 +1448,7 @@ const updateMarketingCampaign = async (req, res) => {
                                                             billing_event,
                                                             lifetime_budget:
                                                                 convertToCents(
-                                                                    budget
+                                                                    totalBudget
                                                                 ),
                                                             bid_strategy,
                                                             daily_budget:
@@ -1492,18 +1543,85 @@ const updateMarketingCampaign = async (req, res) => {
                     }
                 }
             }
+            let _amazonCampaigns;
 
+            if (
+                campaignGroup &&
+                campaignGroup.budgets &&
+                campaignGroup.budgets.length > 0 &&
+                campaignGroup.budgets[0].amazonCampaigns
+            ) {
+                _amazonCampaigns = campaignGroup.budgets[0].amazonCampaigns;
+            } else {
+                console.log(
+                    'Budgets array is empty or amazonCampaigns does not exist'
+                );
+                _amazonCampaigns = []; // or null, or any other default value or error handling
+            }
             const mergedAmazonCampaigns = await concatMissingCampaigns(
-                campaignGroup.budgets[0].amazonCampaigns,
+                _amazonCampaigns,
                 amazonCampaigns
             );
 
+            let _facebookCampaigns;
+
+            if (
+                campaignGroup &&
+                campaignGroup.budgets &&
+                campaignGroup.budgets.length > 0 &&
+                campaignGroup.budgets[0].facebookCampaigns
+            ) {
+                _facebookCampaigns = campaignGroup.budgets[0].facebookCampaigns;
+            } else {
+                console.log(
+                    'Budgets array is empty or amazonCampaigns does not exist'
+                );
+                _facebookCampaigns = []; // or null, or any other default value or error handling
+            }
+
             const mergedFacebookCampaigns = await concatMissingCampaigns(
-                campaignGroup.budgets[0].facebookCampaigns,
+                _facebookCampaigns,
                 facebookCampaigns
             );
 
+            const currentBudget =
+                campaignGroup?.budgets?.length > 0
+                    ? campaignGroup.budgets[0]
+                    : null;
+
             // insert budget
+            mergedFacebookCampaignsResult = mergeResultObjects(
+                createdfacebookCampaignsResult,
+                currentBudget?.createdfacebookCampaignsResult || {
+                    success: [],
+                    fails: [],
+                }
+            );
+
+            mergedFacebookAdsetResult = mergeResultObjects(
+                createdFacebookAdsetResult,
+                currentBudget?.createdFacebookAdsetResult || {
+                    success: [],
+                    fails: [],
+                }
+            );
+
+            mergedAmazonCampaignsResult = mergeResultObjects(
+                createdAmazonCampaignsResult,
+                currentBudget?.createdAmazonCampaignsResult || {
+                    success: [],
+                    fails: [],
+                }
+            );
+
+            mergedAmazonAdsetsResult = mergeResultObjects(
+                createdAmazonAdsetsResult,
+                currentBudget?.createdAmazonAdsetsResult || {
+                    success: [],
+                    fails: [],
+                }
+            );
+
             await Budget.create({
                 campaign_group_id: campaignId,
                 periods,
@@ -1512,6 +1630,25 @@ const updateMarketingCampaign = async (req, res) => {
                 facebookCampaigns: mergedFacebookCampaigns,
             });
         }
+        req.amzQueue.startProcessingJobs(async job => {
+            const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+            await delay(1000); // Wait for one second
+            const {
+                data: { campaignId, ...rest },
+            } = job;
+            const adsetResponse = await req.amazon.createAdset({
+                ...rest,
+                access,
+            });
+
+            console.log(`Processing job data: ${JSON.stringify(job.data)}`);
+
+            // To Do
+            // Update campaing with the adset ids
+            // handle error creating adset
+
+            return adsetResponse;
+        });
 
         const updatedCampaignGroup = await CampaignGroup.findOne({
             where: { id: campaignId, client_id: client.id },
@@ -1537,10 +1674,10 @@ const updateMarketingCampaign = async (req, res) => {
         let returnMessage = 'Marketing campaign updated successfully';
 
         if (
-            createdfacebookCampaignsResult.fails.length > 0 ||
-            createdFacebookAdsetResult.fails.length > 0 ||
-            createdAmazonCampaignsResult.fails.length > 0 ||
-            createdAmazonAdsetsResult.fails.length > 0
+            mergedFacebookCampaignsResult.fails.length > 0 ||
+            mergedFacebookAdsetResult.fails.length > 0 ||
+            mergedAmazonCampaignsResult.fails.length > 0 ||
+            mergedAmazonAdsetsResult.fails.length > 0
         ) {
             returnStatus = 207;
             returnMessage = 'Marketing campaign updated with errors';
@@ -1551,19 +1688,19 @@ const updateMarketingCampaign = async (req, res) => {
             data: {
                 ...updatedCampaignGroup,
                 amazonData: {
-                    success: createdAmazonCampaignsResult.success,
-                    error: createdAmazonCampaignsResult.fails,
+                    success: mergedAmazonCampaignsResult.success,
+                    error: mergedAmazonCampaignsResult.fails,
                     adsets: {
-                        success: createdAmazonAdsetsResult.success,
-                        error: createdAmazonAdsetsResult.fails,
+                        success: mergedAmazonAdsetsResult.success,
+                        error: mergedAmazonAdsetsResult.fails,
                     },
                 },
                 facebook: {
-                    success: createdfacebookCampaignsResult.success,
-                    error: createdfacebookCampaignsResult.fails,
+                    success: mergedFacebookCampaignsResult.success,
+                    error: mergedFacebookCampaignsResult.fails,
                     adsets: {
-                        success: createdFacebookAdsetResult.success,
-                        error: createdFacebookAdsetResult.fails,
+                        success: mergedAmazonAdsetsResult.success,
+                        error: mergedAmazonAdsetsResult.fails,
                     },
                 },
             },

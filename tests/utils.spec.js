@@ -141,7 +141,7 @@ describe('groupCampaignAllocationsByType', () => {
     it('should return campaign data grouped by type', () => {
         // Sample input data
         const channelsWithApiEnabled = [
-            { name: 'Amazon Advertising' },
+            { name: 'Amazon Advertising DSP' },
             { name: 'Google Ads' },
         ];
 
@@ -153,7 +153,7 @@ describe('groupCampaignAllocationsByType', () => {
                 budget: 4000,
                 allocations: [
                     {
-                        name: 'Amazon Advertising',
+                        name: 'Amazon Advertising DSP',
                         allocations: [
                             {
                                 name: 'Sponsored Display',
@@ -202,14 +202,14 @@ describe('groupCampaignAllocationsByType', () => {
         };
 
         const expectedOutput = {
-            'Amazon Advertising': {
+            'Amazon Advertising DSP': {
                 'Sponsored Display': [
                     {
                         id: '1-SEARCH-dfsdfsd',
                         name: 'Campaign 1',
                         budget: 1000,
                         startDate: '2023-01-01',
-                        endDate: '2023-02-01',
+                        endDate: '2023-02-28',
                         type: 'Sponsored Display',
                     },
                     {
@@ -217,7 +217,7 @@ describe('groupCampaignAllocationsByType', () => {
                         name: 'Campaign 2',
                         budget: 1000,
                         startDate: '2023-01-01',
-                        endDate: '2023-02-01',
+                        endDate: '2023-02-28',
                         type: 'Sponsored Display',
                     },
                 ],
@@ -227,7 +227,7 @@ describe('groupCampaignAllocationsByType', () => {
                         name: 'Campaign 3',
                         budget: 2000,
                         startDate: '2023-01-01',
-                        endDate: '2023-02-01',
+                        endDate: '2023-02-28',
                         type: 'Sponsored Products',
                     },
                 ],
@@ -239,7 +239,7 @@ describe('groupCampaignAllocationsByType', () => {
                         name: 'Campaign 4',
                         budget: 2000,
                         startDate: '2023-01-01',
-                        endDate: '2023-02-01',
+                        endDate: '2023-02-28',
                         type: 'Search Ads',
                     },
                 ],

@@ -169,18 +169,38 @@
                                         {
                                             "id": "4-PAGE_LIKES-api-test-1-api-adset-test-1",
                                             "name": "api-adset-test-1",
-                                            "budget": 680,
+                                            "budget": 425,
                                             "percentage": 50,
-                                            "type": "ADSET",
-                                            "daily_budget": "68.81"
+                                            "bid_amount": 200,
+                                            "billing_event": "PAGE_LIKES",
+                                            "startDate": "2023-01-01T00:00:17+0000",
+                                            "endDate": "2023-02-01T00:00:17+0000",
+                                            "optimization_goal": "REACH",
+                                            "daily_budget": "68.81",
+                                            "targeting": {
+                                                "geo_locations": {
+                                                    "countries": ["US"]
+                                                }
+                                            },
+                                            "type": "ADSET"
                                         },
                                         {
                                             "id": "4-PAGE_LIKES-api-test-1-api-adset-test-2",
                                             "name": "api-adset-test-2",
-                                            "budget": 680,
+                                            "budget": 425,
                                             "percentage": 50,
-                                            "type": "ADSET",
-                                            "daily_budget": "68.81"
+                                            "bid_amount": 200,
+                                            "billing_event": "PAGE_LIKES",
+                                            "startDate": "2023-01-01T00:00:17+0000",
+                                            "endDate": "2023-02-01T00:00:17+0000",
+                                            "optimization_goal": "REACH",
+                                            "daily_budget": "68.81",
+                                            "targeting": {
+                                                "geo_locations": {
+                                                    "countries": ["US"]
+                                                }
+                                            },
+                                            "type": "ADSET"
                                         }
                                     ]
                                 },
@@ -195,7 +215,7 @@
                                         {
                                             "id": "4-PAGE_LIKES-api-campaign-2-adtest-test-4",
                                             "name": "adtest-test-4",
-                                            "budget": 680,
+                                            "budget": 850,
                                             "percentage": 100,
                                             "type": "ADSET",
                                             "daily_budget": "68.81"
@@ -222,7 +242,7 @@
                                         {
                                             "id": "4-CONVERSIONS-campaign-3-test-adset-test-4",
                                             "name": "adset-test-4",
-                                            "budget": 340,
+                                            "budget": 425,
                                             "percentage": 50,
                                             "type": "ADSET",
                                             "daily_budget": "68.81"
@@ -230,7 +250,7 @@
                                         {
                                             "id": "4-CONVERSIONS-campaign-3-test-adtes-test-5",
                                             "name": "adtes-test-5",
-                                            "budget": 340,
+                                            "budget": 425,
                                             "percentage": 50,
                                             "type": "ADSET",
                                             "daily_budget": "68.81"
@@ -541,28 +561,28 @@
             ]
         },
         "june_2023": {
-            "budget": 1360,
-            "percentage": 16,
+            "budget": 1700,
+            "percentage": 20,
             "allocations": [
                 {
                     "id": "4",
                     "name": "Facebook",
-                    "isApiEnabled": false,
-                    "budget": 1360,
+                    "isApiEnabled": true,
+                    "budget": 1700,
                     "percentage": 100,
                     "type": "CHANNEL",
                     "allocations": [
                         {
                             "id": "4-PAGE_LIKES",
                             "name": "PAGE_LIKES",
-                            "budget": 680,
+                            "budget": 850,
                             "percentage": 50,
                             "type": "CAMPAIGN_TYPE",
                             "allocations": [
                                 {
                                     "id": "4-PAGE_LIKES-api-test-1",
                                     "name": "api-test-1",
-                                    "budget": 680,
+                                    "budget": 850,
                                     "percentage": 50,
                                     "goals": "",
                                     "type": "CAMPAIGN",
@@ -570,15 +590,37 @@
                                         {
                                             "id": "4-PAGE_LIKES-api-test-1-api-adset-test-1",
                                             "name": "api-adset-test-1",
-                                            "budget": 680,
+                                            "budget": 425,
                                             "percentage": 50,
+                                            "bid_amount": 200,
+                                            "billing_event": "PAGE_LIKES",
+                                            "startDate": "2023-01-01T00:00:17+0000",
+                                            "endDate": "2023-02-01T00:00:17+0000",
+                                            "optimization_goal": "REACH",
+                                            "daily_budget": "68.81",
+                                            "targeting": {
+                                                "geo_locations": {
+                                                    "countries": ["US"]
+                                                }
+                                            },
                                             "type": "ADSET"
                                         },
                                         {
                                             "id": "4-PAGE_LIKES-api-test-1-api-adset-test-2",
                                             "name": "api-adset-test-2",
-                                            "budget": 680,
+                                            "budget": 425,
                                             "percentage": 50,
+                                            "bid_amount": 200,
+                                            "billing_event": "PAGE_LIKES",
+                                            "startDate": "2023-01-01T00:00:17+0000",
+                                            "endDate": "2023-02-01T00:00:17+0000",
+                                            "optimization_goal": "REACH",
+                                            "daily_budget": "68.81",
+                                            "targeting": {
+                                                "geo_locations": {
+                                                    "countries": ["US"]
+                                                }
+                                            },
                                             "type": "ADSET"
                                         }
                                     ]
@@ -586,7 +628,7 @@
                                 {
                                     "id": "4-PAGE_LIKES-api-campaign-2",
                                     "name": "api-campaign-2",
-                                    "budget": 680,
+                                    "budget": 850,
                                     "percentage": 50,
                                     "goals": "",
                                     "type": "CAMPAIGN",
@@ -594,9 +636,10 @@
                                         {
                                             "id": "4-PAGE_LIKES-api-campaign-2-adtest-test-4",
                                             "name": "adtest-test-4",
-                                            "budget": 680,
+                                            "budget": 850,
                                             "percentage": 100,
-                                            "type": "ADSET"
+                                            "type": "ADSET",
+                                            "daily_budget": "68.81"
                                         }
                                     ]
                                 }
@@ -605,14 +648,14 @@
                         {
                             "id": "4-CONVERSIONS",
                             "name": "CONVERSIONS",
-                            "budget": 680,
+                            "budget": 850,
                             "percentage": 50,
                             "type": "CAMPAIGN_TYPE",
                             "allocations": [
                                 {
                                     "id": "4-CONVERSIONS-campaign-3-test",
                                     "name": "campaign-3-test",
-                                    "budget": 680,
+                                    "budget": 850,
                                     "percentage": 100,
                                     "goals": "",
                                     "type": "CAMPAIGN",
@@ -620,16 +663,18 @@
                                         {
                                             "id": "4-CONVERSIONS-campaign-3-test-adset-test-4",
                                             "name": "adset-test-4",
-                                            "budget": 340,
+                                            "budget": 425,
                                             "percentage": 50,
-                                            "type": "ADSET"
+                                            "type": "ADSET",
+                                            "daily_budget": "68.81"
                                         },
                                         {
                                             "id": "4-CONVERSIONS-campaign-3-test-adtes-test-5",
                                             "name": "adtes-test-5",
-                                            "budget": 340,
+                                            "budget": 425,
                                             "percentage": 50,
-                                            "type": "ADSET"
+                                            "type": "ADSET",
+                                            "daily_budget": "68.81"
                                         }
                                     ]
                                 }
